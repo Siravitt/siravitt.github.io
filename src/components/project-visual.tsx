@@ -73,13 +73,16 @@ function Panel({
 }
 
 /**
- * Shared window chrome both mini-UIs sit in: their own ground, one step
- * lighter than `--card` (DESIGN §2a "`--primary` on `--card` (… mini-UIs)";
- * the approved design kit's cards.css `.stage` --fx-bg formula, ported to
- * the `--window` token in globals.css). Review round 1 finding 1: the
+ * Shared window chrome both mini-UIs sit in: their own ground, derived
+ * from `--background` (DESIGN §2a "`--primary` on `--card` (… mini-UIs)";
+ * the approved design kit's cards.css `.stage` --fx-bg formula reads the
+ * page ground inside a project card, ported to the `--window` token in
+ * globals.css — review round 2 finding 1). Review round 1 finding 1: the
  * window is dark, not a white card — `text-foreground`/`text-muted-foreground`
  * read fine on it because it is the dark ground, not light. Finding 2e:
- * every mini-UI reads at the design kit's 13px/20px text.
+ * every mini-UI reads at the design kit's 13px/20px text. Round 3 finding
+ * 2: `@container` makes narrow layout follow the window's own rendered
+ * width, not the viewport, matching the kit's `@container ui-term` rules.
  */
 function Window({
   maxWidthClassName,
@@ -93,13 +96,39 @@ function Window({
       <div
         aria-hidden="true"
         className={cn(
-          "w-full overflow-hidden rounded-xl border border-window-border bg-window text-[13px] leading-5 text-foreground shadow-[var(--window-shadow)]",
+          "@container w-full overflow-hidden rounded-xl border border-window-border bg-window text-[13px] leading-5 text-foreground shadow-[var(--window-shadow)]",
           maxWidthClassName,
         )}
       >
         {children}
       </div>
     </div>
+  );
+}
+
+/**
+ * Splits a repo title ("booking/api") into its parent folder and leaf
+ * segment at the last `/`, so the terminal prompt can hide the parent
+ * on a narrow window (ticket 09 review round 3 finding 2, the kit's
+ * `.ui-term__up`) without a new content field.
+ */
+function splitTitle(title: string): { dir: string; leaf: string } {
+  const lastSlash = title.lastIndexOf("/");
+  return lastSlash === -1
+    ? { dir: "", leaf: title }
+    : { dir: title.slice(0, lastSlash + 1), leaf: title.slice(lastSlash + 1) };
+}
+
+/** The terminal's `~/<dir><leaf> $ ` prompt, shared by the typed command
+ * line and the empty next-prompt line. Hides `dir` below a 299px window
+ * (the kit's `@container ui-term (max-width: 299px) .ui-term__up`). */
+function TerminalPrompt({ title }: { title: string }) {
+  const { dir, leaf } = splitTitle(title);
+  return (
+    <span className="text-muted-foreground">
+      ~/<span className="@max-[299px]:hidden">{dir}</span>
+      {leaf} ${" "}
+    </span>
   );
 }
 
@@ -139,14 +168,14 @@ function TerminalWindow({
         </span>
         <span className="truncate font-medium">{visual.title}</span>
         <span className="text-muted-foreground">zsh</span>
-        <span className="ml-auto inline-flex h-[22px] flex-none items-center gap-1.5 rounded-md bg-foreground/5 px-2 font-mono text-muted-foreground ring-1 ring-inset ring-window-border">
+        <span className="ml-auto inline-flex h-[22px] flex-none items-center gap-1.5 rounded-md bg-foreground/5 px-2 font-mono text-muted-foreground ring-1 ring-inset ring-window-border @max-[299px]:hidden">
           <BranchIcon />
           {visual.branch}
         </span>
       </div>
-      <div className="px-4 py-3 font-mono">
+      <div className="px-4 py-3 font-mono @max-[299px]:px-3">
         <p className="truncate">
-          <span className="text-muted-foreground">~/{visual.title} $ </span>
+          <TerminalPrompt title={visual.title} />
           <span className="font-medium">{visual.command}</span>
         </p>
         {visual.results.map((result, index) => (
@@ -160,7 +189,7 @@ function TerminalWindow({
           <span className="text-muted-foreground">{visual.summary}</span>
         </p>
         <p className="truncate">
-          <span className="text-muted-foreground">~/{visual.title} $ </span>
+          <TerminalPrompt title={visual.title} />
           <span
             aria-hidden="true"
             className="ml-px inline-block h-[15px] w-[7px] rounded-[1px] bg-foreground align-text-bottom"
@@ -187,11 +216,15 @@ function TerminalResultLine({
       >
         ✓
       </span>
-      <span className="min-w-0 flex-[0_1_28ch] truncate text-foreground/80">
+      <span className="min-w-0 flex-[0_1_28ch] truncate text-foreground/80 @max-[299px]:flex-1">
         {result.path}
       </span>
-      <span className="flex-none text-muted-foreground max-sm:hidden">ok</span>
-      <span className="flex-none text-muted-foreground">{result.time}</span>
+      <span className="flex-none text-muted-foreground @max-[379px]:hidden">
+        ok
+      </span>
+      <span className="w-12 flex-none text-right text-muted-foreground @max-[299px]:w-11">
+        {result.time}
+      </span>
     </p>
   );
 }
