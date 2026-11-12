@@ -1,11 +1,14 @@
+import { extname } from "node:path";
+
 /**
  * The release guard's pure scanning logic (docs/tickets/05-built-site-checks-release-guard.md,
  * "Decisions"; docs/tickets/README.md decision 2): the markers that must
- * never reach a built site on `main`. `scripts/check-release.mts` is the
- * thin I/O wrapper — it walks `out/`, reads every `.html` and `.txt`
- * file, and calls `scanFilesForMarkers`. Keeping the scan itself pure
- * and framework-free is what lets it be unit-tested on literal inputs
- * without a real build.
+ * never reach a built site on `main`, and which files under `out/` get
+ * scanned for them. `scripts/check-release.mts` is the thin I/O wrapper —
+ * it walks `out/` recursively, keeps whatever `isScannedFile` accepts,
+ * reads it, and calls `scanFilesForMarkers`. Keeping both the file
+ * selection and the scan itself pure and framework-free is what lets
+ * them be unit-tested on literal inputs without a real build.
  */
 export const RELEASE_GUARD_MARKERS = [
   "[Placeholder]",
@@ -15,6 +18,17 @@ export const RELEASE_GUARD_MARKERS = [
 ] as const;
 
 export type ReleaseGuardMarker = (typeof RELEASE_GUARD_MARKERS)[number];
+
+/** File extensions the guard reads: rendered HTML and RSC `.txt` prefetch payloads. */
+export const SCANNED_EXTENSIONS = new Set([".html", ".txt"]);
+
+/**
+ * Whether the guard should read this file's contents. `path` can be
+ * relative or absolute, nested at any depth — only the extension matters.
+ */
+export function isScannedFile(path: string): boolean {
+  return SCANNED_EXTENSIONS.has(extname(path));
+}
 
 export interface ReleaseGuardFile {
   /** Path as it should be reported, e.g. `out/privacy.html`. */

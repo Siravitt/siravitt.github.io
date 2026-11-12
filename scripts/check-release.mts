@@ -9,14 +9,14 @@
 // the printed report, run directly by Node's native TypeScript support
 // (no bundler, no new dependency).
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { extname, join, relative } from "node:path";
+import { join, relative } from "node:path";
 import {
+  isScannedFile,
   scanFilesForMarkers,
   type ReleaseGuardFile,
 } from "../src/lib/release-guard.ts";
 
 const OUT_DIR = join(process.cwd(), "out");
-const SCANNED_EXTENSIONS = new Set([".html", ".txt"]);
 
 function collectScannedFiles(dir: string): ReleaseGuardFile[] {
   const files: ReleaseGuardFile[] = [];
@@ -27,7 +27,7 @@ function collectScannedFiles(dir: string): ReleaseGuardFile[] {
       files.push(...collectScannedFiles(fullPath));
       continue;
     }
-    if (!SCANNED_EXTENSIONS.has(extname(entry))) continue;
+    if (!isScannedFile(entry)) continue;
     files.push({
       file: relative(process.cwd(), fullPath),
       content: readFileSync(fullPath, "utf8"),
