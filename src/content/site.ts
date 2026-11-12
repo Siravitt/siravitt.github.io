@@ -197,7 +197,12 @@ export interface SiteLabels {
   present: string;
   current: string;
   backToPortfolio: string;
+  /** Accessible name of the mobile menu's disclosure button (ticket 03). */
   menu: string;
+  /** The skip link's visible/accessible text, e.g. "Skip to content" (ticket 03). */
+  skipLink: string;
+  /** Accessible name of the header's nav landmark, e.g. "Main" (ticket 03). */
+  navLabel: string;
 }
 
 export interface SiteNotFound {
@@ -433,6 +438,8 @@ export const site = {
     current: "Current",
     backToPortfolio: "Back to the portfolio",
     menu: "Menu",
+    skipLink: "Skip to content",
+    navLabel: "Main",
   },
   notFound: {
     title: "Page not found",

@@ -142,6 +142,8 @@ export const siteFixture: SiteContent = {
     current: "Fixture Current",
     backToPortfolio: "Fixture back link",
     menu: "Fixture menu",
+    skipLink: "Fixture skip link",
+    navLabel: "Fixture nav label",
   },
   notFound: {
     title: "Fixture not found title",
