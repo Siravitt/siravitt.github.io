@@ -62,7 +62,7 @@ export function Header({
     <header className="sticky top-0 z-40 h-18 border-b border-border bg-background/90 backdrop-blur-sm max-sm:h-14">
       <a
         href="#top"
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-primary focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-50 focus-visible:flex focus-visible:h-11 focus-visible:items-center focus-visible:rounded-md focus-visible:bg-primary focus-visible:px-4 focus-visible:text-sm focus-visible:font-medium focus-visible:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         {site.labels.skipLink}
       </a>
@@ -70,7 +70,7 @@ export function Header({
         <a
           href={logoHref}
           aria-label={site.person.name}
-          className="flex items-center gap-2 rounded-sm text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:justify-self-start"
+          className="flex items-center gap-2 rounded-sm text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring max-sm:min-h-11 lg:justify-self-start"
         >
           <span
             aria-hidden="true"
