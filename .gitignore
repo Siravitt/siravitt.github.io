@@ -18,6 +18,9 @@ chrome-*/
 probe-*/
 shot-*/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Misc
 .DS_Store
 *.log
