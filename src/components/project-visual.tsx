@@ -506,7 +506,7 @@ function DiffThread({
         className="absolute top-3 bottom-3 left-[82px] w-0.5 rounded-full bg-primary @max-[439px]:left-2"
       />
       <div className="flex h-6 items-center gap-2">
-        <span className="grid size-6 flex-none place-items-center rounded-full bg-[color-mix(in_oklab,oklch(0.74_0.08_220)_34%,var(--window))] text-[13px] font-semibold tracking-[-0.02em] text-[color-mix(in_oklab,oklch(0.5_0.09_220)_70%,var(--foreground))] shadow-[inset_0_0_0_1px_color-mix(in_oklab,oklch(0.6_0.08_220)_22%,transparent)]">
+        <span className="grid size-6 flex-none place-items-center rounded-full bg-[color-mix(in_oklab,oklch(0.74_0.08_220)_34%,var(--window))] text-[13px] font-semibold tracking-[-0.02em] text-[color-mix(in_oklab,oklch(0.74_0.08_220)_70%,var(--foreground))] shadow-[inset_0_0_0_1px_color-mix(in_oklab,oklch(0.6_0.08_220)_22%,transparent)]">
           {visual.authorInitials}
         </span>
         <span className="truncate text-[13px] leading-5 font-medium">
