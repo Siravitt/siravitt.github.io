@@ -14,8 +14,73 @@ describe("HomeView", () => {
 
   it("shows the fixture's role and pitch text", () => {
     render(<HomeView site={siteFixture} />);
-    expect(screen.getByText(/Fixture role line/)).toBeInTheDocument();
+    const h1 = screen.getAllByRole("heading", { level: 1 })[0];
+    expect(h1.previousElementSibling?.textContent).toContain(
+      "Fixture role line",
+    );
     expect(screen.getByText(siteFixture.person.pitch)).toBeInTheDocument();
+  });
+
+  it("renders the hero's role, name and pitch in that DOM order", () => {
+    render(<HomeView site={siteFixture} />);
+    const h1 = screen.getAllByRole("heading", { level: 1 })[0];
+    expect(h1.previousElementSibling?.textContent).toContain(
+      "Fixture role line",
+    );
+    expect(h1.nextElementSibling?.textContent).toBe(siteFixture.person.pitch);
+  });
+
+  it("has a primary Email link named by the fixture's emailLabel, to the fixture mailto", () => {
+    render(<HomeView site={siteFixture} />);
+    const hero = screen.getByRole("heading", { level: 1 }).closest("section");
+    const emailLink = within(hero as HTMLElement).getByRole("link", {
+      name: siteFixture.contact.emailLabel,
+    });
+    expect(emailLink).toHaveAttribute(
+      "href",
+      `mailto:${siteFixture.contact.email}`,
+    );
+  });
+
+  it("has a secondary 'See projects' link to #projects when Projects is visible", () => {
+    render(<HomeView site={siteFixture} />);
+    const hero = screen.getByRole("heading", { level: 1 }).closest("section");
+    const link = within(hero as HTMLElement).getByRole("link", {
+      name: siteFixture.hero.secondaryLabel,
+    });
+    expect(link).toHaveAttribute("href", "#projects");
+  });
+
+  it("omits the 'See projects' link when projects is empty", () => {
+    const site = { ...siteFixture, projects: [] };
+    render(<HomeView site={site} />);
+    const hero = screen.getByRole("heading", { level: 1 }).closest("section");
+    expect(
+      within(hero as HTMLElement).queryByRole("link", {
+        name: site.hero.secondaryLabel,
+      }),
+    ).toBeNull();
+  });
+
+  it("the hero has a role=img picture named by the fixture's artLabel", () => {
+    render(<HomeView site={siteFixture} />);
+    expect(
+      screen.getByRole("img", { name: siteFixture.hero.artLabel }),
+    ).toBeInTheDocument();
+  });
+
+  it("the hero's facts list renders each fixture fact", () => {
+    render(<HomeView site={siteFixture} />);
+    siteFixture.hero.facts.forEach((fact) => {
+      expect(screen.getByText(fact.label)).toBeInTheDocument();
+    });
+  });
+
+  it("renders no facts <dl> in the hero when facts is empty", () => {
+    const site = { ...siteFixture, hero: { ...siteFixture.hero, facts: [] } };
+    const { container } = render(<HomeView site={site} />);
+    const hero = container.querySelector("h1")?.closest("section");
+    expect(hero?.querySelector("dl")).toBeNull();
   });
 
   it("keeps the [Placeholder] marker text in the DOM for a marked fixture string", () => {

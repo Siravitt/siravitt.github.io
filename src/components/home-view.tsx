@@ -1,8 +1,12 @@
 import type { SiteContent } from "@/content/site";
 import { Header } from "@/components/header";
+import { HeroArt } from "@/components/hero-art";
+import { HeroFacts } from "@/components/hero-facts";
 import { LegalRow } from "@/components/legal-row";
 import { PlaceholderText } from "@/components/placeholder-text";
 import { SectionShell } from "@/components/section-shell";
+import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { getVisibleSections } from "@/lib/sections";
 
 /**
@@ -33,20 +37,63 @@ export function HomeView({ site }: { site: SiteContent }) {
       >
         <section
           aria-labelledby="hero-h"
-          className="mx-auto max-w-7xl px-6 py-24 max-sm:px-4"
+          className="mx-auto grid max-w-7xl gap-x-12 gap-y-10 px-6 py-24 max-sm:px-4 lg:grid-cols-[5fr_6fr] lg:items-center"
         >
-          <p className="mb-6 text-[14px] leading-[1.5] font-medium">
-            <PlaceholderText text={site.person.role} />
-          </p>
-          <h1
-            id="hero-h"
-            className="text-[length:clamp(38px,3.24vw+25.4px,72px)] leading-[1.02] font-medium tracking-[-0.036em] [font-stretch:96%]"
-          >
-            {site.person.name}
-          </h1>
-          <p className="mt-6 max-w-[42ch] text-[18px] leading-[1.6] font-normal lg:text-[20px]">
-            <PlaceholderText text={site.person.pitch} />
-          </p>
+          <div className="min-w-0">
+            <p className="mb-6 text-[14px] leading-[1.5] font-medium">
+              <PlaceholderText text={site.person.role} />
+            </p>
+            <h1
+              id="hero-h"
+              className="text-[length:clamp(38px,3.24vw+25.4px,72px)] leading-[1.02] font-medium tracking-[-0.036em] [font-stretch:96%]"
+            >
+              {site.person.name}
+            </h1>
+            <p className="mt-6 max-w-[42ch] text-[18px] leading-[1.6] font-normal lg:text-[20px]">
+              <PlaceholderText text={site.person.pitch} />
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4 max-sm:flex-col max-sm:items-stretch">
+              <Button
+                className="w-full sm:w-auto"
+                render={
+                  <a href={`mailto:${site.contact.email}`}>
+                    {site.contact.emailLabel}
+                    <Kbd aria-hidden="true">&#8629;</Kbd>
+                  </a>
+                }
+              />
+              {isVisible("projects") && (
+                <Button
+                  variant="secondary"
+                  className="max-sm:w-full max-sm:justify-center max-sm:border-transparent max-sm:bg-transparent max-sm:text-foreground max-sm:underline max-sm:decoration-border-strong max-sm:underline-offset-4 max-sm:shadow-none max-sm:before:hidden max-sm:hover:bg-transparent"
+                  render={
+                    <a href="#projects">
+                      {site.hero.secondaryLabel}
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M7 2v9M3.5 7.5 7 11l3.5-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </a>
+                  }
+                />
+              )}
+            </div>
+            <HeroFacts site={site} />
+          </div>
+          <div className="min-w-0">
+            <HeroArt site={site} />
+          </div>
         </section>
 
         <SectionShell id="about" title={site.sections.about.title} />
