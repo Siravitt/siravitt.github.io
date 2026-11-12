@@ -216,7 +216,7 @@ export interface SiteNotFound {
  * Daedalus app links to `/privacy.html` and depends on this exact
  * wording: `policyText`'s apostrophes are straight (U+0027) and `line`'s
  * dash is an em dash (U+2014). No formatter or typography step may
- * change either. Guarded by `src/content/site.daedalus.test.ts`.
+ * change either. Guarded by `src/content/site.daedalus.test.tsx`.
  */
 export interface SiteDaedalus {
   line: string;

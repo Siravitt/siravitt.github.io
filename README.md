@@ -68,7 +68,7 @@ typo or a missing required field fails `pnpm typecheck` before it ships.
 - **The `daedalus` block must not be edited.** It carries the exact text
   Google's OAuth consent screen for the Daedalus app depends on (the
   footer line, `/privacy.html`, the policy heading and text).
-  `src/content/site.daedalus.test.ts` guards it in CI.
+  `src/content/site.daedalus.test.tsx` guards it in CI.
 
 ## Fonts
 
@@ -82,3 +82,12 @@ Self-hosted at build via `next/font` (no request to Google at runtime):
 ## Deploy and release
 
 _Added in ticket 17._
+
+## Legacy root files
+
+`index.html` and `privacy.html` at the repo root were the pre-Next.js site.
+Ticket 04 removes them from `develop` (their text now lives in
+`src/content/site.ts`'s `daedalus` block and renders at `/` and
+`/privacy.html` through the Next.js app). **The live site keeps serving the
+old files from `main`** until the first release off `develop`; removing them
+here does not take anything offline.
