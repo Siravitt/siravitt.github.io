@@ -24,6 +24,11 @@ export interface SitePerson {
 export interface SiteMeta {
   /** `<title>`, DESIGN.md §9. */
   title: string;
+  /**
+   * Meta description (spec: placeholder for now). When unset, the page
+   * falls back to `person.pitch` (ticket 02 fills this in for real).
+   */
+  description?: string;
 }
 
 export interface SiteContent {

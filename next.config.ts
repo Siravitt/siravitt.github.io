@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   // Must stay `false` (its default): Google's OAuth consent screen links to
   // `/privacy.html` as a literal file path. `trailingSlash: true` would turn
-  // it into `/privacy.html/index.html`, breaking that URL. Do not change.
+  // it into `privacy/index.html`, breaking that URL. Do not change.
   trailingSlash: false,
 };
 

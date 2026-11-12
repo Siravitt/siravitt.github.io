@@ -29,15 +29,15 @@ put in a `.env` file. `.env.example` does not exist for the same reason.
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | Runs the Next.js dev server. |
-| `pnpm lint` | ESLint (Next.js config + Prettier compatibility). |
-| `pnpm format` | Checks formatting with Prettier (`pnpm format:write` fixes it). |
-| `pnpm typecheck` | `tsc --noEmit`, TypeScript `strict: true`. |
-| `pnpm test` | Vitest + Testing Library + axe (Seam A: view-rendering tests, fixture content only). |
-| `pnpm build` | Static export (`output: "export"`) to `out/`. |
-| `pnpm preview` | Serves the built `out/` folder over plain HTTP on `localhost:4173` so you can review the production build locally. `develop` is never deployed — this is how Flame previews changes before a release. |
+| Command          | What it does                                                                                                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`       | Runs the Next.js dev server.                                                                                                                                                                          |
+| `pnpm lint`      | ESLint (Next.js config + Prettier compatibility).                                                                                                                                                     |
+| `pnpm format`    | Checks formatting with Prettier (`pnpm format:write` fixes it).                                                                                                                                       |
+| `pnpm typecheck` | `tsc --noEmit`, TypeScript `strict: true`.                                                                                                                                                            |
+| `pnpm test`      | Vitest + Testing Library + axe (Seam A: view-rendering tests, fixture content only).                                                                                                                  |
+| `pnpm build`     | Static export (`output: "export"`) to `out/`.                                                                                                                                                         |
+| `pnpm preview`   | Serves the built `out/` folder over plain HTTP on `localhost:4173` so you can review the production build locally. `develop` is never deployed — this is how Flame previews changes before a release. |
 
 `design/` and `docs/` are vendored reference material (the approved design
 prototype and the planning docs): excluded from lint, format, tests and

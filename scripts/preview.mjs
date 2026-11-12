@@ -42,13 +42,34 @@ async function resolveFile(requestPath) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
-  const file =
-    (await resolveFile(decodeURIComponent(url.pathname))) ??
-    (await resolveFile("/404.html"));
+
+  let pathname;
+  try {
+    pathname = decodeURIComponent(url.pathname);
+  } catch (error) {
+    if (error instanceof URIError) {
+      res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
+      res.end("400 Bad Request");
+      return;
+    }
+    throw error;
+  }
+
+  const file = await resolveFile(pathname);
 
   if (!file) {
-    res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
-    res.end("404 Not Found");
+    // Mirrors GitHub Pages: an unknown path gets `out/404.html` served with
+    // a real 404 status, not 200 (the preview must match prod for Flame's
+    // release checks and for Lighthouse, which runs against this server).
+    const notFoundFile = await resolveFile("/404.html");
+    if (!notFoundFile) {
+      res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+      res.end("404 Not Found");
+      return;
+    }
+    const body = await readFile(notFoundFile);
+    res.writeHead(404, { "content-type": "text/html; charset=utf-8" });
+    res.end(body);
     return;
   }
 
@@ -59,6 +80,8 @@ const server = createServer(async (req, res) => {
   res.end(body);
 });
 
-server.listen(PORT, () => {
-  console.log(`Serving out/ at http://localhost:${PORT}`);
+// Bound to loopback only (ticket 01: "serves out/ on localhost"), not every
+// interface — this is a local dev tool, not something to expose on the LAN.
+server.listen(PORT, "127.0.0.1", () => {
+  console.log(`Serving out/ at http://127.0.0.1:${PORT}`);
 });

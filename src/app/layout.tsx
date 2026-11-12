@@ -28,9 +28,10 @@ export const metadata: Metadata = {
   title: site.meta.title,
   // Minimal, not content-driven yet: ticket 13 adds the full SEO set
   // (canonical, Open Graph/Twitter, share image) read from `site.ts`.
-  // A description is required now so Lighthouse's SEO score clears 90.
-  description:
-    "Siravit Tanratanavijit's developer portfolio: projects, stack and experience in Go and Next.js.",
+  // Spec (docs/spec.md §Modules): meta.description falls back to the
+  // pitch when empty — both come from site.ts, so ticket 05's release
+  // guard still catches it while the pitch stays a `[Placeholder]`.
+  description: site.meta.description ?? site.person.pitch,
 };
 
 export default function RootLayout({

@@ -11,7 +11,7 @@ export const PLACEHOLDER_MARKER = "[Placeholder]";
 export interface SplitPlaceholder {
   /** The marker text, or `null` if `text` has none. */
   marker: string | null;
-  /** `text` with the marker (and any single separating space) removed. */
+  /** `text` with the marker removed; a leading separating space (if any) is kept, since the renderer needs it between the tag and `rest`. */
   rest: string;
 }
 

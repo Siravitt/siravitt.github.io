@@ -6,9 +6,7 @@ node_modules/
 out/
 
 # Env
-.env
-.env.local
-.env.*.local
+.env*
 !.env.example
 
 # Agent / design-tooling scratch (never committed)
