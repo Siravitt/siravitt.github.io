@@ -26,7 +26,7 @@ import { cn } from "cn";
 export function ProjectsSection({ site }: { site: SiteContent }) {
   const { projects, labels } = site;
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 max-sm:gap-y-3">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 max-sm:gap-y-8 lg:gap-y-6">
       {projects.map((project, index) => (
         <ProjectCard
           key={project.title}
@@ -145,7 +145,7 @@ function ProjectLink({
     <a
       href={href}
       aria-label={`${label} ${relation} ${title}`}
-      className="group inline-flex min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group inline-flex items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 max-sm:min-h-11 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {label}
       <span
