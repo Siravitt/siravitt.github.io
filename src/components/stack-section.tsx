@@ -37,7 +37,7 @@ export function StackSection({
   const { title, tagline, intro } = site.sections.stack;
 
   return (
-    <div className="mt-12 grid gap-x-6 gap-y-4 max-sm:mt-8 max-sm:gap-y-3 lg:grid-cols-12 lg:items-start">
+    <div className="grid gap-x-6 gap-y-4 max-sm:gap-y-3 lg:grid-cols-12 lg:items-start">
       <div className="lg:col-span-5">
         <div className="mb-12 grid gap-4 max-sm:mb-8">
           <h2 id={headingId} className={DEFAULT_HEADING_CLASSNAME}>
@@ -53,7 +53,7 @@ export function StackSection({
             ) : null}
           </h2>
           {intro ? (
-            <p className="max-w-[62ch] text-[18px] leading-[1.6] xl:text-[20px]">
+            <p className="max-w-[62ch] text-[18px] leading-[1.6] lg:text-[20px]">
               <PlaceholderText text={intro} />
             </p>
           ) : null}
