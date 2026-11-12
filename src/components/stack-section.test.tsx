@@ -5,8 +5,36 @@ import { StackSection } from "@/components/stack-section";
 import { siteFixture } from "@/test/fixtures/site";
 
 describe("StackSection", () => {
+  it("renders an h2 with the given headingId, named after the section's title and tagline", () => {
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveAttribute("id", "stack-h");
+    expect(heading).toHaveTextContent(
+      `${siteFixture.sections.stack.title}. ${siteFixture.sections.stack.tagline}`,
+    );
+  });
+
+  it("puts the heading, intro and rows list inside the same left column as the marks panel's sibling", () => {
+    const { container } = render(
+      <StackSection site={siteFixture} headingId="stack-h" />,
+    );
+    const heading = screen.getByRole("heading", { level: 2 });
+    const panel = screen.getByRole("img", {
+      name: "The marks of the tools in the list",
+    });
+    const groupedList = container.querySelector(
+      "ul:not([aria-hidden])",
+    ) as HTMLElement;
+    // Heading, intro and the grouped rows list share one parent (the left
+    // column); the marks panel is that parent's next sibling.
+    expect(heading.parentElement?.parentElement).toBe(
+      groupedList.parentElement,
+    );
+    expect(panel.previousElementSibling).toBe(groupedList.parentElement);
+  });
+
   it("renders each group's name with its items in order, comma-separated", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     expect(screen.getByText("Fixture group one")).toBeInTheDocument();
     expect(
       screen.getByText("Fixture tool with icon, Fixture tool without icon"),
@@ -25,19 +53,19 @@ describe("StackSection", () => {
         ],
       },
     };
-    render(<StackSection site={site} />);
+    render(<StackSection site={site} headingId="stack-h" />);
     expect(screen.queryByText("Fixture empty group")).toBeNull();
   });
 
   it("has one element with role img named exactly 'The marks of the tools in the list'", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     expect(
       screen.getByRole("img", { name: "The marks of the tools in the list" }),
     ).toBeInTheDocument();
   });
 
   it("does not expose the tool names a second time in the accessibility tree", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     const panel = screen.getByRole("img", {
       name: "The marks of the tools in the list",
     });
@@ -46,7 +74,7 @@ describe("StackSection", () => {
   });
 
   it("holds no focusable elements inside the marks panel", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     const panel = screen.getByRole("img", {
       name: "The marks of the tools in the list",
     });
@@ -60,7 +88,7 @@ describe("StackSection", () => {
   });
 
   it("renders a fixture item without an icon as a row with just its name in the panel", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     const panel = screen.getByRole("img", {
       name: "The marks of the tools in the list",
     });
@@ -70,7 +98,7 @@ describe("StackSection", () => {
   });
 
   it("flattens items across groups into the panel, in content order", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     const panel = screen.getByRole("img", {
       name: "The marks of the tools in the list",
     });
@@ -94,7 +122,7 @@ describe("StackSection", () => {
         ],
       },
     };
-    render(<StackSection site={site} />);
+    render(<StackSection site={site} headingId="stack-h" />);
     const panel = screen.getByRole("img", {
       name: "The marks of the tools in the list",
     });
@@ -102,14 +130,16 @@ describe("StackSection", () => {
   });
 
   it("renders the stack intro line when set", () => {
-    render(<StackSection site={siteFixture} />);
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
     expect(
       screen.getByText(siteFixture.sections.stack.intro as string),
     ).toBeInTheDocument();
   });
 
   it("has no axe violations", async () => {
-    const { container } = render(<StackSection site={siteFixture} />);
+    const { container } = render(
+      <StackSection site={siteFixture} headingId="stack-h" />,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 });

@@ -1,4 +1,5 @@
 import type { SiteContent } from "@/content/site";
+import { DEFAULT_HEADING_CLASSNAME } from "@/components/section-shell";
 import { PlaceholderText } from "@/components/placeholder-text";
 
 /**
@@ -7,13 +8,11 @@ import { PlaceholderText } from "@/components/placeholder-text";
  * groups, each with a one-colour mark drawn as a CSS mask
  * (docs/tickets/07-about-stack.md, "Decisions (binding)"; DESIGN.md §6b
  * "Stack marks", the whole table). Rendered inside the
- * `<SectionShell id="stack">` ticket 03 already owns.
- *
- * The intro line and the rows list share the left column with the
- * marks panel in one grid (DESIGN.md §6b "top-aligned on the right
- * half"): since SectionShell renders the H2 full-width above this
- * component's children, the panel aligns with the top of this body's
- * own left column, not with the page-wide heading.
+ * `<SectionShell id="stack" renderHeading={false}>` ticket 03 already
+ * owns; `headingId` is that shell's render-prop (review round 1): the
+ * H2 lives here, in the left column, so its top lines up with the
+ * marks panel's top across the 12-col split (DESIGN.md §6b "top-aligned
+ * with the heading") instead of sitting full-width above both columns.
  *
  * An empty group is skipped in both the list and the panel (ticket's
  * Review Focus 4); the panel keeps a row, name only, for an item with no
@@ -24,19 +23,41 @@ import { PlaceholderText } from "@/components/placeholder-text";
  * names every tool, and nothing inside is focusable (the rows are not
  * links, DESIGN.md §8).
  */
-export function StackSection({ site }: { site: SiteContent }) {
+export function StackSection({
+  site,
+  headingId,
+}: {
+  site: SiteContent;
+  headingId: string;
+}) {
   const groups = site.stack.groups.filter((group) => group.items.length > 0);
-  const items = groups.flatMap((group) => group.items);
-  const intro = site.sections.stack.intro;
+  const items = groups.flatMap((group) =>
+    group.items.map((item) => ({ ...item, groupName: group.name })),
+  );
+  const { title, tagline, intro } = site.sections.stack;
 
   return (
-    <div className="mt-12 grid gap-x-6 gap-y-10 max-sm:mt-8 lg:grid-cols-12 lg:items-start">
+    <div className="mt-12 grid gap-x-6 gap-y-4 max-sm:mt-8 max-sm:gap-y-3 lg:grid-cols-12 lg:items-start">
       <div className="lg:col-span-5">
-        {intro ? (
-          <p className="mb-8 max-w-[62ch] text-[18px] leading-[1.6]">
-            <PlaceholderText text={intro} />
-          </p>
-        ) : null}
+        <div className="mb-12 grid gap-4 max-sm:mb-8">
+          <h2 id={headingId} className={DEFAULT_HEADING_CLASSNAME}>
+            {title}
+            {tagline ? (
+              <>
+                {"."}
+                <span className="text-muted-foreground">
+                  {" "}
+                  <PlaceholderText text={tagline} />
+                </span>
+              </>
+            ) : null}
+          </h2>
+          {intro ? (
+            <p className="max-w-[62ch] text-[18px] leading-[1.6] xl:text-[20px]">
+              <PlaceholderText text={intro} />
+            </p>
+          ) : null}
+        </div>
         <ul>
           {groups.map((group, i) => (
             <li
@@ -46,7 +67,7 @@ export function StackSection({ site }: { site: SiteContent }) {
               className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 border-b border-border py-4 first:pt-0"
             >
               <span className="font-medium">{group.name}</span>
-              <span className="text-right text-muted-foreground">
+              <span className="text-right">
                 {group.items.map((item) => item.name).join(", ")}
               </span>
             </li>
@@ -62,7 +83,7 @@ export function StackSection({ site }: { site: SiteContent }) {
         <ul aria-hidden="true" className="grid grid-cols-2 gap-3 max-sm:gap-2">
           {items.map((item, i) => (
             <li
-              key={item.name}
+              key={`${item.groupName}-${item.name}`}
               style={
                 {
                   "--i": i,
@@ -84,7 +105,7 @@ export function StackSection({ site }: { site: SiteContent }) {
                     : undefined
                 }
               />
-              <span className="font-mono text-[13px] text-muted-foreground group-hover:text-foreground xl:text-sm">
+              <span className="font-mono text-[13px] leading-[1.3] text-muted-foreground group-hover:text-foreground xl:text-sm">
                 {item.name}
               </span>
             </li>

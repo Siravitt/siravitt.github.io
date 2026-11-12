@@ -33,7 +33,7 @@ export function AboutSection({ site }: { site: SiteContent }) {
         {after}
       </p>
       {about.paragraphs.length > 0 ? (
-        <div className="mt-8 grid gap-x-6 gap-y-6 lg:grid-cols-12">
+        <div className="mt-16 grid gap-x-6 gap-y-4 max-sm:gap-y-3 lg:grid-cols-12">
           {about.paragraphs.map((paragraph, i) => (
             <p
               key={paragraph}

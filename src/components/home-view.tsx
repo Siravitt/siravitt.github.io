@@ -110,9 +110,9 @@ export function HomeView({ site }: { site: SiteContent }) {
           <SectionShell
             id="stack"
             title={site.sections.stack.title}
-            tagline={site.sections.stack.tagline}
+            renderHeading={false}
           >
-            <StackSection site={site} />
+            {(headingId) => <StackSection site={site} headingId={headingId} />}
           </SectionShell>
         )}
 

@@ -77,6 +77,22 @@ describe("SectionShell", () => {
     expect(screen.getByText("Fixture body")).toBeInTheDocument();
   });
 
+  it("does not render its own heading when renderHeading is false, handing headingId to a function child instead", () => {
+    render(
+      <SectionShell id="stack" title="Fixture stack" renderHeading={false}>
+        {(headingId) => <h2 id={headingId}>Fixture stack heading</h2>}
+      </SectionShell>,
+    );
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveAttribute("id", "stack-h");
+    expect(heading).toHaveTextContent("Fixture stack heading");
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(1);
+    expect(heading.closest("section")).toHaveAttribute(
+      "aria-labelledby",
+      "stack-h",
+    );
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(
       <SectionShell
