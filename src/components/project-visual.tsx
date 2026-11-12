@@ -182,7 +182,7 @@ function TerminalResultLine({
   return (
     <p data-line-index={index} className="flex h-5 items-center gap-2.5">
       <span
-        className="w-3.5 flex-none text-center text-muted-foreground"
+        className="grid size-3.5 flex-none place-items-center text-muted-foreground"
         aria-hidden="true"
       >
         ✓
