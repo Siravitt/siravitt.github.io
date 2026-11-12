@@ -45,10 +45,30 @@ Tailwind's source scanning, and never built.
 
 ## Editing content
 
-Every visitor-facing string lives in one typed file, `src/content/site.ts`.
-Strings not yet real start with the `[Placeholder]` marker, which renders as
-a neutral dashed tag — replace the marker and the text together. (Ticket 02
-fills in the full content shape; this pointer will grow with it.)
+Every visitor-facing string lives in one typed file, `src/content/site.ts`,
+which exports a single `site` object plus the types next to it. Its blocks:
+`person`, `meta`, `hero`, `sections`, `about`, `stack`, `projects`,
+`experience`, `contact`, `footer`, `labels`, `notFound` and `daedalus`. A
+typo or a missing required field fails `pnpm typecheck` before it ships.
+
+- **Placeholders.** A string that isn't real yet starts with the
+  `[Placeholder]` marker and renders as a neutral dashed tag — replace the
+  marker and the text together. `pnpm check:release` (ticket 05) fails a PR
+  into `main` while any of these guard markers remain in the built site:
+  the `[Placeholder]` marker, the `example.com` placeholder email domain,
+  the `linkedin.com/in/placeholder` slug, or the literal `Mock project`
+  badge on a project card.
+- **Empty sections.** Setting `projects`, `experience` or `stack.groups` to
+  an empty list hides that section and its nav link; nothing else needs to
+  change.
+- **Optional fields.** Leave out what you don't have: a project's `links`,
+  `visual`, `badge` or `tags`; an experience entry's `end` date (absent
+  means current) or `tags`; a section's `tagline` or `intro`. A missing
+  field renders nothing — no empty link row, no empty picture box.
+- **The `daedalus` block must not be edited.** It carries the exact text
+  Google's OAuth consent screen for the Daedalus app depends on (the
+  footer line, `/privacy.html`, the policy heading and text).
+  `src/content/site.daedalus.test.ts` guards it in CI.
 
 ## Fonts
 
