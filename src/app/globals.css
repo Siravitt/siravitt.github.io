@@ -1,0 +1,127 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * Vendored design prototype and tickets/spec docs: never scanned for
+ * Tailwind utility classes (ticket 01 acceptance criterion). They hold raw
+ * HTML/CSS with class names that happen to look like Tailwind utilities.
+ */
+@source not "../../design";
+@source not "../../docs";
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* project-specific tokens (DESIGN.md §2), not in shadcn's base set */
+  --color-border-strong: var(--border-strong);
+  --color-frame: var(--frame);
+  --color-frame-surface: var(--frame-surface);
+  --color-frame-foreground: var(--frame-foreground);
+  --color-frame-muted: var(--frame-muted);
+  --color-frame-accent: var(--frame-accent);
+  --color-placeholder: var(--placeholder);
+  --color-placeholder-fill: var(--placeholder-fill);
+  --color-placeholder-border: var(--placeholder-border);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
+
+/*
+ * DESIGN.md §2 — shadcn theme variables, copied verbatim from the approved
+ * design (v4.1). Dark only: no `.dark` block, no toggle, ever.
+ */
+:root {
+  --radius: 0.375rem; /* 6px: cards' inner parts, panels, icon tiles (DESIGN §5) */
+
+  --background: #0a0c0f; /* page */
+  --foreground: #e9ecef; /* body and headings      16.5:1 on background */
+  --card: #13161b; /* raised surface; also the Projects band */
+  --card-foreground: #e9ecef; /*                        15.3:1 on card */
+  --popover: #13161b; /* mobile nav sheet */
+  --popover-foreground: #e9ecef;
+
+  --primary: #e8b84a; /* the one accent: primary Button, mark tile, focus ring */
+  --primary-foreground: #0a0c0f; /*                        10.6:1 on primary */
+  --secondary: #13161b; /* secondary Button fill (plus a 1px --border-strong inset ring) */
+  --secondary-foreground: #e9ecef;
+  --muted: #13161b;
+  --muted-foreground: #9ba3ad; /* labels, periods, tags   7.7:1 on background, 7.1:1 on card */
+  --accent: #1a1e24; /* shadcn's "accent" = hover fill for ghost items; NOT the yellow */
+  --accent-foreground: #e9ecef;
+  --destructive: #f87171; /* not used in v1; defined so shadcn components build */
+
+  --border: color-mix(
+    in oklab,
+    #e9ecef 11%,
+    transparent
+  ); /* hairlines between rows and sections */
+  --input: color-mix(
+    in oklab,
+    #e9ecef 20%,
+    transparent
+  ); /* = --border-strong; no inputs in v1 */
+  --ring: #e8b84a; /* focus ring: 2px solid, offset 2px (DESIGN §8) */
+
+  /* project-specific, not in shadcn's set */
+  --border-strong: color-mix(
+    in oklab,
+    #e9ecef 20%,
+    transparent
+  ); /* secondary Button ring, link underlines */
+  --frame: #d9ccb7; /* the warm sand "lit" frame behind each visual */
+  --frame-surface: #e9e0d2; /* the frame's light: the mesh's top-left stop */
+  --frame-foreground: #2a2622; /* text drawn on a frame     9.49:1 on --frame */
+  --frame-muted: #5a534a; /* muted text on a frame     4.79:1 on --frame */
+  --frame-accent: #a8794a; /* DECORATIVE ONLY: the mesh's warm corner, never text or UI */
+  --placeholder: #e9ecef; /* tag text = --foreground   14.4:1 on its tint */
+  --placeholder-fill: color-mix(in oklab, #e9ecef 7%, transparent);
+  --placeholder-border: color-mix(
+    in oklab,
+    #e9ecef 48%,
+    transparent
+  ); /* 1px dashed */
+  --primary-tint: rgb(
+    232 184 74 / 0.08
+  ); /* the highlighted code line's fill (decorative) */
+}
+
+html {
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* DESIGN.md §6 — placeholder tag: `[Placeholder]` marker rendered inline. */
+.ph {
+  @apply rounded-sm border border-dashed border-foreground/48 bg-foreground/7 px-1.5 font-mono text-[13px] font-medium text-foreground;
+}

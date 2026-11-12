@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="sharp" data-ground="sand" data-buttons="solid" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Siravit Tanratanavijit: software developer portfolio</title>
+<meta name="description" content="Projects, stack and experience of Siravit Tanratanavijit, a software developer who builds Go backends and Next.js frontends.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Siravit Tanratanavijit: software developer portfolio">
+<meta property="og:description" content="Projects, stack and experience of a Go and Next.js developer.">
+<meta property="og:image" content="brand/og.png">
+<meta property="og:url" content="https://siravitt.github.io/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="brand/favicon.ico" sizes="32x32">
+<link rel="icon" href="brand/icon.png" type="image/png" sizes="512x512">
+<link rel="apple-touch-icon" href="brand/apple-icon.png">
+<meta name="theme-color" content="#0a0c0f">
+<link rel="canonical" href="https://siravitt.github.io/">
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<!-- prototype only: the build self-hosts both faces with next/font (no runtime request to Google) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #0a0c0f; --p-surface: #13161b; --p-ink: #e9ecef; --p-muted: #9ba3ad;
+  --p-accent: #e8b84a; --p-accent-ink: #0a0c0f; --p-action: #e8b84a; --p-action-ink: #0a0c0f;
+  /* dark only (Flame): the inverse ground is a step of the same dark, never a light slab */
+  --p-inv-bg: #13161b; --p-inv-surface: #1a1e24; --p-inv-ink: #e9ecef; --p-inv-muted: #9ba3ad;
+  --p-inv-accent: #e8b84a; --p-inv-accent-ink: #0a0c0f; --p-inv-action: #e8b84a; --p-inv-action-ink: #0a0c0f;
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-text: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.028em;
+  --display-tracking-xl: -0.036em;
+  --display-stretch: 96%;
+  --ly-scale: 1.04;
+}
+</style>
+<link rel="stylesheet" href="assets/ui/base.css">
+<link rel="stylesheet" href="assets/ui/terminal-run/fragment.css">
+<link rel="stylesheet" href="assets/ui/checklist/fragment.css">
+<link rel="stylesheet" href="assets/ui/diff-review/fragment.css">
+<link rel="stylesheet" href="assets/layout/demo.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/word-highlight/moment.js">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="scroll.css">
+<script src="scroll.js" defer></script>
+</head>
+<body>
+<!-- type: software (a developer portfolio; site-kind software, so the page may be dark: Flame asked for dark only)
+     deal: hero collage, nav nav-centre (nav-mega dealt; redealt: no sub-pages for its columns, no picture for its card),
+           close close-type (v2: the close word dropped, Flame), footer footer-dark, rhythm surface-pairs (dark-band dealt; redealt: its light inverse band
+           breaks "dark only"), buttons solid + keycap primary (v2, Flame: "the button look too simple"), mark initial (ring dealt; redealt: the brief wants the favicon from his name),
+           ground sand (the lit frames; v4.1, Flame kept it over sky), palette: own dark set via start.mjs brand (the dealt palettes are all light)
+     moments: word-highlight on #about (the About statement)
+     v2 scroll motion (Flame: "Can u do more animate with the scroll"): scroll.css + scroll.js, see DESIGN.md §7
+     placeholders: every [Placeholder] tag is copy Flame replaces in src/content/site.ts before release -->
+
+<header class="nav nav--centre">
+  <div class="scroll-progress" aria-hidden="true"><i></i></div>
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Skip to content</a>
+    <a class="nav__logo" href="#top" aria-label="Siravit Tanratanavijit, back to the top"><span class="mark mark--initial" aria-hidden="true">S</span><span>Siravit<span class="nav__surname"> Tanratanavijit</span></span></a>
+    <nav class="nav__links" aria-label="Main">
+      <div class="nav__item"><a class="nav__link" href="#about">About<span class="nav__spy" aria-hidden="true"></span></a></div>
+      <div class="nav__item"><a class="nav__link" href="#stack">Stack<span class="nav__spy" aria-hidden="true"></span></a></div>
+      <div class="nav__item"><a class="nav__link" href="#projects">Projects<span class="nav__spy" aria-hidden="true"></span></a></div>
+      <div class="nav__item"><a class="nav__link" href="#experience">Experience<span class="nav__spy" aria-hidden="true"></span></a></div>
+      <div class="nav__item"><a class="nav__link" href="#contact">Contact<span class="nav__spy" aria-hidden="true"></span></a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--primary" href="mailto:placeholder@example.com">Email Siravit<kbd class="btn__key" aria-hidden="true">&#8629;</kbd></a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero hero--collage" data-enter data-scroll-moment="hero-exit" aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <p class="hero__role"><span class="ph">[Placeholder]</span> Software developer, Go and Next.js</p>
+        <h1 id="hero-h">Siravit Tanratanavijit</h1>
+        <p class="hero__lead"><span class="ph">[Placeholder]</span> One-line pitch in about 20 words: what he builds, who it is for and the result it brings.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="mailto:placeholder@example.com">Email Siravit<kbd class="btn__key" aria-hidden="true">&#8629;</kbd></a><a class="btn btn--secondary" href="#projects">See projects<svg class="btn__glyph" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v9M3.5 7.5 7 11l3.5-3.5"/></svg></a></div>
+        <dl class="hero-facts">
+          <div><dt>Works in</dt><dd>Go and Next.js</dd></div>
+          <div><dt>Code</dt><dd><a class="link" href="https://github.com/Siravitt">Siravitt on GitHub</a></dd></div>
+          <div><dt>Based in</dt><dd><span class="ph">[Placeholder]</span> City</dd></div>
+        </dl>
+      </div>
+      <div class="hero__art span-6 start-7" role="img" aria-label="This site's content file open in an editor, beside a finished deploy to GitHub Pages">
+        <div class="ly-piece ly-piece--main d-win d-win--dark" aria-hidden="true">
+          <div class="d-win__bar"><span class="d-win__dots"><i></i><i></i><i></i></span><span>siravitt.github.io</span></div>
+          <div class="d-win__body ed">
+            <div class="d-side ed__tree">
+              <span class="d-side__label">src</span>
+              <span><i></i>app</span>
+              <span><i></i>components</span>
+              <span class="is-on"><i></i>site.ts</span>
+              <span class="d-side__label">public</span>
+              <span><i></i>og.png</span>
+            </div>
+            <pre class="ed__code"><span class="ed__hl" aria-hidden="true"></span><code><span class="ln" style="--i:0"><span class="c">// src/content/site.ts</span></span>
+<span class="ln" style="--i:1"><span class="k">export const</span> <span class="f">site</span> = {</span>
+<span class="ln" style="--i:2">  person: {</span>
+<span class="ln is-mark" style="--i:3">    name: <span class="s">"Siravit Tanratanavijit"</span>,</span>
+<span class="ln" style="--i:4">    role: <span class="s">"[Placeholder] Role"</span>,</span>
+<span class="ln" style="--i:5">    pitch: <span class="s">"[Placeholder] Pitch"</span>,</span>
+<span class="ln" style="--i:6">  },</span>
+<span class="ln" style="--i:7">  contact: {</span>
+<span class="ln" style="--i:8">    github: <span class="s">"github.com/Siravitt"</span>,</span>
+<span class="ln" style="--i:9">  },</span>
+<span class="ln" style="--i:10">  daedalus: {</span>
+<span class="ln" style="--i:11">    privacy: <span class="s">"/privacy.html"</span>,</span>
+<span class="ln" style="--i:12">  },</span>
+<span class="ln" style="--i:13">} <span class="k">satisfies</span> <span class="f">Site</span>;</span></code></pre>
+          </div>
+        </div>
+        <div class="ly-piece ly-piece--note d-card" aria-hidden="true" data-ly-steps="700">
+          <div class="d-card__row"><h5>Deploy to GitHub Pages</h5><span class="d-chip" data-step data-step-at="4">Done</span></div>
+          <div class="d-note__line" data-step><i>✓</i><span><b>Lint, types and tests</b> passed</span></div>
+          <div class="d-note__line" data-step><i>✓</i><span>Static export, <b>3 pages</b></span></div>
+          <div class="d-note__line" data-step><i>✓</i><span><b>/privacy.html</b> kept</span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section statement" id="about" data-moment="word-highlight" aria-labelledby="about-h">
+    <div class="wrap">
+      <h2 id="about-h" class="t-label about__label" data-rv>About</h2>
+      <p class="mo-wh__text"><span class="ph">[Placeholder]</span> A short paragraph about Siravit: how he came to build software, the kind of problems he likes to <strong>own from start to finish</strong>, and the team he wants to join next.</p>
+      <div class="grid about__more">
+        <p class="span-5" data-rv><span class="ph">[Placeholder]</span> A second, shorter paragraph: how he works with a team, from the first spec to the release.</p>
+        <p class="span-5 start-7" data-rv style="--i:1"><span class="ph">[Placeholder]</span> An optional third paragraph: what he does outside work that shapes how he builds.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="stack" aria-labelledby="stack-h">
+    <div class="wrap">
+      <div class="grid grid--top stack">
+        <div class="span-5 stack__text">
+          <div class="section-head" data-rv>
+            <h2 id="stack-h">Stack. <span class="muted">The languages and tools behind his software.</span></h2>
+            <p><span class="ph">[Placeholder]</span> Go and Next.js are his; the other tools stand in until he lists his own.</p>
+          </div>
+          <ul class="rows stack__rows">
+            <li data-rv style="--i:0"><span class="rows__name">Languages</span><span class="rows__value">Go, TypeScript</span></li>
+            <li data-rv style="--i:1"><span class="rows__name">Backend</span><span class="rows__value">PostgreSQL, Redis</span></li>
+            <li data-rv style="--i:2"><span class="rows__name">Frontend</span><span class="rows__value">Next.js, React, Tailwind CSS</span></li>
+            <li data-rv style="--i:3"><span class="rows__name">Infra and tools</span><span class="rows__value">Docker, GitHub Actions, Git</span></li>
+          </ul>
+        </div>
+        <!-- v3 (Flame: "i dont like this icons"): one-colour marks from Simple Icons (CC0-1.0), each with the tool's
+             name beside it, two columns of rows in a dark panel; no pale frame, no white tiles. A mark is a CSS mask filled with currentColor. -->
+        <div class="span-6 start-7 stack__art" role="img" aria-label="The marks of the ten tools in the list">
+          <ul class="stack__board" aria-hidden="true">
+            <li class="tool" style="--i:0;--dx:-24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/go.svg)"></span><span class="tool__name">Go</span></li>
+            <li class="tool" style="--i:1;--dx:24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/typescript.svg)"></span><span class="tool__name">TypeScript</span></li>
+            <li class="tool" style="--i:2;--dx:-24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/postgresql.svg)"></span><span class="tool__name">PostgreSQL</span></li>
+            <li class="tool" style="--i:3;--dx:24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/redis.svg)"></span><span class="tool__name">Redis</span></li>
+            <li class="tool" style="--i:4;--dx:-24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/nextdotjs.svg)"></span><span class="tool__name">Next.js</span></li>
+            <li class="tool" style="--i:5;--dx:24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/react.svg)"></span><span class="tool__name">React</span></li>
+            <li class="tool" style="--i:6;--dx:-24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/tailwindcss.svg)"></span><span class="tool__name">Tailwind CSS</span></li>
+            <li class="tool" style="--i:7;--dx:24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/docker.svg)"></span><span class="tool__name">Docker</span></li>
+            <li class="tool" style="--i:8;--dx:-24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/githubactions.svg)"></span><span class="tool__name">GitHub Actions</span></li>
+            <li class="tool" style="--i:9;--dx:24px;--dy:16px"><span class="tool__mark" style="--mark:url(assets/icons/stack/git.svg)"></span><span class="tool__name">Git</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2 ground-surface" id="projects" aria-labelledby="projects-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head" data-rv>
+          <h2 id="projects-h">Projects. <span class="muted">Four mock cards stand in for his software work.</span></h2>
+        </div>
+        <div class="grid grid--top">
+          <article class="card card--open proj span-6 m-nolift" data-rv style="--i:0">
+            <div class="proj__top"><span class="badge proj__badge">Mock project</span><span class="proj__links"><a class="link" href="https://github.com/Siravitt" aria-label="Source code for the booking API">Source code</a><a class="link" href="#projects" aria-label="Live demo of the booking API">Live demo</a></span></div>
+            <h3><span class="ph">[Placeholder]</span> Booking API in Go</h3>
+            <p class="proj__summary">A REST service for booking shared rooms</p>
+            <p class="proj__desc">Teams double-booked rooms over chat. He built an API that checks for clashes and emails both sides.</p>
+            <dl class="proj__meta"><div><dt>Role</dt><dd>Sole backend developer</dd></div><div><dt>Outcome</dt><dd>No double bookings</dd></div></dl>
+            <p class="proj__tags">Go · PostgreSQL · Docker</p>
+            <div class="panel">
+              <div class="stage"><div class="at-rise fit" style="--fit-max:440px;--ax:max(32px, 50% - 220px);--ay:32px;--ay-sm:16px" data-ui-loop>
+                <div class="ui ui-panel ui-term" data-ui="terminal-run">
+                  <div class="ui-term__head">
+                    <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="ui-term__title">booking/api</span>
+                    <span class="ui-meta">zsh</span>
+                    <span class="ui-spacer"></span>
+                    <span class="ui-chip ui-chip--plain ui-term__branch"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="3.5" r="1.5"/><circle cx="5" cy="12.5" r="1.5"/><circle cx="11" cy="5.5" r="1.5"/><path d="M5 5v6M11 7c0 2.6-6 1.8-6 4"/></svg>main</span>
+                  </div>
+                  <div class="ui-term__screen" data-term-screen>
+                    <div class="ui-term__track" data-term-track>
+                      <div class="ui-term__ln ui-term__cmd"><span class="ui-term__cwd">~/<span class="ui-term__up">booking/</span>api</span><span class="ui-term__sig">$</span><span class="ui-term__typed" data-term-cmd>go test ./...</span></div>
+                      <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">internal/booking</span><span class="ui-term__n">ok</span><span class="ui-term__t">0.41s</span></div>
+                      <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">internal/notify</span><span class="ui-term__n">ok</span><span class="ui-term__t">0.27s</span></div>
+                      <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">internal/store</span><span class="ui-term__n">ok</span><span class="ui-term__t">0.93s</span></div>
+                      <div class="ui-term__ln ui-term__done" data-term-out data-term-done><span class="ui-term__ok"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.3 2.4 2.4 4.6-5"/></svg></span><b>PASS</b><span class="ui-term__dim">in 1.61s</span></div>
+                      <div class="ui-term__ln ui-term__cmd" data-term-next><span class="ui-term__cwd">~/<span class="ui-term__up">booking/</span>api</span><span class="ui-term__sig">$</span><span class="ui-term__typed"></span><i class="ui-term__caret" aria-hidden="true"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div></div>
+            </div>
+          </article>
+          <article class="card card--open proj span-6 m-nolift" data-rv style="--i:1">
+            <div class="proj__top"><span class="badge proj__badge">Mock project</span><span class="proj__links"><a class="link" href="https://github.com/Siravitt" aria-label="Source code for the team dashboard">Source code</a></span></div>
+            <h3><span class="ph">[Placeholder]</span> Team dashboard in Next.js</h3>
+            <p class="proj__summary">One page for a small team's open work</p>
+            <p class="proj__desc">Tasks lived in three tools. He built a server-rendered page that pulls them together and flags what is due.</p>
+            <dl class="proj__meta"><div><dt>Role</dt><dd>Frontend lead</dd></div><div><dt>Outcome</dt><dd>One page instead of three tools</dd></div></dl>
+            <p class="proj__tags">Next.js · TypeScript · Tailwind CSS</p>
+            <div class="panel">
+              <div class="stage"><div class="at-rise fit" style="--fit-max:340px;--ax:max(32px, 50% - 170px);--ay:32px;--ay-sm:16px">
+                <div class="ui ui-panel ui-checks" data-ui="checklist">
+                  <div class="ui-checks__head">
+                    <div class="ui-title">Due this week</div>
+                    <span class="ui-spacer"></span>
+                    <div class="ui-meta" data-checks-count>3 of 5</div>
+                  </div>
+                  <div class="ui-checks__bar"><i data-checks-bar style="--k:0.6"></i></div>
+                  <ul class="ui-checks__list">
+                    <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Ship the task filters</span></li>
+                    <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Review the sign-in flow</span></li>
+                    <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Fix the date picker</span></li>
+                    <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Write the release notes</span></li>
+                    <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Demo to the team</span></li>
+                  </ul>
+                </div>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="grid grid--top">
+        <article class="card card--open proj span-6 m-nolift" data-rv style="--i:0">
+          <div class="proj__top"><span class="badge proj__badge">Mock project</span><span class="proj__links"><a class="link" href="https://github.com/Siravitt" aria-label="Source code for the review bot">Source code</a></span></div>
+          <h3><span class="ph">[Placeholder]</span> Pull request review bot</h3>
+          <p class="proj__summary">Review comments before a person looks</p>
+          <p class="proj__desc">Reviews kept catching the same slips. He wrote a bot that reads each pull request and suggests the fix inline.</p>
+          <dl class="proj__meta"><div><dt>Role</dt><dd>Author and maintainer</dd></div><div><dt>Outcome</dt><dd>Fewer review rounds</dd></div></dl>
+          <p class="proj__tags">Go · GitHub Actions</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-corner fit" style="--fit-max:480px">
+              <div class="ui ui-panel ui-diff" data-ui="diff-review">
+                <div class="ui-diff__head">
+                  <svg class="ui-icon ui-diff__fold" viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 6.25 3.5 3.5 3.5-3.5"/></svg>
+                  <span class="ui-diff__tool" aria-hidden="true"><img loading="lazy" data-icon="go" src="assets/icons/go.svg" alt="" width="16" height="6"></span>
+                  <span class="ui-diff__repo">reviewbot</span><i class="ui-diff__slash" aria-hidden="true">/</i>
+                  <span class="ui-diff__path"><span class="ui-diff__dir">internal/</span><b>retry.go</b></span>
+                  <span class="ui-spacer"></span>
+                  <span class="ui-diff__stat"><b class="is-add"><span class="ui-diff__was">+1</span><span class="ui-diff__now">+2</span></b><b class="is-del"><span class="ui-diff__was">&minus;1</span><span class="ui-diff__now">&minus;2</span></b><span class="ui-diff__bar" aria-hidden="true"><i class="is-add"></i><i class="is-add"></i><i class="is-del"></i><i class="is-del"></i></span></span>
+                </div>
+                <div class="ui-diff__hunk"><span>@@ -12,6 +12,6 @@</span> <em class="ui-diff__sig">func Do(ctx context.Context) error {</em></div>
+                <div class="ui-diff__lines">
+                  <div class="ui-diff__ln is-target" data-diff-target><i>13</i><i>13</i><span class="ui-diff__code" data-i="2"><span class="ui-diff__ind">    </span>err := <span class="f">call</span>(<mark class="ui-diff__w">context.Background()</mark>)</span></div>
+                  <div class="ui-diff__sug" data-diff-sug><div class="ui-diff__ln is-add"><i></i><i>13</i><span class="ui-diff__code" data-i="2"><span class="ui-diff__ind">    </span>err := <span class="f">call</span>(<mark class="ui-diff__w">ctx</mark>)</span></div></div>
+                  <div class="ui-diff__thread">
+                    <div class="ui-diff__by">
+                      <span class="ui-avatar" data-tone="4">RB</span>
+                      <span class="ui-diff__name">reviewbot</span>
+                      <span class="ui-diff__time">now</span>
+                      <span class="ui-spacer"></span>
+                      <span class="ui-diff__act" data-diff-act>
+                        <button class="ui-btn ui-btn--sm ui-diff__apply" type="button" tabindex="-1" data-diff-apply><span class="ui-diff__lbl">Apply suggestion</span><i class="ui-diff__spin" aria-hidden="true"></i></button>
+                        <span class="ui-chip ui-diff__done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Applied</span>
+                      </span>
+                    </div>
+                    <div class="ui-diff__msg">Pass <code>ctx</code> so a cancel stops the retry.</div>
+                  </div>
+                  <div class="ui-diff__ln"><i>14</i><i>14</i><span class="ui-diff__code" data-i="2"><span class="ui-diff__ind">    </span><span class="k">if</span> err == <span class="k">nil</span> {</span></div>
+                  <div class="ui-diff__ln"><i>15</i><i>15</i><span class="ui-diff__code" data-i="3"><span class="ui-diff__ind">      </span><span class="k">return nil</span></span></div>
+                  <div class="ui-diff__ln"><i>16</i><i>16</i><span class="ui-diff__code" data-i="2"><span class="ui-diff__ind">    </span>}</span></div>
+                </div>
+              </div>
+            </div></div>
+          </div>
+        </article>
+        <!-- a project with no links and no picture: optional fields render nothing (spec), so the card ends on its tags -->
+        <article class="card card--open proj span-6 m-nolift" data-rv style="--i:1">
+          <div class="proj__top"><span class="badge proj__badge">Mock project</span></div>
+          <h3><span class="ph">[Placeholder]</span> Command-line deploy tool</h3>
+          <p class="proj__summary">Build, check and ship a service in one command</p>
+          <p class="proj__desc">Deploys were a page of manual steps. He wrote a small CLI that runs them in order and stops at the first failure.</p>
+          <dl class="proj__meta"><div><dt>Role</dt><dd>Personal project</dd></div><div><dt>Outcome</dt><dd>Deploys in one command</dd></div></dl>
+          <p class="proj__tags">Go · Docker</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="experience" aria-labelledby="experience-h">
+    <div class="wrap">
+      <div class="section-head" data-rv>
+        <h2 id="experience-h">Experience</h2>
+        <p><span class="ph">[Placeholder]</span> Three entries to replace; no employer or date on this page is real.</p>
+      </div>
+      <ol class="exp">
+        <li class="exp__item" data-rv style="--i:0">
+          <div class="exp__when"><span class="exp__period">Month Year to Present</span><span class="badge exp__now">Current</span></div>
+          <div class="exp__body">
+            <h3><span class="ph">[Placeholder]</span> Role title · Organisation</h3>
+            <ul class="exp__points"><li>One line on what he owns in this role.</li><li>One line on a result he delivered, with a number.</li></ul>
+            <p class="proj__tags">Go · Next.js</p>
+          </div>
+        </li>
+        <li class="exp__item" data-rv style="--i:1">
+          <div class="exp__when"><span class="exp__period">Month Year to Month Year</span></div>
+          <div class="exp__body">
+            <h3><span class="ph">[Placeholder]</span> Role title · Organisation</h3>
+            <ul class="exp__points"><li>One line on the team and the product.</li><li>One line on what changed because of his work.</li></ul>
+          </div>
+        </li>
+        <li class="exp__item" data-rv style="--i:2">
+          <div class="exp__when"><span class="exp__period">Month Year to Month Year</span></div>
+          <div class="exp__body">
+            <h3><span class="ph">[Placeholder]</span> Role title · Organisation</h3>
+            <ul class="exp__points"><li>One line on his first job in software.</li><li>One line on what he learned there.</li></ul>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<footer class="footer closing footer--dark ground-inverse" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head" data-rv>
+        <h2 id="close-h">Contact</h2>
+        <p class="t-lead"><span class="ph">[Placeholder]</span> One line on the roles and projects he wants to hear about.</p>
+        <ul class="contact__links">
+          <li><a class="link" href="https://github.com/Siravitt"><img loading="lazy" class="ic ic-ink" src="assets/icons/github.svg" alt="" width="20" height="20">GitHub profile</a></li>
+          <li><a class="link" href="https://www.linkedin.com/in/placeholder-profile"><img loading="lazy" class="ic ic-ink" src="assets/icons/linkedin.svg" alt="" width="20" height="20">LinkedIn profile</a></li>
+        </ul>
+      </div>
+      <a class="btn btn--primary btn--xl btn--close" href="mailto:placeholder@example.com">Email Siravit<kbd class="btn__key" aria-hidden="true">&#8629;</kbd></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-6">
+          <p class="footer__lede">Siravit Tanratanavijit. Projects, stack and experience on one page.</p>
+        </div>
+        <div class="span-3 start-7 footer__col"><h3>Sections</h3><ul><li><a href="#about">About</a></li><li><a href="#stack">Stack</a></li><li><a href="#projects">Projects</a></li><li><a href="#experience">Experience</a></li></ul></div>
+        <div class="span-3 footer__col"><h3>Elsewhere</h3><ul><li><a href="https://github.com/Siravitt">GitHub</a></li><li><a href="https://www.linkedin.com/in/placeholder-profile">LinkedIn</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 Siravit Tanratanavijit</span>
+        <p class="daedalus">Daedalus — personal assistant app used only by its owner · <a class="daedalus__link" href="/privacy.html">Privacy</a></p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+</body>
+</html>

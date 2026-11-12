@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Env
+.env*
+!.env.example
+
+# Agent / design-tooling scratch (never committed)
+.taste-skill/
+**/.taste-skill/
+chrome-*/
+probe-*/
+shot-*/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+*.log
