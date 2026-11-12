@@ -62,6 +62,15 @@ describe("SectionShell", () => {
     expect(heading.className).not.toContain("tracking-[-0.02em]");
   });
 
+  it("uses DESIGN.md §3's h2 size by default (carried over from ticket 07: clamp(30px,1.72vw+23.3px,48px), 500, 1.1, -0.028em)", () => {
+    render(<SectionShell id="about" title="Fixture about" />);
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveClass("text-[length:clamp(30px,1.72vw+23.3px,48px)]");
+    expect(heading).toHaveClass("leading-[1.1]");
+    expect(heading).toHaveClass("font-medium");
+    expect(heading).toHaveClass("tracking-[-0.028em]");
+  });
+
   it("renders as a <footer> when asked to (the contact section)", () => {
     render(<SectionShell id="contact" title="Fixture contact" as="footer" />);
     const heading = screen.getByRole("heading", { level: 2 });

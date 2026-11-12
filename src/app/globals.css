@@ -122,6 +122,35 @@ html {
   body {
     @apply bg-background text-foreground font-sans;
   }
+  /*
+   * A long unbroken word (a URL fragment, a run-on identifier) wraps
+   * instead of forcing horizontal scroll or being clipped by an
+   * ancestor's overflow (ticket 08 Review Focus 1: no sideways scroll
+   * or clipping at 320px/zoom). Matches the approved prototype's
+   * system.css base reset (h1-h4 rule), ported here because it was
+   * missing from this file.
+   */
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  /*
+   * DESIGN.md §3 "width 96%" — Instrument Sans drawn at a 96% stretch on
+   * every heading, matching the approved prototype's layout.css
+   * `font-stretch: var(--display-stretch)` rule on h1,h2,h3. Part of the
+   * carried-over H2 size fix (ticket 08 review round 2): without it,
+   * the Stack H2 sits one line taller than the design at 1440. The hero
+   * H1's own `[font-stretch:96%]` utility already matched this, so it
+   * doesn't change.
+   */
+  h1,
+  h2,
+  h3 {
+    font-stretch: 96%;
+  }
 }
 
 /* DESIGN.md §6 — placeholder tag: `[Placeholder]` marker rendered inline. */

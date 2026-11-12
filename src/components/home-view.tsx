@@ -5,7 +5,11 @@ import { HeroArt } from "@/components/hero-art";
 import { HeroFacts } from "@/components/hero-facts";
 import { LegalRow } from "@/components/legal-row";
 import { PlaceholderText } from "@/components/placeholder-text";
-import { SectionShell } from "@/components/section-shell";
+import { ProjectsSection } from "@/components/projects-section";
+import {
+  DEFAULT_HEADING_CLASSNAME,
+  SectionShell,
+} from "@/components/section-shell";
 import { StackSection } from "@/components/stack-section";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -121,7 +125,11 @@ export function HomeView({ site }: { site: SiteContent }) {
             id="projects"
             title={site.sections.projects.title}
             tagline={site.sections.projects.tagline}
-          />
+            className="bg-card"
+            headingClassName={`${DEFAULT_HEADING_CLASSNAME} mb-8 sm:mb-12`}
+          >
+            <ProjectsSection site={site} />
+          </SectionShell>
         )}
 
         {isVisible("experience") && (
