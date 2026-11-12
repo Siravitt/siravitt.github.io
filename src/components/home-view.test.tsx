@@ -58,6 +58,15 @@ describe("HomeView", () => {
     );
   });
 
+  it("wraps hero and about/stack/projects/experience in the main landmark, with contact's footer outside it", () => {
+    render(<HomeView site={siteFixture} />);
+    const main = screen.getByRole("main");
+    ["about", "stack", "projects", "experience"].forEach((id) => {
+      expect(main.querySelector(`#${id}`)).not.toBeNull();
+    });
+    expect(main.querySelector("#contact")).toBeNull();
+  });
+
   it("the nav has five links in order, matching the five section titles and anchors", () => {
     render(<HomeView site={siteFixture} />);
     const nav = screen.getByRole("navigation", {

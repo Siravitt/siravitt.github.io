@@ -47,33 +47,33 @@ export function HomeView({ site }: { site: SiteContent }) {
             <PlaceholderText text={site.person.pitch} />
           </p>
         </section>
+
+        <SectionShell id="about" title={site.sections.about.title} />
+
+        {isVisible("stack") && (
+          <SectionShell
+            id="stack"
+            title={site.sections.stack.title}
+            tagline={site.sections.stack.tagline}
+          />
+        )}
+
+        {isVisible("projects") && (
+          <SectionShell
+            id="projects"
+            title={site.sections.projects.title}
+            tagline={site.sections.projects.tagline}
+          />
+        )}
+
+        {isVisible("experience") && (
+          <SectionShell
+            id="experience"
+            title={site.sections.experience.title}
+            tagline={site.sections.experience.tagline}
+          />
+        )}
       </main>
-
-      <SectionShell id="about" title={site.sections.about.title} />
-
-      {isVisible("stack") && (
-        <SectionShell
-          id="stack"
-          title={site.sections.stack.title}
-          tagline={site.sections.stack.tagline}
-        />
-      )}
-
-      {isVisible("projects") && (
-        <SectionShell
-          id="projects"
-          title={site.sections.projects.title}
-          tagline={site.sections.projects.tagline}
-        />
-      )}
-
-      {isVisible("experience") && (
-        <SectionShell
-          id="experience"
-          title={site.sections.experience.title}
-          tagline={site.sections.experience.tagline}
-        />
-      )}
 
       <SectionShell
         id="contact"
