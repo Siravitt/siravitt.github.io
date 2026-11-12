@@ -1,0 +1,131 @@
+import { describe, expect, it } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import { axe } from "vitest-axe";
+import type { ExperienceEntry, SiteContent } from "@/content/site";
+import { ExperienceSection } from "@/components/experience-section";
+import { siteFixture } from "@/test/fixtures/site";
+
+/**
+ * A current entry and an ended entry with tags, covering the ticket's
+ * acceptance criteria independently of `siteFixture.experience` (tuned
+ * for other tickets), per the repo's "spread/override the shared
+ * fixture, never mutate it" convention.
+ */
+const twoEntries: ExperienceEntry[] = [
+  {
+    role: "Fixture current role",
+    organisation: "Fixture current org",
+    start: "Fixture start one",
+    highlights: ["Fixture highlight one", "Fixture highlight two"],
+    tags: ["Tag one", "Tag two"],
+  },
+  {
+    role: "Fixture ended role",
+    organisation: "Fixture ended org",
+    start: "Fixture start two",
+    end: "Fixture end two",
+    highlights: ["Fixture highlight three", "Fixture highlight four"],
+  },
+];
+
+function siteWithExperience(experience: ExperienceEntry[]): SiteContent {
+  return { ...siteFixture, experience };
+}
+
+/**
+ * The timeline `<ol>`'s own entries, as direct children — never a
+ * `getAllByRole("listitem")` scoped to the list, which would also pick
+ * up each entry's nested highlights `<ul>` items (also `role="list"`).
+ */
+function getTimelineItems(): HTMLElement[] {
+  const lists = screen.getAllByRole("list");
+  const timeline = lists.find((list) => list.tagName.toLowerCase() === "ol");
+  if (!timeline) {
+    throw new Error("no <ol> timeline found");
+  }
+  return Array.from(timeline.children) as HTMLElement[];
+}
+
+describe("ExperienceSection", () => {
+  it("renders one ordered-list item per entry, in content order, each with its H3, period and highlights", () => {
+    render(<ExperienceSection site={siteWithExperience(twoEntries)} />);
+    const items = getTimelineItems();
+    expect(items).toHaveLength(2);
+    items.forEach((item) => expect(item.tagName.toLowerCase()).toBe("li"));
+
+    items.forEach((item, i) => {
+      const entry = twoEntries[i];
+      const scoped = within(item);
+      expect(scoped.getByRole("heading", { level: 3 })).toHaveTextContent(
+        `${entry.role} \u00b7 ${entry.organisation}`,
+      );
+      entry.highlights.forEach((point) => {
+        expect(scoped.getByText(point)).toBeInTheDocument();
+      });
+    });
+  });
+
+  it("the current entry's period ends with the present label and shows the current badge; the ended entry shows its end date and no badge", () => {
+    render(<ExperienceSection site={siteWithExperience(twoEntries)} />);
+    const items = getTimelineItems();
+
+    const current = within(items[0]);
+    expect(
+      current.getByText(
+        `${twoEntries[0].start} to ${siteFixture.labels.present}`,
+      ),
+    ).toBeInTheDocument();
+    expect(current.getByText(siteFixture.labels.current)).toBeInTheDocument();
+
+    const ended = within(items[1]);
+    expect(
+      ended.getByText(`${twoEntries[1].start} to ${twoEntries[1].end}`),
+    ).toBeInTheDocument();
+    expect(ended.queryByText(siteFixture.labels.current)).toBeNull();
+  });
+
+  it("an entry with tags shows them joined by ' \u00b7 '; an entry without tags has no tag line", () => {
+    render(<ExperienceSection site={siteWithExperience(twoEntries)} />);
+    const items = getTimelineItems();
+    const tags = twoEntries[0].tags;
+    if (!tags) {
+      throw new Error("fixture entry must have tags for this test");
+    }
+
+    expect(
+      within(items[0]).getByText(tags.join(" \u00b7 ")),
+    ).toBeInTheDocument();
+    // The ended entry has no `tags`: no mono tag-line paragraph at all.
+    expect(items[1].querySelector("p")).toBeNull();
+  });
+
+  it("Review Focus 4: a single entry renders exactly one list item", () => {
+    render(<ExperienceSection site={siteWithExperience([twoEntries[0]])} />);
+    expect(getTimelineItems()).toHaveLength(1);
+  });
+
+  it("the rail and each entry's dot are decorative, never announced", () => {
+    const { container } = render(
+      <ExperienceSection site={siteWithExperience(twoEntries)} />,
+    );
+    // Each dot is an aria-hidden span; the rail itself is CSS
+    // (`before`/`after` pseudo-elements carry no generated text), so
+    // nothing beyond the dots needs an explicit assertion here.
+    const dots = container.querySelectorAll('[aria-hidden="true"]');
+    expect(dots.length).toBeGreaterThanOrEqual(twoEntries.length);
+  });
+
+  it("renders the intro line from site.sections.experience.intro", () => {
+    render(<ExperienceSection site={siteWithExperience(twoEntries)} />);
+    expect(
+      screen.getByText(siteFixture.sections.experience.intro as string),
+    ).toBeInTheDocument();
+  });
+
+  it("has no axe violations", async () => {
+    const { container } = render(
+      <ExperienceSection site={siteWithExperience(twoEntries)} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
