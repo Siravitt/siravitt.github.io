@@ -134,6 +134,19 @@ describe("HomeView", () => {
     expect(links[0]).toHaveAccessibleName(siteFixture.labels.skipLink);
   });
 
+  it("shows the Daedalus legal row in the closing footer, Privacy link with no aria-current", () => {
+    render(<HomeView site={siteFixture} />);
+    const footer = document.querySelector("#contact") as HTMLElement;
+    const privacyLink = within(footer).getByRole("link", {
+      name: siteFixture.daedalus.privacyLabel,
+    });
+    expect(privacyLink).toHaveAttribute("href", "/privacy.html");
+    expect(privacyLink).not.toHaveAttribute("aria-current");
+    expect(privacyLink.closest("p")?.textContent).toBe(
+      `${siteFixture.daedalus.line} \u00b7 ${siteFixture.daedalus.privacyLabel}`,
+    );
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(<HomeView site={siteFixture} />);
     expect(await axe(container)).toHaveNoViolations();

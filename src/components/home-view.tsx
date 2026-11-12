@@ -1,5 +1,6 @@
 import type { SiteContent } from "@/content/site";
 import { Header } from "@/components/header";
+import { LegalRow } from "@/components/legal-row";
 import { PlaceholderText } from "@/components/placeholder-text";
 import { SectionShell } from "@/components/section-shell";
 import { getVisibleSections } from "@/lib/sections";
@@ -79,7 +80,9 @@ export function HomeView({ site }: { site: SiteContent }) {
         id="contact"
         title={site.sections.contact.title}
         as="footer"
-      />
+      >
+        <LegalRow site={site} />
+      </SectionShell>
     </>
   );
 }
