@@ -309,6 +309,37 @@ describe("ProjectsSection", () => {
     expect(panel.querySelector("[tabindex]")).toBeNull();
   });
 
+  it("the diff's marked substrings render inside their own <mark>, tinted by kind (del/add) — Standards round 1 finding 2: an index=-1 mutation in renderDiffCode must turn this red", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: ["return nil"],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    const marks = panel.querySelectorAll("mark");
+    expect(marks).toHaveLength(2);
+    expect(marks[0]).toHaveTextContent("context.Background()");
+    expect(marks[1]).toHaveTextContent("ctx");
+    expect(marks[0].className).toContain("var(--diff-del)");
+    expect(marks[1].className).toContain("var(--diff-add)");
+  });
+
   it("a diff visual's drawing sits inside the panel's aria-hidden wrapper (ticket 10 decision, same as terminal/checklist)", () => {
     const withDiff: Project = {
       ...threeProjects[0],

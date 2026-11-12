@@ -60,8 +60,17 @@ export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
   }
 
   return (
-    <Panel role="img" ariaLabel={visual.label} fade>
-      <DiffWindow visual={visual} />
+    <Panel role="img" ariaLabel={visual.label}>
+      {/* The prototype's `.stage--fade-b` (cards.css): only the layer that
+          wraps the diff window dissolves into the panel's ground over its
+          last 64px (56px on phones) — the sand panel itself (`Panel`,
+          below) stays whole (review round 1 finding 2: the mask had sat on
+          the whole panel, fading the sand itself). Tailwind arbitrary
+          `mask-image` utilities (CODING_STANDARDS §2.2: no inline style);
+          `-webkit-mask-image` for Safari, which does not yet unprefix it. */}
+      <div className="absolute inset-0 [-webkit-mask-image:linear-gradient(to_bottom,#000_calc(100%-64px),transparent_calc(100%-4px))] [mask-image:linear-gradient(to_bottom,#000_calc(100%-64px),transparent_calc(100%-4px))] max-sm:[-webkit-mask-image:linear-gradient(to_bottom,#000_calc(100%-56px),transparent_calc(100%-4px))] max-sm:[mask-image:linear-gradient(to_bottom,#000_calc(100%-56px),transparent_calc(100%-4px))]">
+        <DiffWindow visual={visual} />
+      </div>
     </Panel>
   );
 }
@@ -69,16 +78,10 @@ export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
 function Panel({
   role,
   ariaLabel,
-  fade,
   children,
 }: {
   role?: "img";
   ariaLabel?: string;
-  /** The prototype's `.stage--fade-b`: the drawing dissolves into the
-   * panel's ground over its last 64px instead of being cut by a hard
-   * line (cards.css `--fade-h`), for a drawing taller than the panel
-   * (the diff's header + two lines + thread + context routinely is). */
-  fade?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -86,16 +89,6 @@ function Panel({
       role={role}
       aria-label={ariaLabel}
       className="frame-mesh relative mt-6 min-h-[228px] grow shrink-0 overflow-hidden rounded-lg max-sm:min-h-[200px]"
-      style={
-        fade
-          ? {
-              maskImage:
-                "linear-gradient(to bottom, #000 calc(100% - 64px), transparent calc(100% - 4px))",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, #000 calc(100% - 64px), transparent calc(100% - 4px))",
-            }
-          : undefined
-      }
     >
       {children}
     </div>
@@ -382,6 +375,7 @@ function renderDiffCode(
   code: string,
   marked: string | undefined,
   keyPrefix: string,
+  kind?: "add" | "del",
 ): ReactNode {
   const index = marked ? code.indexOf(marked) : -1;
   if (!marked || index === -1) {
@@ -389,10 +383,23 @@ function renderDiffCode(
   }
   const before = code.slice(0, index);
   const after = code.slice(index + marked.length);
+  /* review round 1 finding 5: a flat `bg-current/15` reads neutral grey
+   * on every row. The kit tints the mark with the row's own hue — del
+   * 26%, add 30%, both mixed over the window ground (`fragment.css`
+   * `.ui-diff mark.ui-diff__w`, `--d-del-w`/`--d-add-w`) — so removed
+   * marks read red and added marks read green, as in the approved
+   * screenshot. */
   return (
     <>
       {tokenizeGo(before, `${keyPrefix}-pre`)}
-      <mark className="rounded-[2px] bg-current/15 text-inherit">
+      <mark
+        className={cn(
+          "rounded-[3px] py-px text-inherit",
+          kind === "del"
+            ? "bg-[color-mix(in_oklab,var(--diff-del)_26%,var(--window))]"
+            : "bg-[color-mix(in_oklab,var(--diff-add)_30%,var(--window))]",
+        )}
+      >
         {tokenizeGo(marked, `${keyPrefix}-mark`)}
       </mark>
       {tokenizeGo(after, `${keyPrefix}-post`)}
@@ -437,30 +444,32 @@ function DiffLine({
   return (
     <div
       className={cn(
-        "grid grid-cols-[28px_28px_minmax(0,1fr)]",
+        "grid grid-cols-[36px_36px_minmax(0,1fr)] font-mono text-xs leading-5 @max-[439px]:grid-cols-[26px_minmax(0,1fr)] @max-[439px]:text-[11px] @max-[439px]:leading-4",
         kind === "del" && "bg-diff-del/10",
         kind === "add" && "bg-diff-add/10",
       )}
     >
       <i
         className={cn(
-          "text-right text-[11px] text-muted-foreground not-italic",
+          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[439px]:col-start-1 @max-[439px]:row-start-1 @max-[439px]:pr-2",
           kind === "del" && "bg-diff-del/15 text-diff-del-ink",
           kind === "add" && "bg-diff-add/15 text-diff-add-ink",
+          kind !== "del" && "@max-[439px]:invisible",
         )}
       >
         {oldNumber ?? ""}
       </i>
       <i
         className={cn(
-          "text-right text-[11px] text-muted-foreground not-italic",
+          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[439px]:col-start-1 @max-[439px]:row-start-1 @max-[439px]:pr-2",
           kind === "del" && "bg-diff-del/15 text-diff-del-ink",
           kind === "add" && "bg-diff-add/15 text-diff-add-ink",
+          kind === "del" && "@max-[439px]:invisible",
         )}
       >
         {newNumber ?? ""}
       </i>
-      <span className="relative overflow-hidden whitespace-pre py-px pr-3.5 pl-5">
+      <span className="relative overflow-hidden whitespace-pre pr-3.5 pl-5 @max-[439px]:col-start-2">
         {kind ? (
           <span
             aria-hidden="true"
@@ -472,7 +481,7 @@ function DiffLine({
             {kind === "del" ? "\u2212" : "+"}
           </span>
         ) : null}
-        {renderDiffCode(code, marked, keyPrefix)}
+        {renderDiffCode(code, marked, keyPrefix, kind)}
       </span>
     </div>
   );
@@ -487,18 +496,26 @@ function DiffThread({
   visual: Extract<ProjectVisualData, { kind: "diff" }>;
 }) {
   return (
-    <div className="border-y border-window-border bg-foreground/[0.03] px-3.5 py-2.5">
-      <div className="flex h-6 items-center gap-2 pl-[52px]">
-        <span className="grid size-5 flex-none place-items-center rounded-full bg-foreground/15 text-[10px] font-medium text-foreground">
+    <div className="relative border-y border-window-border bg-foreground/[0.03] py-2.5 pr-3.5 pl-[92px] @max-[439px]:pr-3 @max-[439px]:pl-[18px]">
+      {/* the fragment's one accent touch inside the dark window (DESIGN §2,
+       * "the ... comment marker inside the project mini-UIs" is listed
+       * under --primary): a 2px bar set in from the comment's edge, never
+       * a third diff colour beside the red/green rows. */}
+      <span
+        aria-hidden="true"
+        className="absolute top-3 bottom-3 left-[82px] w-0.5 rounded-full bg-primary @max-[439px]:left-2"
+      />
+      <div className="flex h-6 items-center gap-2">
+        <span className="grid size-6 flex-none place-items-center rounded-full bg-[color-mix(in_oklab,oklch(0.74_0.08_220)_34%,var(--window))] text-[13px] font-semibold tracking-[-0.02em] text-[color-mix(in_oklab,oklch(0.5_0.09_220)_70%,var(--foreground))] shadow-[inset_0_0_0_1px_color-mix(in_oklab,oklch(0.6_0.08_220)_22%,transparent)]">
           {visual.authorInitials}
         </span>
-        <span className="truncate text-[13px] font-medium">
+        <span className="truncate text-[13px] leading-5 font-medium">
           {visual.author}
         </span>
-        <span className="flex-none text-[12px] text-muted-foreground">
+        <span className="flex-none text-xs leading-4 text-muted-foreground @max-[339px]:hidden">
           {visual.time}
         </span>
-        <span className="ml-auto inline-flex flex-none items-center gap-1 rounded-sm bg-diff-add/15 px-1.5 py-0.5 text-[12px] font-medium text-diff-add-ink">
+        <span className="ring-inset ml-auto inline-flex h-[22px] flex-none items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--diff-add)_12%,var(--window))] px-2 text-[13px] font-medium text-diff-add-ink ring-1 ring-[color-mix(in_oklab,var(--diff-add)_30%,transparent)]">
           <svg viewBox="0 0 16 16" className="size-3" aria-hidden="true">
             <path
               d="m4 8.4 2.6 2.6L12 5.4"
@@ -512,7 +529,7 @@ function DiffThread({
           Applied
         </span>
       </div>
-      <p className="mt-1 pl-[52px] text-[13px] text-muted-foreground">
+      <p className="mt-1 pl-8 text-[13px] leading-5 text-[color-mix(in_oklab,var(--foreground)_80%,var(--window))] @max-[339px]:pl-0">
         {renderDiffComment(visual.comment)}
       </p>
     </div>
@@ -537,9 +554,9 @@ function DiffWindow({
 }) {
   return (
     <Window maxWidthClassName="max-w-[480px]" topClassName="top-6 sm:top-8">
-      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] px-3.5">
+      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] pr-3.5 pl-2.5 @max-[439px]:h-9 @max-[439px]:pl-3">
         <svg
-          className="ui-diff__fold size-3.5 flex-none text-muted-foreground"
+          className="size-3.5 flex-none text-muted-foreground @max-[439px]:hidden"
           viewBox="0 0 16 16"
           aria-hidden="true"
         >
@@ -552,30 +569,52 @@ function DiffWindow({
             strokeLinejoin="round"
           />
         </svg>
-        <span className="grid size-5 flex-none place-items-center rounded-md bg-foreground/5">
+        {/* review round 1 finding 3a: a brand tile is light on every
+         * surface (the kit's `--u-tile`), not the window's dark ground,
+         * so a logo keeps its own colours. */}
+        <span className="grid size-5 flex-none place-items-center rounded-md bg-white shadow-[inset_0_0_0_1px_rgb(0_0_0/0.09),0_1px_2px_rgb(0_0_0/0.12)]">
           {/* eslint-disable-next-line @next/next/no-img-element -- static
-              export; a 16x6px decorative mark inside an aria-hidden
-              drawing (ticket 10 decision: empty alt, same-origin file). */}
-          <img src="/icons/go.svg" alt="" width={16} height={6} />
+              export; a decorative mark inside an aria-hidden drawing,
+              scaled to its own aspect ratio inside the kit's 13px box
+              (ticket 10 decision: empty alt, same-origin file). */}
+          <img src="/icons/go.svg" alt="" width={13} height={5} />
         </span>
-        <span className="flex-none text-muted-foreground @max-[380px]:hidden">
+        <span className="flex-none text-[12px] leading-4 text-muted-foreground @max-[469px]:hidden">
           {visual.repo}
         </span>
-        <i className="flex-none text-muted-foreground not-italic @max-[380px]:hidden">
+        <i className="flex-none text-[12px] leading-4 text-muted-foreground not-italic @max-[469px]:hidden">
           /
         </i>
-        <span className="min-w-0 flex-1 truncate font-mono">
-          <span className="@max-[300px]:hidden">{visual.dir}</span>
-          <b className="font-medium text-foreground">{visual.file}</b>
+        <span className="min-w-0 flex-1 truncate font-mono text-[12px] leading-4 text-muted-foreground">
+          <span className="@max-[339px]:hidden">{visual.dir}</span>
+          <span className="font-medium text-foreground">{visual.file}</span>
         </span>
-        <span className="ml-auto flex flex-none items-center gap-1.5 font-mono text-[12px] font-medium">
-          <b className="text-diff-add-ink">+2</b>
-          <b className="text-diff-del-ink">&minus;2</b>
+        <span className="ml-auto flex flex-none items-center gap-1.5">
+          {/* review round 1 finding 3c: `<b>` computes weight 700,
+           * overriding the parent's `font-medium`; a `<span>` keeps 500. */}
+          <span className="flex items-center gap-1.5 font-mono text-[12px] leading-4 font-medium">
+            <span className="text-diff-add-ink">+2</span>
+            <span className="text-diff-del-ink">&minus;2</span>
+          </span>
+          {/* review round 1 finding 3b: the four-block stat bar, missing
+           * from the build; 80% of each diff hue mixed over the window
+           * ground, matching the kit's `.ui-diff__bar`. */}
+          <span
+            aria-hidden="true"
+            className="ml-0.5 flex flex-none gap-0.5 @max-[439px]:hidden"
+          >
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-add)_80%,var(--window))]" />
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-add)_80%,var(--window))]" />
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-del)_80%,var(--window))]" />
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-del)_80%,var(--window))]" />
+          </span>
         </span>
       </div>
-      <div className="truncate border-b border-window-border bg-foreground/[0.02] px-3.5 py-1.5 font-mono text-[12px] text-muted-foreground">
-        <span className="text-muted-foreground">{visual.hunk}</span>{" "}
-        <em className="font-normal not-italic text-foreground/70">
+      <div className="truncate border-b border-window-border bg-foreground/[0.02] h-7 pr-3.5 pl-[92px] font-mono text-[12px] leading-7 text-muted-foreground @min-[440px]:@max-[499px]:pl-12 @max-[439px]:h-6 @max-[439px]:pl-3 @max-[439px]:text-[11px] @max-[439px]:leading-6">
+        <span className="text-[color-mix(in_oklab,var(--muted-foreground)_80%,var(--window))]">
+          {visual.hunk}
+        </span>{" "}
+        <em className="font-normal not-italic text-foreground/70 @max-[439px]:hidden">
           {visual.signature}
         </em>
       </div>
