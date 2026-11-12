@@ -119,15 +119,51 @@ describe("ExperienceSection", () => {
     expect(getTimelineItems()).toHaveLength(1);
   });
 
-  it("the rail and each entry's dot are decorative, never announced", () => {
+  it("the rail and each entry's dot (unlit ring + lit fill) are decorative, never announced", () => {
     const { container } = render(
       <ExperienceSection site={siteWithExperience(twoEntries)} />,
     );
-    // Each dot is an aria-hidden span; the rail itself is CSS
+    // Each entry draws two aria-hidden dot layers (an unlit ring under
+    // the lit fill, review round 1 fix); the rail itself is CSS
     // (`before`/`after` pseudo-elements carry no generated text), so
     // nothing beyond the dots needs an explicit assertion here.
     const dots = container.querySelectorAll('[aria-hidden="true"]');
-    expect(dots.length).toBeGreaterThanOrEqual(twoEntries.length);
+    expect(dots).toHaveLength(twoEntries.length * 2);
+  });
+
+  it("the period renders a placeholder start/end through the dashed tag, never as raw text", () => {
+    const placeholderEntries: ExperienceEntry[] = [
+      {
+        role: "Fixture role",
+        organisation: "Fixture org",
+        start: "[Placeholder] Month Year",
+        end: "[Placeholder] Month Year two",
+        highlights: ["Fixture highlight one", "Fixture highlight two"],
+      },
+    ];
+    render(<ExperienceSection site={siteWithExperience(placeholderEntries)} />);
+    const items = getTimelineItems();
+    const period = within(items[0]).getByText(
+      (_, element) =>
+        element?.tagName.toLowerCase() === "span" &&
+        element.className.includes("font-mono") &&
+        element.textContent ===
+          "[Placeholder] Month Year to [Placeholder] Month Year two",
+    );
+    // Both the start and the end marker render as the dashed `.ph` tag
+    // (CODING_STANDARDS rule 4) — not as a flat `[Placeholder]` text
+    // node sitting directly in the period, which is what the review
+    // round 1 regression looked like even though the two render the
+    // same concatenated textContent.
+    const markerTags = period.querySelectorAll(".ph");
+    expect(markerTags).toHaveLength(2);
+    markerTags.forEach((tag) => expect(tag.textContent).toBe("[Placeholder]"));
+    const directTextNodes = Array.from(period.childNodes).filter(
+      (node) => node.nodeType === Node.TEXT_NODE,
+    );
+    directTextNodes.forEach((node) =>
+      expect(node.textContent).not.toContain("[Placeholder]"),
+    );
   });
 
   it("renders the intro line from site.sections.experience.intro", () => {
