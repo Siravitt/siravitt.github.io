@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { OtherPageShell } from "@/components/other-page-shell";
 import type { SiteContent } from "@/content/site";
+import { CONTAINER_CLASSNAME } from "@/lib/layout";
 
 /**
  * The styled 404 page (docs/tickets/04-footer-privacy-404.md): a
@@ -15,7 +16,7 @@ export function NotFoundView({ site }: { site: SiteContent }) {
     <OtherPageShell site={site}>
       <section
         aria-labelledby="nf-h"
-        className="mx-auto max-w-7xl px-6 pt-10 pb-24 max-sm:px-4 lg:pt-12"
+        className={`${CONTAINER_CLASSNAME} pt-10 pb-24 lg:pt-12`}
       >
         <div className="grid max-w-[760px] gap-6">
           <p

@@ -1,4 +1,5 @@
 import { PlaceholderText } from "@/components/placeholder-text";
+import { CONTAINER_CLASSNAME } from "@/lib/layout";
 import { cn } from "cn";
 import type { ReactNode } from "react";
 
@@ -69,7 +70,7 @@ export function SectionShell({
         className,
       )}
     >
-      <div className="mx-auto max-w-7xl px-6 max-sm:px-4">
+      <div className={CONTAINER_CLASSNAME}>
         {renderHeading ? (
           <h2
             id={headingId}

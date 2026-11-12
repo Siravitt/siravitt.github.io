@@ -158,8 +158,8 @@ describe("ProjectsSection", () => {
     expect(article.lastElementChild).toBe(dl);
   });
 
-  it("a project with no visual shows no img/picture panel, even when one is set", () => {
-    const withVisual: Project = {
+  it("a project with an image visual renders an img with the fixture's src, alt, width and height, inside the panel", () => {
+    const withImage: Project = {
       ...threeProjects[0],
       visual: {
         kind: "image",
@@ -169,10 +169,113 @@ describe("ProjectsSection", () => {
         height: 10,
       },
     };
-    render(<ProjectsSection site={siteWithProjects([withVisual])} />);
+    render(<ProjectsSection site={siteWithProjects([withImage])} />);
     const article = screen.getByRole("article");
-    expect(within(article).queryByRole("img")).toBeNull();
+    const img = within(article).getByRole("img", { name: "Fixture alt" });
+    expect(img).toHaveAttribute("src", "/fixtures/project.png");
+    expect(img).toHaveAttribute("width", "10");
+    expect(img).toHaveAttribute("height", "10");
+    expect(img).toHaveAttribute("loading", "lazy");
   });
+
+  it("a project with an image but no links renders the panel and no link row", () => {
+    const imageNoLinks: Project = {
+      ...threeProjects[2],
+      visual: {
+        kind: "image",
+        src: "/fixtures/project.png",
+        alt: "Fixture alt",
+        width: 10,
+        height: 10,
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([imageNoLinks])} />);
+    const article = screen.getByRole("article");
+    expect(
+      within(article).getByRole("img", { name: "Fixture alt" }),
+    ).toBeInTheDocument();
+    expect(within(article).queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("a project with no visual still ends on its tags (Review Focus 4)", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[2];
+    const tags = within(article).getByText("Tag four");
+    expect(article.lastElementChild).toBe(tags.closest("p"));
+  });
+
+  it("a project with a terminal visual renders one role=img element named by its label, holding no focusable elements, whose hidden drawing has the command and every result path", () => {
+    const withTerminal: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "terminal",
+        label: "Fixture terminal label",
+        title: "fixture/repo",
+        branch: "main",
+        command: "go test ./...",
+        results: [
+          { path: "internal/one", time: "0.10s" },
+          { path: "internal/two", time: "0.20s" },
+        ],
+        summary: "in 0.30s",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withTerminal])} />);
+    const article = screen.getByRole("article");
+    const panels = within(article).getAllByRole("img", {
+      name: "Fixture terminal label",
+    });
+    expect(panels).toHaveLength(1);
+    const panel = panels[0];
+    expect(panel).toHaveTextContent("go test ./...");
+    expect(panel).toHaveTextContent("internal/one");
+    expect(panel).toHaveTextContent("internal/two");
+    expect(within(panel).queryAllByRole("link", { hidden: true })).toHaveLength(
+      0,
+    );
+    expect(
+      within(panel).queryAllByRole("button", { hidden: true }),
+    ).toHaveLength(0);
+    expect(panel.querySelector("[tabindex]")).toBeNull();
+  });
+
+  it.each([
+    { done: 0, expected: "0 of 5" },
+    { done: 3, expected: "3 of 5" },
+    { done: 5, expected: "5 of 5" },
+  ])(
+    "a checklist with 5 items, $done done, shows '$expected'",
+    ({ done, expected }) => {
+      const items = [
+        "Item one",
+        "Item two",
+        "Item three",
+        "Item four",
+        "Item five",
+      ].map((text, index) => ({ text, done: index < done })) as [
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+      ];
+      const withChecklist: Project = {
+        ...threeProjects[1],
+        visual: {
+          kind: "checklist",
+          label: "Fixture checklist label",
+          title: "Due this week",
+          items,
+        },
+      };
+      render(<ProjectsSection site={siteWithProjects([withChecklist])} />);
+      const article = screen.getByRole("article");
+      const panel = within(article).getByRole("img", {
+        name: "Fixture checklist label",
+      });
+      expect(panel).toHaveTextContent(expected);
+    },
+  );
 
   it("renders one card for a single project, and all six in order for six projects", () => {
     const one = [threeProjects[0]];
@@ -211,6 +314,46 @@ describe("ProjectsSection", () => {
   it("has no axe violations", async () => {
     const { container } = render(
       <ProjectsSection site={siteWithProjects(threeProjects)} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("has no axe violations with image, terminal and checklist visuals", async () => {
+    const withVisuals: Project[] = [
+      {
+        ...threeProjects[0],
+        visual: {
+          kind: "image",
+          src: "/fixtures/project.png",
+          alt: "Fixture alt",
+          width: 10,
+          height: 10,
+        },
+      },
+      {
+        ...threeProjects[1],
+        visual: {
+          kind: "terminal",
+          label: "Fixture terminal label",
+          title: "fixture/repo",
+          branch: "main",
+          command: "go test ./...",
+          results: [{ path: "internal/one", time: "0.10s" }],
+          summary: "in 0.10s",
+        },
+      },
+      {
+        ...threeProjects[2],
+        visual: {
+          kind: "checklist",
+          label: "Fixture checklist label",
+          title: "Due this week",
+          items: [{ text: "Item one", done: true }],
+        },
+      },
+    ];
+    const { container } = render(
+      <ProjectsSection site={siteWithProjects(withVisuals)} />,
     );
     expect(await axe(container)).toHaveNoViolations();
   });

@@ -68,3 +68,23 @@ export const acceptsMinimalProject: Project = {
   outcome: "Outcome",
   tags: [],
 };
+
+// The compiler rejects a terminal visual with no command.
+// @ts-expect-error a terminal visual requires a command
+export const rejectsTerminalVisualWithoutCommand: ProjectVisual = {
+  kind: "terminal",
+  label: "Fixture terminal label",
+  title: "fixture/repo",
+  branch: "main",
+  results: [{ path: "fixture/path", time: "0.10s" }],
+  summary: "in 0.10s",
+};
+
+// The compiler rejects a checklist visual with 0 items.
+export const rejectsChecklistVisualWithoutItems: ProjectVisual = {
+  kind: "checklist",
+  label: "Fixture checklist label",
+  title: "Fixture checklist",
+  // @ts-expect-error a checklist needs at least 1 item, not 0
+  items: [],
+};

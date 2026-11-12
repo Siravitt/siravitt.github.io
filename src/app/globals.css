@@ -157,3 +157,31 @@ html {
 .ph {
   @apply rounded-sm border border-dashed border-foreground/48 bg-foreground/7 px-1.5 font-mono text-[13px] font-medium text-foreground;
 }
+
+/*
+ * DESIGN.md §2b — the project panel's sand mesh: `--frame` with a soft
+ * mesh of three radial gradients, the site's only gradient (ticket 09).
+ * `--frame-accent` appears only as gradient 2's 34% stop — decorative,
+ * never text or UI. Tailwind has no utility for a multi-stop
+ * color-mix() gradient list, so this stays one CSS class per DESIGN's
+ * own suggestion, applied verbatim from the approved values.
+ */
+.frame-mesh {
+  background-color: var(--frame);
+  background-image:
+    radial-gradient(
+      70% 90% at 12% 0%,
+      color-mix(in oklab, var(--frame-surface) 92%, white),
+      transparent 70%
+    ),
+    radial-gradient(
+      60% 80% at 100% 100%,
+      color-mix(in oklab, var(--frame-accent) 34%, var(--frame)),
+      transparent 72%
+    ),
+    radial-gradient(
+      50% 60% at 85% 10%,
+      color-mix(in oklab, var(--frame-surface) 60%, transparent),
+      transparent 70%
+    );
+}

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import type { SiteContent } from "@/content/site";
+import { CONTAINER_CLASSNAME } from "@/lib/layout";
 import type { SectionKey } from "@/lib/sections";
 
 interface HeaderProps {
@@ -66,7 +67,9 @@ export function Header({
       >
         {site.labels.skipLink}
       </a>
-      <div className="group relative mx-auto flex h-full max-w-7xl items-center justify-between gap-3 px-6 max-sm:px-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
+      <div
+        className={`${CONTAINER_CLASSNAME} group relative flex h-full items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-8`}
+      >
         <a
           href={logoHref}
           aria-label={site.person.name}
