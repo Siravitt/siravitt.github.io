@@ -93,7 +93,7 @@ function Window({
       <div
         aria-hidden="true"
         className={cn(
-          "w-full overflow-hidden rounded-xl border border-window-border bg-window text-[13px] leading-5 text-foreground shadow-[0_12px_24px_-8px_rgb(0_0_0/0.45)]",
+          "w-full overflow-hidden rounded-xl border border-window-border bg-window text-[13px] leading-5 text-foreground shadow-[var(--window-shadow)]",
           maxWidthClassName,
         )}
       >
@@ -152,15 +152,19 @@ function TerminalWindow({
         {visual.results.map((result, index) => (
           <TerminalResultLine key={result.path} result={result} index={index} />
         ))}
-        <p className="flex items-center gap-2 pt-1">
+        <p className="flex items-center gap-2">
           <span className="grid size-4 flex-none place-items-center rounded-full bg-[#3fae66] text-window">
             ✓
           </span>
           <b className="font-medium">PASS</b>
           <span className="text-muted-foreground">{visual.summary}</span>
         </p>
-        <p className="truncate text-muted-foreground">
-          ~/{visual.title} $ <span aria-hidden="true">▌</span>
+        <p className="truncate">
+          <span className="text-muted-foreground">~/{visual.title} $ </span>
+          <span
+            aria-hidden="true"
+            className="ml-px inline-block h-[15px] w-[7px] rounded-[1px] bg-foreground align-text-bottom"
+          />
         </p>
       </div>
     </Window>
@@ -176,15 +180,18 @@ function TerminalResultLine({
   index: number;
 }) {
   return (
-    <p data-line-index={index} className="flex h-5 items-center gap-2">
-      <span className="flex-none text-muted-foreground" aria-hidden="true">
+    <p data-line-index={index} className="flex h-5 items-center gap-2.5">
+      <span
+        className="w-3.5 flex-none text-center text-muted-foreground"
+        aria-hidden="true"
+      >
         ✓
       </span>
-      <span className="min-w-0 flex-[0_1_28ch] truncate">{result.path}</span>
-      <span className="text-muted-foreground">ok</span>
-      <span className="ml-auto w-12 flex-none text-right text-muted-foreground">
-        {result.time}
+      <span className="min-w-0 flex-[0_1_28ch] truncate text-foreground/80">
+        {result.path}
       </span>
+      <span className="flex-none text-muted-foreground max-sm:hidden">ok</span>
+      <span className="flex-none text-muted-foreground">{result.time}</span>
     </p>
   );
 }
@@ -214,7 +221,7 @@ function ChecklistWindow({
           style={{ width: `${ratio * 100}%` }}
         />
       </div>
-      <ul>
+      <ul className="pb-2">
         {visual.items.map((item, index) => (
           <ChecklistRow key={item.text} item={item} index={index} />
         ))}

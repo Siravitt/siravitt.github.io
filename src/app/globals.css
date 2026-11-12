@@ -113,11 +113,14 @@
   --primary-tint: rgb(
     232 184 74 / 0.08
   ); /* the highlighted code line's fill (decorative) */
-  /* a mini-UI window's ground: --card one step lighter, same formula as
-     the approved design kit's cards.css `.stage` --fx-bg (ticket 09 review
-     round 1 finding 1). Measured oklch(0.2035 0.0036 258) in the prototype. */
+  /* a mini-UI window's ground: derived from the page --background, same
+     formula as the approved design kit's cards.css `.stage` --fx-bg
+     (ticket 09 review round 2 finding 1). The prototype's `.stage --fx-bg`
+     reads the page ground (#0a0c0f) inside the project card, not --card
+     (#13161b) — round 1's "--card one step lighter" wording was wrong.
+     Measured oklch(0.2035 0.0036 258.4) in the prototype. */
   --window: oklch(
-    from var(--card) clamp(calc(l + 0.05), calc((l - 0.5) * 1000), 1)
+    from var(--background) clamp(calc(l + 0.05), calc((l - 0.5) * 1000), 1)
       calc(c * 0.5) h
   );
   --window-border: color-mix(
@@ -125,6 +128,13 @@
     var(--foreground) 12%,
     transparent
   ); /* window's 1px border, DESIGN §2a */
+  /* the mini-UI window's five-layer shadow, ported verbatim from the
+     approved design kit's base.css `--u-shadow` (ticket 09 review round 2
+     finding 8). */
+  --window-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.088), 0 1px 1px oklab(0 0 0 / 0.169),
+    0 2px 4px -1px oklab(0 0 0 / 0.19), 0 12px 24px -8px oklab(0 0 0 / 0.338),
+    0 32px 64px -24px oklch(0 0 0 / 0.423);
 }
 
 html {
