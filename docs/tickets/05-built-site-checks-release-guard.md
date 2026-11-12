@@ -13,7 +13,7 @@
 - Text comparisons decode HTML first: React writes `'` as `&#x27;` (**Review Focus 2**).
 
 **Acceptance criteria:**
-- [ ] Seam B: `out/index.html`, `out/privacy.html` and `out/404.html` exist, and `out/privacy/` does not.
+- [ ] Seam B: `out/index.html`, `out/privacy.html` and `out/404.html` exist, and no HTML file exists anywhere under `out/privacy/` (changed 2026-11-12, Flame: Next 16's static export always writes `out/privacy/` as RSC prefetch `.txt` files — that's fine; the rule is no HTML there).
 - [ ] Seam B: `privacy.html` has one H1 whose text is `Privacy Policy`, and a paragraph whose decoded text equals, character for character: `This app is used only by its owner to create events in the owner's own Google Calendar. No data is shared with third parties or stored outside the owner's machine.` (straight apostrophes U+0027, as a literal in the test).
 - [ ] Seam B: in each of the three pages, a footer contains the decoded text `Daedalus — personal assistant app used only by its owner · Privacy` (U+2014, U+00B7), and its "Privacy" link has `href` exactly `/privacy.html`.
 - [ ] Seam B: every page has `<html lang="en">`. `privacy.html` has canonical `https://siravitt.github.io/privacy.html`, and `404.html` has a `noindex` robots meta.

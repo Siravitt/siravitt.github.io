@@ -20,8 +20,8 @@
 - [ ] Seam A: on the privacy and 404 views, the nav links point to `/#about` and so on, and the logo points to `/`.
 - [ ] Seam A: axe reports no violations on the privacy and 404 views.
 - [ ] **Review Focus 2:** the rendered policy text keeps its straight apostrophes (U+0027, not ’), and the Daedalus line keeps U+2014 and U+00B7 (asserted with code-point literals in the test). Nothing in the toolchain rewrites them.
-- [ ] `pnpm build` emits `out/privacy.html` as a file (no `out/privacy/` folder) and `out/404.html`. Shown as `ls out` output in the PR; ticket 05 automates it.
+- [ ] `pnpm build` emits `out/privacy.html` as a file and `out/404.html`; no HTML file exists anywhere under `out/privacy/` (changed 2026-11-12, Flame: Next 16's static export always writes `out/privacy/` as RSC prefetch `.txt` files — that's fine; the rule is no HTML there). Shown as `ls out` output in the PR; ticket 05 automates it.
 - [ ] The legacy root `index.html` and `privacy.html` are deleted. The README notes that the live site keeps serving them from `main` until the release.
 - [ ] Manual (PR screenshots, 1440 + 390): privacy and 404 match `screenshots/privacy-*` and `404-*`; the legal row's Daedalus line is 14 px `--muted-foreground` with an underlined `--foreground` Privacy link, visible (not collapsed).
-- [ ] PR records Lighthouse mobile scores for `/`, `/privacy.html` and `/404.html` (all four ≥ 90 each).
+- [ ] PR records Lighthouse mobile scores for `/`, `/privacy.html` and `/404.html` (all four ≥ 90 each, except `/404.html`'s SEO score, which stays exempt because the page keeps `robots: noindex`) (changed 2026-11-12, Flame).
 - [ ] Build, lint, type-check and tests pass.
