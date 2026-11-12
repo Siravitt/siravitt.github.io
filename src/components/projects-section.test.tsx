@@ -153,7 +153,9 @@ describe("ProjectsSection", () => {
     const noTags: Project = { ...threeProjects[0], tags: [] };
     render(<ProjectsSection site={siteWithProjects([noTags])} />);
     const article = screen.getByRole("article");
-    expect(within(article).queryByText("Tag one \u00b7 Tag two")).toBeNull();
+    const dl = article.querySelector("dl");
+    expect(dl).not.toBeNull();
+    expect(article.lastElementChild).toBe(dl);
   });
 
   it("a project with no visual shows no img/picture panel, even when one is set", () => {
@@ -188,9 +190,14 @@ describe("ProjectsSection", () => {
     rerender(<ProjectsSection site={siteWithProjects(six)} />);
     const articles = screen.getAllByRole("article");
     expect(articles).toHaveLength(6);
-    expect(articles.map((a) => a.querySelector("h3")?.textContent)).toEqual(
-      six.map((p) => p.title),
-    );
+    expect(articles.map((a) => a.querySelector("h3")?.textContent)).toEqual([
+      "Fixture project one",
+      "Fixture project two",
+      "Fixture project three",
+      "Fixture project four",
+      "Fixture project five",
+      "Fixture project six",
+    ]);
   });
 
   it("carries a 0/1 row-stagger index hook per card, for ticket 14", () => {

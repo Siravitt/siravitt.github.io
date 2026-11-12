@@ -1,4 +1,5 @@
 import { PlaceholderText } from "@/components/placeholder-text";
+import { cn } from "cn";
 import type { ReactNode } from "react";
 
 interface SectionShellProps {
@@ -27,6 +28,12 @@ interface SectionShellProps {
    * so the body's own heading keeps that same id. Defaults to `true`.
    */
   renderHeading?: boolean;
+  /**
+   * Extra classes on the section/footer element itself, merged after the
+   * shell's own (ticket 08: Projects sits on the raised `--card` band,
+   * DESIGN.md §2 "also the Projects band" — `className="bg-card"`).
+   */
+  className?: string;
   children?: ReactNode | ((headingId: string) => ReactNode);
 }
 
@@ -48,6 +55,7 @@ export function SectionShell({
   as: Tag = "section",
   headingClassName,
   renderHeading = true,
+  className,
   children,
 }: SectionShellProps) {
   const headingId = `${id}-h`;
@@ -56,7 +64,10 @@ export function SectionShell({
       id={id}
       aria-labelledby={headingId}
       tabIndex={-1}
-      className="scroll-mt-18 pt-24 pb-12 outline-none max-sm:scroll-mt-14 sm:pt-30 sm:pb-24 focus-visible:shadow-[inset_2px_0_0_var(--ring)]"
+      className={cn(
+        "scroll-mt-18 pt-24 pb-12 outline-none max-sm:scroll-mt-14 sm:pt-30 sm:pb-24 focus-visible:shadow-[inset_2px_0_0_var(--ring)]",
+        className,
+      )}
     >
       <div className="mx-auto max-w-7xl px-6 max-sm:px-4">
         {renderHeading ? (

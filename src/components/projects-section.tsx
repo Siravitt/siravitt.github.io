@@ -4,6 +4,7 @@ import { PlaceholderText } from "@/components/placeholder-text";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { isExternalHref } from "@/lib/links";
+import { cn } from "cn";
 
 /**
  * The Projects section's body: one `<article>` Card per `site.projects`
@@ -55,14 +56,14 @@ function ProjectCard({
       render={<article />}
       data-rv
       style={{ "--i": rowIndex } as CSSProperties}
-      className="min-w-0 gap-0 rounded-none bg-transparent p-0 ring-0"
+      className="min-w-0 gap-0 overflow-visible rounded-none bg-transparent p-0 text-base ring-0"
     >
       {hasTopRow ? (
         <div className="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-4">
           {project.badge ? (
             <Badge
               variant="outline"
-              className="rounded-sm border-border px-1.5 font-mono text-[13px] text-muted-foreground"
+              className="h-6 rounded-sm border-border px-3 font-mono text-[13px] text-muted-foreground"
             >
               {project.badge}
             </Badge>
@@ -101,20 +102,20 @@ function ProjectCard({
       <p className="mt-1 max-w-[58ch]">
         <PlaceholderText text={project.description} />
       </p>
-      <dl className="mt-4 grid grid-cols-2 gap-x-6 max-sm:grid-cols-1 max-sm:gap-y-2">
-        <div>
+      <dl className="mt-4 grid grid-cols-2 gap-x-6">
+        <div className="min-w-0">
           <dt className="text-[13px] font-medium text-muted-foreground">
             {labels.role}
           </dt>
-          <dd className="mt-0.5">
+          <dd className="mt-0.5 break-words">
             <PlaceholderText text={project.role} />
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-[13px] font-medium text-muted-foreground">
             {labels.outcome}
           </dt>
-          <dd className="mt-0.5">
+          <dd className="mt-0.5 break-words">
             <PlaceholderText text={project.outcome} />
           </dd>
         </div>
@@ -139,18 +140,24 @@ function ProjectLink({
   relation: "for" | "of";
   title: string;
 }) {
+  const external = isExternalHref(href);
   return (
     <a
       href={href}
       aria-label={`${label} ${relation} ${title}`}
-      className="group inline-flex min-h-11 items-center rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group inline-flex min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {label}
       <span
         aria-hidden="true"
-        className="ml-1 inline-block transition-transform duration-150 group-hover:translate-x-0.5"
+        className={cn(
+          "inline-block transition-transform duration-150",
+          external
+            ? "group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
+            : "group-hover:translate-x-[3px]",
+        )}
       >
-        {isExternalHref(href) ? "\u2197" : "\u2192"}
+        {external ? "\u2197" : "\u2192"}
       </span>
     </a>
   );
