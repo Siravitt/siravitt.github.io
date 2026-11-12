@@ -57,6 +57,13 @@
      that); both are drawing chrome inside an `aria-hidden` picture. */
   --color-diff-add: var(--diff-add);
   --color-diff-del: var(--diff-del);
+  /* lighter text variants (ticket 10, matches the prototype's own
+     `--d-add-ink`/`--d-del-ink`): the raw hues above are backgrounds
+     and fills only — as small bold text on the window's dark ground,
+     `--diff-del` falls to 4.33:1 (axe/Lighthouse color-contrast),
+     under the 4.5:1 AA minimum for text. */
+  --color-diff-add-ink: var(--diff-add-ink);
+  --color-diff-del-ink: var(--diff-del-ink);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
@@ -148,6 +155,11 @@
      added/removed lines and marks the same pair. */
   --diff-add: #3fae66;
   --diff-del: #e5484d;
+  /* text-safe lighter mixes (ticket 10: axe/Lighthouse color-contrast
+     fix) — the prototype's own `--d-add-ink`/`--d-del-ink` recipe,
+     mixed 62% toward `--foreground` instead of the raw hue. */
+  --diff-add-ink: color-mix(in oklab, var(--diff-add) 62%, var(--foreground));
+  --diff-del-ink: color-mix(in oklab, var(--diff-del) 62%, var(--foreground));
 }
 
 html {

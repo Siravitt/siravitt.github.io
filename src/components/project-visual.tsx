@@ -445,8 +445,8 @@ function DiffLine({
       <i
         className={cn(
           "text-right text-[11px] text-muted-foreground not-italic",
-          kind === "del" && "bg-diff-del/15 text-diff-del",
-          kind === "add" && "bg-diff-add/15 text-diff-add",
+          kind === "del" && "bg-diff-del/15 text-diff-del-ink",
+          kind === "add" && "bg-diff-add/15 text-diff-add-ink",
         )}
       >
         {oldNumber ?? ""}
@@ -454,8 +454,8 @@ function DiffLine({
       <i
         className={cn(
           "text-right text-[11px] text-muted-foreground not-italic",
-          kind === "del" && "bg-diff-del/15 text-diff-del",
-          kind === "add" && "bg-diff-add/15 text-diff-add",
+          kind === "del" && "bg-diff-del/15 text-diff-del-ink",
+          kind === "add" && "bg-diff-add/15 text-diff-add-ink",
         )}
       >
         {newNumber ?? ""}
@@ -466,7 +466,7 @@ function DiffLine({
             aria-hidden="true"
             className={cn(
               "absolute left-1.5",
-              kind === "del" ? "text-diff-del" : "text-diff-add",
+              kind === "del" ? "text-diff-del-ink" : "text-diff-add-ink",
             )}
           >
             {kind === "del" ? "\u2212" : "+"}
@@ -498,7 +498,7 @@ function DiffThread({
         <span className="flex-none text-[12px] text-muted-foreground">
           {visual.time}
         </span>
-        <span className="ml-auto inline-flex flex-none items-center gap-1 rounded-sm bg-diff-add/15 px-1.5 py-0.5 text-[12px] font-medium text-diff-add">
+        <span className="ml-auto inline-flex flex-none items-center gap-1 rounded-sm bg-diff-add/15 px-1.5 py-0.5 text-[12px] font-medium text-diff-add-ink">
           <svg viewBox="0 0 16 16" className="size-3" aria-hidden="true">
             <path
               d="m4 8.4 2.6 2.6L12 5.4"
@@ -537,7 +537,7 @@ function DiffWindow({
 }) {
   return (
     <Window maxWidthClassName="max-w-[480px]" topClassName="top-6 sm:top-8">
-      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] px-3.5 @container">
+      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] px-3.5">
         <svg
           className="ui-diff__fold size-3.5 flex-none text-muted-foreground"
           viewBox="0 0 16 16"
@@ -561,7 +561,7 @@ function DiffWindow({
         <span className="flex-none text-muted-foreground @max-[380px]:hidden">
           {visual.repo}
         </span>
-        <i className="flex-none text-muted-foreground/70 not-italic @max-[380px]:hidden">
+        <i className="flex-none text-muted-foreground not-italic @max-[380px]:hidden">
           /
         </i>
         <span className="min-w-0 flex-1 truncate font-mono">
@@ -569,12 +569,12 @@ function DiffWindow({
           <b className="font-medium text-foreground">{visual.file}</b>
         </span>
         <span className="ml-auto flex flex-none items-center gap-1.5 font-mono text-[12px] font-medium">
-          <b className="text-diff-add">+2</b>
-          <b className="text-diff-del">&minus;2</b>
+          <b className="text-diff-add-ink">+2</b>
+          <b className="text-diff-del-ink">&minus;2</b>
         </span>
       </div>
       <div className="truncate border-b border-window-border bg-foreground/[0.02] px-3.5 py-1.5 font-mono text-[12px] text-muted-foreground">
-        <span className="text-muted-foreground/70">{visual.hunk}</span>{" "}
+        <span className="text-muted-foreground">{visual.hunk}</span>{" "}
         <em className="font-normal not-italic text-foreground/70">
           {visual.signature}
         </em>
