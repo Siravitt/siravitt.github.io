@@ -46,6 +46,10 @@
   /* the hero editor's highlighted-line fill (DESIGN.md §2); without this
      mapping `bg-primary-tint` compiles to no CSS at all (review round 1) */
   --color-primary-tint: var(--primary-tint);
+  /* a mini-UI window's own ground and border (DESIGN §2a, ticket 09 review
+     round 1 finding 1): the window sits on the dark ground, not white. */
+  --color-window: var(--window);
+  --color-window-border: var(--window-border);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
@@ -109,6 +113,18 @@
   --primary-tint: rgb(
     232 184 74 / 0.08
   ); /* the highlighted code line's fill (decorative) */
+  /* a mini-UI window's ground: --card one step lighter, same formula as
+     the approved design kit's cards.css `.stage` --fx-bg (ticket 09 review
+     round 1 finding 1). Measured oklch(0.2035 0.0036 258) in the prototype. */
+  --window: oklch(
+    from var(--card) clamp(calc(l + 0.05), calc((l - 0.5) * 1000), 1)
+      calc(c * 0.5) h
+  );
+  --window-border: color-mix(
+    in oklab,
+    var(--foreground) 12%,
+    transparent
+  ); /* window's 1px border, DESIGN §2a */
 }
 
 html {

@@ -65,14 +65,22 @@ function Panel({
     <div
       role={role}
       aria-label={ariaLabel}
-      className="frame-mesh relative mt-8 h-[228px] overflow-hidden rounded-lg max-sm:h-[200px]"
+      className="frame-mesh relative mt-6 h-[228px] overflow-hidden rounded-lg max-sm:h-[200px]"
     >
       {children}
     </div>
   );
 }
 
-/** Shared window chrome both mini-UIs sit in: their own (light) ground. */
+/**
+ * Shared window chrome both mini-UIs sit in: their own ground, one step
+ * lighter than `--card` (DESIGN §2a "`--primary` on `--card` (… mini-UIs)";
+ * the approved design kit's cards.css `.stage` --fx-bg formula, ported to
+ * the `--window` token in globals.css). Review round 1 finding 1: the
+ * window is dark, not a white card — `text-foreground`/`text-muted-foreground`
+ * read fine on it because it is the dark ground, not light. Finding 2e:
+ * every mini-UI reads at the design kit's 13px/20px text.
+ */
 function Window({
   maxWidthClassName,
   children,
@@ -81,17 +89,38 @@ function Window({
   children: ReactNode;
 }) {
   return (
-    <div className="absolute inset-x-4 top-8 flex justify-center sm:inset-x-8">
+    <div className="absolute inset-x-4 top-4 flex justify-center sm:inset-x-8 sm:top-8">
       <div
         aria-hidden="true"
         className={cn(
-          "w-full overflow-hidden rounded-md bg-white text-[13px] text-[#111111] shadow-[0_12px_24px_-8px_rgb(0_0_0/0.25)]",
+          "w-full overflow-hidden rounded-xl border border-window-border bg-window text-[13px] leading-5 text-foreground shadow-[0_12px_24px_-8px_rgb(0_0_0/0.45)]",
           maxWidthClassName,
         )}
       >
         {children}
       </div>
     </div>
+  );
+}
+
+/** A git-branch glyph for the terminal window's branch chip, decorative. */
+function BranchIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-3"
+    >
+      <circle cx="5" cy="3.5" r="1.5" />
+      <circle cx="5" cy="12.5" r="1.5" />
+      <circle cx="11" cy="5.5" r="1.5" />
+      <path d="M5 5v6M11 7c0 2.6-6 1.8-6 4" />
+    </svg>
   );
 }
 
@@ -102,32 +131,36 @@ function TerminalWindow({
 }) {
   return (
     <Window maxWidthClassName="max-w-[440px]">
-      <div className="flex h-10 items-center gap-2.5 border-b border-black/10 bg-black/[0.03] px-3.5">
+      <div className="flex h-10 items-center gap-2.5 border-b border-window-border bg-foreground/[0.03] px-3.5">
         <span className="flex flex-none gap-1.5">
-          <i className="size-2.5 rounded-full bg-black/15" />
-          <i className="size-2.5 rounded-full bg-black/15" />
-          <i className="size-2.5 rounded-full bg-black/15" />
+          <i className="size-2.5 rounded-full bg-foreground/15" />
+          <i className="size-2.5 rounded-full bg-foreground/15" />
+          <i className="size-2.5 rounded-full bg-foreground/15" />
         </span>
         <span className="truncate font-medium">{visual.title}</span>
-        <span className="text-[#6b6b6b]">zsh</span>
-        <span className="ml-auto font-mono text-[#6b6b6b]">
+        <span className="text-muted-foreground">zsh</span>
+        <span className="ml-auto inline-flex h-[22px] flex-none items-center gap-1.5 rounded-md bg-foreground/5 px-2 font-mono text-muted-foreground ring-1 ring-inset ring-window-border">
+          <BranchIcon />
           {visual.branch}
         </span>
       </div>
-      <div className="px-4 py-3 font-mono leading-5">
+      <div className="px-4 py-3 font-mono">
         <p className="truncate">
-          <span className="text-[#6b6b6b]">~/{visual.title}$ </span>
+          <span className="text-muted-foreground">~/{visual.title} $ </span>
           <span className="font-medium">{visual.command}</span>
         </p>
         {visual.results.map((result, index) => (
           <TerminalResultLine key={result.path} result={result} index={index} />
         ))}
         <p className="flex items-center gap-2 pt-1">
-          <span className="grid size-4 flex-none place-items-center rounded-full bg-[#3fae66] text-white">
+          <span className="grid size-4 flex-none place-items-center rounded-full bg-[#3fae66] text-window">
             ✓
           </span>
           <b className="font-medium">PASS</b>
-          <span className="text-[#6b6b6b]">{visual.summary}</span>
+          <span className="text-muted-foreground">{visual.summary}</span>
+        </p>
+        <p className="truncate text-muted-foreground">
+          ~/{visual.title} $ <span aria-hidden="true">▌</span>
         </p>
       </div>
     </Window>
@@ -143,11 +176,15 @@ function TerminalResultLine({
   index: number;
 }) {
   return (
-    <p data-line-index={index} className="flex items-center gap-2">
-      <span className="flex-none text-[#3fae66]">✓</span>
-      <span className="min-w-0 truncate">{result.path}</span>
-      <span className="text-[#6b6b6b]">ok</span>
-      <span className="ml-auto flex-none text-[#6b6b6b]">{result.time}</span>
+    <p data-line-index={index} className="flex h-5 items-center gap-2">
+      <span className="flex-none text-muted-foreground" aria-hidden="true">
+        ✓
+      </span>
+      <span className="min-w-0 flex-[0_1_28ch] truncate">{result.path}</span>
+      <span className="text-muted-foreground">ok</span>
+      <span className="ml-auto w-12 flex-none text-right text-muted-foreground">
+        {result.time}
+      </span>
     </p>
   );
 }
@@ -165,11 +202,11 @@ function ChecklistWindow({
     <Window maxWidthClassName="max-w-[340px]">
       <div className="flex h-12 items-center justify-between px-4">
         <span className="font-medium">{visual.title}</span>
-        <span className="text-[#6b6b6b]">
+        <span className="text-muted-foreground">
           {done} of {total}
         </span>
       </div>
-      <div className="mx-4 mb-2 h-1 overflow-hidden rounded-full bg-black/10">
+      <div className="mx-4 mb-2 h-1 overflow-hidden rounded-full bg-border">
         {/* data-bar is a ticket-16 motion hook only; nothing reads it yet. */}
         <div
           data-bar
@@ -189,17 +226,20 @@ function ChecklistWindow({
 /** `data-tick-index` is a ticket-16 motion hook only; nothing reads it yet. */
 function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }) {
   return (
-    <li data-tick-index={index} className="flex items-center gap-3 px-4 py-2">
+    <li data-tick-index={index} className="flex h-10 items-center gap-3 px-4">
       <span
         className={cn(
-          "grid size-[18px] flex-none place-items-center rounded-full text-white",
-          item.done ? "bg-black" : "ring-1 ring-black/15",
+          "grid size-[18px] flex-none place-items-center rounded-full text-window",
+          item.done ? "bg-foreground" : "ring-[1.5px] ring-foreground/15",
         )}
       >
         {item.done ? "✓" : null}
       </span>
       <span
-        className={cn("truncate", item.done && "text-[#6b6b6b] line-through")}
+        className={cn(
+          "truncate",
+          item.done && "text-muted-foreground line-through",
+        )}
       >
         {item.text}
       </span>

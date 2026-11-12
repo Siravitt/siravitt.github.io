@@ -239,6 +239,31 @@ describe("ProjectsSection", () => {
     expect(panel.querySelector("[tabindex]")).toBeNull();
   });
 
+  it(
+    "a terminal visual's drawing sits inside the panel's aria-hidden " +
+      "wrapper (ticket decision: aria-hidden inside role=img; review round 1 " +
+      "finding 6 — this regresses silently without the assertion)",
+    () => {
+      const withTerminal: Project = {
+        ...threeProjects[0],
+        visual: {
+          kind: "terminal",
+          label: "Fixture terminal label",
+          title: "fixture/repo",
+          branch: "main",
+          command: "go test ./...",
+          results: [{ path: "internal/one", time: "0.10s" }],
+          summary: "in 0.10s",
+        },
+      };
+      render(<ProjectsSection site={siteWithProjects([withTerminal])} />);
+      const panel = screen.getByRole("img", { name: "Fixture terminal label" });
+      const hidden = panel.querySelector('[aria-hidden="true"]');
+      expect(hidden).not.toBeNull();
+      expect(hidden).toHaveTextContent("go test ./...");
+    },
+  );
+
   it.each([
     { done: 0, expected: "0 of 5" },
     { done: 3, expected: "3 of 5" },
@@ -274,6 +299,36 @@ describe("ProjectsSection", () => {
         name: "Fixture checklist label",
       });
       expect(panel).toHaveTextContent(expected);
+    },
+  );
+
+  it(
+    "a checklist visual's drawing sits inside the panel's aria-hidden " +
+      "wrapper and holds no focusable elements (review round 1 finding 6)",
+    () => {
+      const withChecklist: Project = {
+        ...threeProjects[1],
+        visual: {
+          kind: "checklist",
+          label: "Fixture checklist label",
+          title: "Due this week",
+          items: [{ text: "Item one", done: true }],
+        },
+      };
+      render(<ProjectsSection site={siteWithProjects([withChecklist])} />);
+      const panel = screen.getByRole("img", {
+        name: "Fixture checklist label",
+      });
+      const hidden = panel.querySelector('[aria-hidden="true"]');
+      expect(hidden).not.toBeNull();
+      expect(hidden).toHaveTextContent("Item one");
+      expect(
+        within(panel).queryAllByRole("link", { hidden: true }),
+      ).toHaveLength(0);
+      expect(
+        within(panel).queryAllByRole("button", { hidden: true }),
+      ).toHaveLength(0);
+      expect(panel.querySelector("[tabindex]")).toBeNull();
     },
   );
 
