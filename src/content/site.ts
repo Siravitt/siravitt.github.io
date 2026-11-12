@@ -55,7 +55,7 @@ export interface SiteHero {
   secondaryLabel: string;
 }
 
-/** One of the six sections' heading copy. */
+/** One of the five sections' heading copy. */
 export interface SiteSection {
   /** Default: About / Stack / Projects / Experience / Contact; also the nav word. */
   title: string;
@@ -82,7 +82,7 @@ export interface SiteAbout {
    */
   highlight?: string;
   /** 0 to 2 further paragraphs. */
-  paragraphs?: string[];
+  paragraphs: string[];
 }
 
 /** The ten Simple Icons slugs DESIGN.md §6b draws as stack marks. */
@@ -254,7 +254,7 @@ export const site = {
   },
   hero: {
     facts: [
-      { label: "Works in", value: "Go and Next.js" },
+      { label: "Works in", value: "[Placeholder] Go and Next.js" },
       {
         label: "Code",
         value: "Siravitt on GitHub",
@@ -270,13 +270,13 @@ export const site = {
     about: { title: "About" },
     stack: {
       title: "Stack",
-      tagline: "The languages and tools behind his software.",
+      tagline: "[Placeholder] The languages and tools behind his software.",
       intro:
         "[Placeholder] Go and Next.js are his; the other tools stand in until he lists his own.",
     },
     projects: {
       title: "Projects",
-      tagline: "Four mock cards stand in for his software work.",
+      tagline: "[Placeholder] Four mock cards stand in for his software work.",
     },
     experience: {
       title: "Experience",

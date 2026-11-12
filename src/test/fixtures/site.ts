@@ -36,15 +36,21 @@ export const siteFixture: SiteContent = {
     secondaryLabel: "Fixture secondary label",
   },
   sections: {
-    about: { title: "About" },
+    about: { title: "Fixture about" },
     stack: {
-      title: "Stack",
+      title: "Fixture stack",
       tagline: "Fixture stack tagline",
       intro: "Fixture stack intro line",
     },
-    projects: { title: "Projects", tagline: "Fixture projects tagline" },
-    experience: { title: "Experience", intro: "Fixture experience intro" },
-    contact: { title: "Contact" },
+    projects: {
+      title: "Fixture projects",
+      tagline: "Fixture projects tagline",
+    },
+    experience: {
+      title: "Fixture experience",
+      intro: "Fixture experience intro",
+    },
+    contact: { title: "Fixture contact" },
   },
   about: {
     statement: "Fixture statement with a fixture highlight inside it.",

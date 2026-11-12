@@ -58,8 +58,8 @@ typo or a missing required field fails `pnpm typecheck` before it ships.
   the `[Placeholder]` marker, the `example.com` placeholder email domain,
   the `linkedin.com/in/placeholder` slug, or the literal `Mock project`
   badge on a project card.
-- **Empty sections.** Setting `projects`, `experience` or `stack` to an
-  empty list hides that section and its nav link; nothing else needs to
+- **Empty sections.** Setting `projects`, `experience` or `stack.groups` to
+  an empty list hides that section and its nav link; nothing else needs to
   change.
 - **Optional fields.** Leave out what you don't have: a project's `links`,
   `visual`, `badge` or `tags`; an experience entry's `end` date (absent
