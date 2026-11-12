@@ -153,7 +153,7 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
 | h2 | Instrument Sans | `clamp(30px, 1.72vw + 23.3px, 48px)` | 500 | 1.1 | −0.028em |
 | About statement | Instrument Sans | = h2 | 500 | 1.16 | −0.028em |
 | Card title (h3) | Instrument Sans | 18px (20px ≥ 1280) | 500 | 1.4 | 0 |
-| Lead | Instrument Sans | 18px (20px ≥ 1280) | 400 | 1.6 | 0 |
+| Lead | Instrument Sans | 18px (20px ≥ 1024, corrected 2026-11-12, matches prototype) | 400 | 1.6 | 0 |
 | Body | Instrument Sans | 16px | 400 | 1.6 | 0 |
 | Small / role line / links | Instrument Sans | 14px | 500 | 1.5 | 0 |
 | Label (dt, column heads) | Instrument Sans | 13px | 500 | 1.4 | 0 |
