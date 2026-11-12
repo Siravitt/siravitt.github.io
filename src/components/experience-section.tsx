@@ -73,7 +73,7 @@ function ExperienceItem({
       style={{ "--i": index } as CSSProperties}
       className="grid grid-cols-1 gap-y-2 border-b border-border py-5 first:pt-0 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-0"
     >
-      <div className="relative mb-2 flex min-h-7 items-center gap-3 lg:col-span-6 lg:mb-0">
+      <div className="relative mb-2 flex min-h-7 min-w-0 items-center gap-3 break-words lg:col-span-6 lg:mb-0">
         {/* The dot: a 12px lit circle (--primary) with a 4px
          * --background cut-out ring (the ring utility), centred on the
          * rail (left-[7px] on the list, 8px dot centre) regardless of
@@ -96,7 +96,7 @@ function ExperienceItem({
           </Badge>
         ) : null}
       </div>
-      <div className="lg:col-span-6 lg:col-start-7">
+      <div className="min-w-0 break-words lg:col-span-6 lg:col-start-7">
         <h3 className="text-[18px] leading-[1.4] font-medium [font-stretch:100%] lg:text-[20px]">
           <PlaceholderText text={entry.role} />
           {" \u00b7 "}
@@ -104,7 +104,7 @@ function ExperienceItem({
         </h3>
         <ul className="mt-2 grid gap-0.5">
           {entry.highlights.map((point) => (
-            <li key={point}>
+            <li key={point} className="min-w-0">
               <PlaceholderText text={point} />
             </li>
           ))}

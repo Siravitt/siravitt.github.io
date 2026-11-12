@@ -99,6 +99,21 @@ describe("ExperienceSection", () => {
     expect(items[1].querySelector("p")).toBeNull();
   });
 
+  it("Review Focus 1: a highlight item has the wrap classes that stop an unbroken long word from overflowing", () => {
+    // jsdom lays out nothing, so this can't measure scrollWidth; it
+    // pins the fix found by the real-browser measurement pass (an
+    // unbroken 140-char highlight overflowed 320px before `min-w-0`
+    // was added to each highlight `<li>` — a CSS grid item's default
+    // `min-width: auto` sizes to its content's min-content width,
+    // which for a single unbreakable "word" ignores `overflow-wrap`).
+    render(<ExperienceSection site={siteWithExperience(twoEntries)} />);
+    const items = getTimelineItems();
+    const highlightItem = items[0].querySelector("ul li") as HTMLElement;
+    expect(highlightItem.className).toContain("min-w-0");
+    const body = highlightItem.closest("div") as HTMLElement;
+    expect(body.className).toContain("break-words");
+  });
+
   it("Review Focus 4: a single entry renders exactly one list item", () => {
     render(<ExperienceSection site={siteWithExperience([twoEntries[0]])} />);
     expect(getTimelineItems()).toHaveLength(1);
