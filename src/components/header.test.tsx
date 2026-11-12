@@ -76,15 +76,19 @@ describe("Header", () => {
     ).toHaveAttribute("href", "/");
   });
 
-  it("has an Email link to the fixture's mailto address, named exactly by emailLabel", () => {
+  it("has two Email links to the fixture's mailto address (a compact bar one and the full one in the menu panel), both hiding the key chip from the accessible tree", () => {
     render(<Header site={siteFixture} visibleSections={visibleSections} />);
-    const email = screen.getByRole("link", {
+    const emails = screen.getAllByRole("link", {
       name: siteFixture.contact.emailLabel,
     });
-    expect(email).toHaveAttribute(
-      "href",
-      `mailto:${siteFixture.contact.email}`,
-    );
+    expect(emails).toHaveLength(2);
+    emails.forEach((email) => {
+      expect(email).toHaveAttribute(
+        "href",
+        `mailto:${siteFixture.contact.email}`,
+      );
+      expect(email.querySelector("kbd")).toHaveAttribute("aria-hidden", "true");
+    });
   });
 
   // jsdom's accessibility tree (dom-accessibility-api) doesn't implement
@@ -124,15 +128,6 @@ describe("Header", () => {
         name: siteFixture.contact.emailLabel,
       }),
     ).toBeInTheDocument();
-  });
-
-  it("hides the key chip from the accessible tree", () => {
-    render(<Header site={siteFixture} visibleSections={visibleSections} />);
-    const email = screen.getByRole("link", {
-      name: siteFixture.contact.emailLabel,
-    });
-    const chip = email.querySelector("kbd");
-    expect(chip).toHaveAttribute("aria-hidden", "true");
   });
 
   it("has no axe violations", async () => {
