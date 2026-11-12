@@ -171,8 +171,10 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
 ## 4. Spacing and layout
 
 - 4px scale: `4 8 12 16 24 32 48 64 96 128` → Tailwind `1 2 3 4 6 8 12 16 24 32`. No in-between values.
-- Container: max 1280px content + side padding 24px on every width, including phones (corrected
-  2026-11-12, matches prototype; Flame) → `mx-auto max-w-[1328px] px-6`.
+- Container: max 1280px content, side padding following the prototype's own `--gut` (corrected
+  2026-11-13, matches prototype `--gut`; Flame): 24px below 640px, 48px from 640 to 1023px, 80px
+  from 1024px up → `mx-auto max-w-[1440px] px-6 sm:px-12 lg:px-20` (1280 + 2×80 = 1440, so the
+  container stops growing once the side padding reaches 80px; content x = 80/1360 at 1440px).
 - 12-column grid with a 24px gutter (12px on phones). Copy blocks span 5–6 columns, max 62ch.
 - Section padding: 120px top / 96px bottom on desktop (`pt-30 pb-24`), 96/48 on phones.
 - Nav height 72px desktop, 56px phone; sticky, `--background` at 90% with `backdrop-blur-sm` and a bottom `--border`.

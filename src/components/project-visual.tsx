@@ -7,15 +7,21 @@ import type {
 import { cn } from "cn";
 
 /**
- * The project panel's picture (docs/tickets/09-project-visuals-terminal-checklist.md):
- * a 228px (phone 200px) sand panel under a card's tags, holding either
- * a real image or one of this ticket's two drawn mini-UIs (`terminal`,
- * `checklist`; the third, `diff-review`, is ticket 10). Each mini-UI is
- * its own self-contained window, drawn as its finished frame — no
- * motion lives here, that's ticket 16 — `aria-hidden` inside the
- * panel's `role="img"` (DESIGN.md §2b, §6 "Project card"). An `image`
- * visual keeps its own `alt` as the accessible name instead: the `img`
- * element already carries that role, so the panel doesn't duplicate it.
+ * The project panel's picture (docs/tickets/09-project-visuals-terminal-checklist.md,
+ * carried into ticket 10): a sand panel under a card's tags, holding
+ * either a real image or one of three drawn mini-UIs (`terminal`,
+ * `checklist`, `diff`). Each mini-UI is its own self-contained window,
+ * drawn as its finished frame — no motion lives here, that's ticket 16
+ * — `aria-hidden` inside the panel's `role="img"` (DESIGN.md §2b, §6
+ * "Project card"). An `image` visual keeps its own `alt` as the
+ * accessible name instead: the `img` element already carries that
+ * role, so the panel doesn't duplicate it.
+ *
+ * The panel stretches to fill its card (ticket 10 carried-over fix 2,
+ * `min-height` + `flex: 1 0 auto`, matching the approved prototype's
+ * `assets/ui/cards.css` `.panel` rule and `site.css`'s `#projects .panel`
+ * override: 228px desktop, 200px phone), so every panel in a row of
+ * cards bottoms out together even when one card's text runs longer.
  */
 export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
   if (visual.kind === "image") {
@@ -45,9 +51,26 @@ export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
     );
   }
 
+  if (visual.kind === "checklist") {
+    return (
+      <Panel role="img" ariaLabel={visual.label}>
+        <ChecklistWindow visual={visual} />
+      </Panel>
+    );
+  }
+
   return (
     <Panel role="img" ariaLabel={visual.label}>
-      <ChecklistWindow visual={visual} />
+      {/* The prototype's `.stage--fade-b` (cards.css): only the layer that
+          wraps the diff window dissolves into the panel's ground over its
+          last 64px (56px on phones) — the sand panel itself (`Panel`,
+          below) stays whole (review round 1 finding 2: the mask had sat on
+          the whole panel, fading the sand itself). Tailwind arbitrary
+          `mask-image` utilities (CODING_STANDARDS §2.2: no inline style);
+          `-webkit-mask-image` for Safari, which does not yet unprefix it. */}
+      <div className="absolute inset-0 [-webkit-mask-image:linear-gradient(to_bottom,#000_calc(100%-64px),transparent_calc(100%-4px))] [mask-image:linear-gradient(to_bottom,#000_calc(100%-64px),transparent_calc(100%-4px))] max-sm:[-webkit-mask-image:linear-gradient(to_bottom,#000_calc(100%-56px),transparent_calc(100%-4px))] max-sm:[mask-image:linear-gradient(to_bottom,#000_calc(100%-56px),transparent_calc(100%-4px))]">
+        <DiffWindow visual={visual} />
+      </div>
     </Panel>
   );
 }
@@ -65,7 +88,7 @@ function Panel({
     <div
       role={role}
       aria-label={ariaLabel}
-      className="frame-mesh relative mt-6 h-[228px] overflow-hidden rounded-lg max-sm:h-[200px]"
+      className="frame-mesh relative mt-6 min-h-[228px] grow shrink-0 overflow-hidden rounded-lg max-sm:min-h-[200px]"
     >
       {children}
     </div>
@@ -86,13 +109,23 @@ function Panel({
  */
 function Window({
   maxWidthClassName,
+  topClassName = "top-4 sm:top-8",
   children,
 }: {
   maxWidthClassName: string;
+  /** The prototype's `.at-corner`'s `--ay`/`--ay-sm` (cards.css): the
+   * terminal/checklist fragments override `--ay-sm` to 16px, the diff
+   * fragment keeps the kit's default 24px — ticket 10. */
+  topClassName?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="absolute inset-x-4 top-4 flex justify-center sm:inset-x-8 sm:top-8">
+    <div
+      className={cn(
+        "absolute inset-x-4 flex justify-center sm:inset-x-8",
+        topClassName,
+      )}
+    >
       <div
         aria-hidden="true"
         className={cn(
@@ -112,7 +145,7 @@ function Window({
  * on a narrow window (ticket 09 review round 3 finding 2, the kit's
  * `.ui-term__up`) without a new content field.
  */
-function splitTitle(title: string): { dir: string; leaf: string } {
+export function splitTitle(title: string): { dir: string; leaf: string } {
   const lastSlash = title.lastIndexOf("/");
   return lastSlash === -1
     ? { dir: "", leaf: title }
@@ -126,7 +159,7 @@ function TerminalPrompt({ title }: { title: string }) {
   const { dir, leaf } = splitTitle(title);
   return (
     <span className="text-muted-foreground">
-      ~/<span className="@max-[299px]:hidden">{dir}</span>
+      ~/<span className="@max-[300px]:hidden">{dir}</span>
       {leaf} ${" "}
     </span>
   );
@@ -168,12 +201,12 @@ function TerminalWindow({
         </span>
         <span className="truncate font-medium">{visual.title}</span>
         <span className="text-muted-foreground">zsh</span>
-        <span className="ml-auto inline-flex h-[22px] flex-none items-center gap-1.5 rounded-md bg-foreground/5 px-2 font-mono text-muted-foreground ring-1 ring-inset ring-window-border @max-[299px]:hidden">
+        <span className="ml-auto inline-flex h-[22px] flex-none items-center gap-1.5 rounded-md bg-foreground/5 px-2 font-mono text-muted-foreground ring-1 ring-inset ring-window-border @max-[300px]:hidden">
           <BranchIcon />
           {visual.branch}
         </span>
       </div>
-      <div className="px-4 py-3 font-mono @max-[299px]:px-3">
+      <div className="px-4 py-3 font-mono @max-[300px]:px-3">
         <p className="truncate">
           <TerminalPrompt title={visual.title} />
           <span className="font-medium">{visual.command}</span>
@@ -182,7 +215,7 @@ function TerminalWindow({
           <TerminalResultLine key={result.path} result={result} index={index} />
         ))}
         <p className="flex items-center gap-2">
-          <span className="grid size-4 flex-none place-items-center rounded-full bg-[#3fae66] text-window">
+          <span className="grid size-4 flex-none place-items-center rounded-full bg-diff-add text-window">
             ✓
           </span>
           <b className="font-medium">PASS</b>
@@ -216,13 +249,13 @@ function TerminalResultLine({
       >
         ✓
       </span>
-      <span className="min-w-0 flex-[0_1_28ch] truncate text-foreground/80 @max-[299px]:flex-1">
+      <span className="min-w-0 flex-[0_1_28ch] truncate text-foreground/80 @max-[300px]:flex-1">
         {result.path}
       </span>
-      <span className="flex-none text-muted-foreground @max-[379px]:hidden">
+      <span className="flex-none text-muted-foreground @max-[380px]:hidden">
         ok
       </span>
-      <span className="w-12 flex-none text-right text-muted-foreground @max-[299px]:w-11">
+      <span className="w-12 flex-none text-right text-muted-foreground @max-[300px]:w-11">
         {result.time}
       </span>
     </p>
@@ -284,5 +317,338 @@ function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }) {
         {item.text}
       </span>
     </li>
+  );
+}
+
+/** The small fixed Go keyword set the diff's tokenizer colours
+ * (ticket 10 decision: `if`, `nil`, `return`, `func`). */
+const GO_KEYWORDS = new Set(["if", "nil", "return", "func"]);
+
+/**
+ * The small Go tokenizer (ticket 10 decision, ≤ ~20 lines): colours
+ * the fixed keyword set (DESIGN.md §2, `#ff9f7a`), the identifier
+ * directly before `(` as a function call (`#e9ecef`), a quoted string
+ * (`#a5e3a0`), and everything else in the plain code colour
+ * (`#c9d1d9`) — the same raw-hex convention `hero-art.tsx` already
+ * uses for this decorative, `aria-hidden` syntax colouring.
+ */
+function tokenizeGo(code: string, keyPrefix: string): ReactNode[] {
+  const tokens = code.split(/(\s+|[(){}.,]|"[^"]*")/).filter((t) => t !== "");
+  return tokens.map((token, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (GO_KEYWORDS.has(token)) {
+      return (
+        <span key={key} className="text-[#ff9f7a]">
+          {token}
+        </span>
+      );
+    }
+    if (tokens[index + 1] === "(" && /^[A-Za-z_]\w*$/.test(token)) {
+      return (
+        <span key={key} className="text-[#e9ecef]">
+          {token}
+        </span>
+      );
+    }
+    if (/^".*"$/.test(token)) {
+      return (
+        <span key={key} className="text-[#a5e3a0]">
+          {token}
+        </span>
+      );
+    }
+    return (
+      <span key={key} className="text-[#c9d1d9]">
+        {token}
+      </span>
+    );
+  });
+}
+
+/**
+ * Tokenizes `code`, wrapping the `marked` substring (if found) in a
+ * `<mark>` for its own highlight. When `marked` is missing or absent
+ * from `code` (ticket 10 Seam A: must not crash), the line still
+ * renders in full, tokenized, with no highlight.
+ */
+function renderDiffCode(
+  code: string,
+  marked: string | undefined,
+  keyPrefix: string,
+  kind?: "add" | "del",
+): ReactNode {
+  const index = marked ? code.indexOf(marked) : -1;
+  if (!marked || index === -1) {
+    return tokenizeGo(code, keyPrefix);
+  }
+  const before = code.slice(0, index);
+  const after = code.slice(index + marked.length);
+  /* review round 1 finding 5: a flat `bg-current/15` reads neutral grey
+   * on every row. The kit tints the mark with the row's own hue — del
+   * 26%, add 30%, both mixed over the window ground (`fragment.css`
+   * `.ui-diff mark.ui-diff__w`, `--d-del-w`/`--d-add-w`) — so removed
+   * marks read red and added marks read green, as in the approved
+   * screenshot. */
+  return (
+    <>
+      {tokenizeGo(before, `${keyPrefix}-pre`)}
+      <mark
+        className={cn(
+          "rounded-[3px] py-px text-inherit",
+          kind === "del"
+            ? "bg-[color-mix(in_oklab,var(--diff-del)_26%,var(--window))]"
+            : "bg-[color-mix(in_oklab,var(--diff-add)_30%,var(--window))]",
+        )}
+      >
+        {tokenizeGo(marked, `${keyPrefix}-mark`)}
+      </mark>
+      {tokenizeGo(after, `${keyPrefix}-post`)}
+    </>
+  );
+}
+
+/** Splits `comment` on backtick pairs, rendering each span as `<code>`
+ * (ticket 10 decision: the comment "may hold one inline-code span"). */
+function renderDiffComment(comment: string): ReactNode[] {
+  return comment.split(/`([^`]+)`/).map((part, index) =>
+    index % 2 === 1 ? (
+      <code
+        key={index}
+        // review round 3 finding 2: the kit's chip is an opaque fill
+        // (`--u-fill-2`, ink 7% over the window ground), not a translucent
+        // overlay, with a 1px inset hairline ring (`--u-line`, ink 9%).
+        className="rounded-[4px] bg-[color-mix(in_oklab,var(--foreground)_7%,var(--window))] px-1 py-px font-mono text-[12px] leading-4 text-foreground ring-1 ring-inset ring-[color-mix(in_oklab,var(--foreground)_9%,transparent)]"
+      >
+        {part}
+      </code>
+    ) : (
+      part
+    ),
+  );
+}
+
+/** One numbered row of the diff's unified view: a changed (`add`/`del`)
+ * line carries its own sign and tint, a context line carries neither. */
+function DiffLine({
+  oldNumber,
+  newNumber,
+  kind,
+  code,
+  marked,
+  keyPrefix,
+}: {
+  oldNumber: number | null;
+  newNumber: number | null;
+  kind?: "add" | "del";
+  code: string;
+  marked?: string;
+  keyPrefix: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-[36px_36px_minmax(0,1fr)] font-mono text-xs leading-5 @max-[440px]:grid-cols-[26px_minmax(0,1fr)] @max-[440px]:text-[11px] @max-[440px]:leading-4",
+        kind === "del" && "bg-diff-del/10",
+        kind === "add" && "bg-diff-add/10",
+      )}
+    >
+      <i
+        className={cn(
+          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[440px]:col-start-1 @max-[440px]:row-start-1 @max-[440px]:pr-2",
+          kind === "del" && "bg-diff-del/15 text-diff-del-ink",
+          kind === "add" && "bg-diff-add/15 text-diff-add-ink",
+          kind !== "del" && "@max-[440px]:invisible",
+        )}
+      >
+        {oldNumber ?? ""}
+      </i>
+      <i
+        className={cn(
+          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[440px]:col-start-1 @max-[440px]:row-start-1 @max-[440px]:pr-2",
+          kind === "del" && "bg-diff-del/15 text-diff-del-ink",
+          kind === "add" && "bg-diff-add/15 text-diff-add-ink",
+          kind === "del" && "@max-[440px]:invisible",
+        )}
+      >
+        {newNumber ?? ""}
+      </i>
+      <span className="relative overflow-hidden whitespace-pre pr-3.5 pl-5 @max-[440px]:col-start-2">
+        {kind ? (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute left-1.5",
+              kind === "del" ? "text-diff-del-ink" : "text-diff-add-ink",
+            )}
+          >
+            {kind === "del" ? "\u2212" : "+"}
+          </span>
+        ) : null}
+        {renderDiffCode(code, marked, keyPrefix, kind)}
+      </span>
+    </div>
+  );
+}
+
+/** The bot's comment thread under the applied suggestion: avatar,
+ * name, time, the static "Applied" chip (ticket 10 decision: no
+ * "Apply suggestion" button, nothing focusable) and the message. */
+function DiffThread({
+  visual,
+}: {
+  visual: Extract<ProjectVisualData, { kind: "diff" }>;
+}) {
+  return (
+    <div className="relative border-y border-window-border bg-foreground/[0.03] py-2.5 pr-3.5 pl-[92px] @max-[440px]:pr-3 @max-[440px]:pl-[18px]">
+      {/* the fragment's one accent touch inside the dark window (DESIGN §2,
+       * "the ... comment marker inside the project mini-UIs" is listed
+       * under --primary): a 2px bar set in from the comment's edge, never
+       * a third diff colour beside the red/green rows. */}
+      <span
+        aria-hidden="true"
+        className="absolute top-3 bottom-3 left-[82px] w-0.5 rounded-full bg-primary @max-[440px]:left-2"
+      />
+      <div className="flex h-6 items-center gap-2">
+        <span className="grid size-6 flex-none place-items-center rounded-full bg-[color-mix(in_oklab,oklch(0.74_0.08_220)_34%,var(--window))] text-[13px] font-semibold tracking-[-0.02em] text-[color-mix(in_oklab,oklch(0.74_0.08_220)_70%,var(--foreground))] shadow-[inset_0_0_0_1px_color-mix(in_oklab,oklch(0.6_0.08_220)_22%,transparent)]">
+          {visual.authorInitials}
+        </span>
+        <span className="truncate text-[13px] leading-5 font-medium">
+          {visual.author}
+        </span>
+        <span className="flex-none text-xs leading-4 text-muted-foreground @max-[340px]:hidden">
+          {visual.time}
+        </span>
+        <span className="ring-inset ml-auto inline-flex h-[22px] flex-none items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--diff-add)_12%,var(--window))] px-2 text-[13px] font-medium text-diff-add-ink ring-1 ring-[color-mix(in_oklab,var(--diff-add)_30%,transparent)]">
+          <svg viewBox="0 0 16 16" className="size-3" aria-hidden="true">
+            <path
+              d="m4 8.4 2.6 2.6L12 5.4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Applied
+        </span>
+      </div>
+      <p className="mt-1 pl-8 text-[13px] leading-5 text-[color-mix(in_oklab,var(--foreground)_80%,var(--window))] @max-[340px]:pl-0">
+        {renderDiffComment(visual.comment)}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * The diff-review mini-UI (docs/tickets/10-project-visual-diff-review.md,
+ * "Decisions (binding)"): a finished code-review picture, the
+ * suggestion already applied — the file header (Go mark, repo/path,
+ * fixed +2/−2 stat), the hunk line, the changed line (old call marked,
+ * removed) and its replacement (new call marked, added), the bot's
+ * comment thread, then up to 4 context lines. Line numbers 13–16 and
+ * the +2/−2 stat are fixed drawing chrome (the ticket's decision), not
+ * content. Reuses the shared `Window` chrome (ticket 09): same dark
+ * ground, border, radius and five-layer shadow.
+ */
+function DiffWindow({
+  visual,
+}: {
+  visual: Extract<ProjectVisualData, { kind: "diff" }>;
+}) {
+  return (
+    <Window maxWidthClassName="max-w-[480px]" topClassName="top-6 sm:top-8">
+      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] pr-3.5 pl-2.5 @max-[440px]:h-9 @max-[440px]:pl-3">
+        <svg
+          className="size-3.5 flex-none text-muted-foreground @max-[440px]:hidden"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+        >
+          <path
+            d="m4.5 6.25 3.5 3.5 3.5-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        {/* review round 1 finding 3a: a brand tile is light on every
+         * surface (the kit's `--u-tile`), not the window's dark ground,
+         * so a logo keeps its own colours. */}
+        <span className="grid size-5 flex-none place-items-center rounded-md bg-white shadow-[inset_0_0_0_1px_rgb(0_0_0/0.09),0_1px_2px_rgb(0_0_0/0.12)]">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static
+              export; a decorative mark inside an aria-hidden drawing,
+              scaled to its own aspect ratio inside the kit's 13px box
+              (ticket 10 decision: empty alt, same-origin file). */}
+          <img src="/icons/go.svg" alt="" width={13} height={5} />
+        </span>
+        <span className="flex-none text-[12px] leading-4 text-muted-foreground @max-[470px]:hidden">
+          {visual.repo}
+        </span>
+        <i className="flex-none text-[12px] leading-4 text-[color-mix(in_oklab,var(--muted-foreground)_80%,var(--window))] not-italic @max-[470px]:hidden">
+          /
+        </i>
+        <span className="min-w-0 flex-1 truncate font-mono text-[12px] leading-4 text-muted-foreground">
+          <span className="@max-[340px]:hidden">{visual.dir}</span>
+          <span className="font-medium text-foreground">{visual.file}</span>
+        </span>
+        <span className="ml-auto flex flex-none items-center gap-1.5">
+          {/* review round 1 finding 3c: `<b>` computes weight 700,
+           * overriding the parent's `font-medium`; a `<span>` keeps 500. */}
+          <span className="flex items-center gap-1.5 font-mono text-[12px] leading-4 font-medium">
+            <span className="text-diff-add-ink">+2</span>
+            <span className="text-diff-del-ink">&minus;2</span>
+          </span>
+          {/* review round 1 finding 3b: the four-block stat bar, missing
+           * from the build; 80% of each diff hue mixed over the window
+           * ground, matching the kit's `.ui-diff__bar`. */}
+          <span
+            aria-hidden="true"
+            className="ml-0.5 flex flex-none gap-0.5 @max-[440px]:hidden"
+          >
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-add)_80%,var(--window))]" />
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-add)_80%,var(--window))]" />
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-del)_80%,var(--window))]" />
+            <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-del)_80%,var(--window))]" />
+          </span>
+        </span>
+      </div>
+      <div className="truncate border-b border-window-border bg-foreground/[0.02] h-7 pr-3.5 pl-[92px] font-mono text-[12px] leading-7 text-muted-foreground @min-[440px]:@max-[500px]:pl-12 @max-[440px]:h-6 @max-[440px]:pl-3 @max-[440px]:text-[11px] @max-[440px]:leading-6">
+        <span className="text-[color-mix(in_oklab,var(--muted-foreground)_80%,var(--window))]">
+          {visual.hunk}
+        </span>{" "}
+        <em className="font-normal not-italic @max-[440px]:hidden">
+          {visual.signature}
+        </em>
+      </div>
+      <div className="pb-2">
+        <DiffLine
+          oldNumber={13}
+          newNumber={null}
+          kind="del"
+          code={visual.before}
+          marked={visual.marked.before}
+          keyPrefix="before"
+        />
+        <DiffLine
+          oldNumber={null}
+          newNumber={13}
+          kind="add"
+          code={visual.after}
+          marked={visual.marked.after}
+          keyPrefix="after"
+        />
+        <DiffThread visual={visual} />
+        {visual.context.map((line, index) => (
+          <DiffLine
+            key={index}
+            oldNumber={14 + index}
+            newNumber={14 + index}
+            code={line}
+            keyPrefix={`context-${index}`}
+          />
+        ))}
+      </div>
+    </Window>
   );
 }

@@ -201,13 +201,56 @@ export interface ProjectVisualChecklist {
   items: ChecklistItems;
 }
 
+/** 0 to 4 context lines shown after a diff's comment thread (ticket 10
+ * decision), the same tuple-union pattern as `TerminalResults`. */
+export type DiffContextLines =
+  | []
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string];
+
+/**
+ * A finished, applied code-review suggestion (ticket 10 decision): the
+ * changed line's old call (`before`/`marked.before`) and the bot's
+ * replacement (`after`/`marked.after`), already applied, plus its
+ * comment thread. Line numbers and the +/− stat are fixed drawing
+ * chrome in the component, not content.
+ */
+export interface ProjectVisualDiff {
+  kind: "diff";
+  /** Required: the picture's accessible name. */
+  label: string;
+  repo: string;
+  dir: string;
+  file: string;
+  /** The hunk header, e.g. "@@ -12,6 +12,6 @@". */
+  hunk: string;
+  /** The hunk's function signature, shown after the hunk header. */
+  signature: string;
+  /** Required: a diff visual with no `before` fails `pnpm typecheck`. */
+  before: string;
+  after: string;
+  /** The substring highlighted in each line (prototype: `context.Background()` → `ctx`). */
+  marked: { before: string; after: string };
+  author: string;
+  authorInitials: string;
+  time: string;
+  /** May hold one inline-code span, written with backticks. */
+  comment: string;
+  context: DiffContextLines;
+}
+
 /**
  * A project's picture. Discriminated by `kind`. Ticket 09 adds
  * `"terminal"` and `"checklist"` to the `"image"` ticket 08 left in
- * place; ticket 10 adds `"diff-review"`.
+ * place; ticket 10 adds `"diff"`.
  */
 export type ProjectVisual =
-  ProjectVisualImage | ProjectVisualTerminal | ProjectVisualChecklist;
+  | ProjectVisualImage
+  | ProjectVisualTerminal
+  | ProjectVisualChecklist
+  | ProjectVisualDiff;
 
 export interface Project {
   title: string;
@@ -472,6 +515,26 @@ export const site = {
       tags: ["Go", "GitHub Actions"],
       badge: "Mock project",
       links: { source: "https://github.com/Siravitt" },
+      // Mini-UI text is real demo content, not placeholder copy (ticket
+      // 09 decision, carried to ticket 10): the prototype's own text.
+      visual: {
+        kind: "diff",
+        label:
+          "A pull request review comment on reviewbot's internal/retry.go: the bot's ctx fix is applied",
+        repo: "reviewbot",
+        dir: "internal/",
+        file: "retry.go",
+        hunk: "@@ -12,6 +12,6 @@",
+        signature: "func Do(ctx context.Context) error {",
+        before: "    err := call(context.Background())",
+        after: "    err := call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "reviewbot",
+        authorInitials: "RB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: ["    if err == nil {", "      return nil", "    }"],
+      },
     },
     {
       title: "[Placeholder] Command-line deploy tool",

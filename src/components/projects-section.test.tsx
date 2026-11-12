@@ -264,6 +264,142 @@ describe("ProjectsSection", () => {
     },
   );
 
+  it("a project with a diff visual renders one role=img element named by its label, holding no focusable elements, whose hidden drawing has the repo, file, both code lines and the comment (with the backticked span as <code>)", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: ["return nil"],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const article = screen.getByRole("article");
+    const panels = within(article).getAllByRole("img", {
+      name: "Fixture diff label",
+    });
+    expect(panels).toHaveLength(1);
+    const panel = panels[0];
+    expect(panel).toHaveTextContent("fixturebot");
+    expect(panel).toHaveTextContent("fixture.go");
+    expect(panel).toHaveTextContent("call(context.Background())");
+    expect(panel).toHaveTextContent("call(ctx)");
+    expect(panel).toHaveTextContent("return nil");
+    expect(
+      within(panel).getByText("ctx", { selector: "code" }),
+    ).toBeInTheDocument();
+    expect(within(panel).queryAllByRole("link", { hidden: true })).toHaveLength(
+      0,
+    );
+    expect(
+      within(panel).queryAllByRole("button", { hidden: true }),
+    ).toHaveLength(0);
+    expect(panel.querySelector("[tabindex]")).toBeNull();
+  });
+
+  it("the diff's marked substrings render inside their own <mark>, tinted by kind (del/add) — Standards round 1 finding 2: an index=-1 mutation in renderDiffCode must turn this red", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: ["return nil"],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    const marks = panel.querySelectorAll("mark");
+    expect(marks).toHaveLength(2);
+    expect(marks[0]).toHaveTextContent("context.Background()");
+    expect(marks[1]).toHaveTextContent("ctx");
+    expect(marks[0].className).toContain("var(--diff-del)");
+    expect(marks[1].className).toContain("var(--diff-add)");
+  });
+
+  it("a diff visual's drawing sits inside the panel's aria-hidden wrapper (ticket 10 decision, same as terminal/checklist)", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: [],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    const hidden = panel.querySelector('[aria-hidden="true"]');
+    expect(hidden).not.toBeNull();
+    expect(hidden).toHaveTextContent("fixturebot");
+  });
+
+  it("when marked.before isn't found in before, the line renders in full with no highlight and no crash (ticket 10 Seam A)", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(something.Else())",
+        after: "call(ctx)",
+        marked: {
+          before: "context.Background()",
+          after: "something-else-not-present",
+        },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: [],
+      },
+    };
+    expect(() =>
+      render(<ProjectsSection site={siteWithProjects([withDiff])} />),
+    ).not.toThrow();
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    expect(panel).toHaveTextContent("call(something.Else())");
+    expect(panel.querySelector("mark")).toBeNull();
+  });
+
   it.each([
     { done: 0, expected: "0 of 5" },
     { done: 3, expected: "3 of 5" },
@@ -373,7 +509,7 @@ describe("ProjectsSection", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("has no axe violations with image, terminal and checklist visuals", async () => {
+  it("has no axe violations with image, terminal, checklist and diff visuals", async () => {
     const withVisuals: Project[] = [
       {
         ...threeProjects[0],
@@ -404,6 +540,27 @@ describe("ProjectsSection", () => {
           label: "Fixture checklist label",
           title: "Due this week",
           items: [{ text: "Item one", done: true }],
+        },
+      },
+      {
+        ...threeProjects[0],
+        title: "Fixture project with a diff visual",
+        visual: {
+          kind: "diff",
+          label: "Fixture diff label",
+          repo: "fixturebot",
+          dir: "internal/",
+          file: "fixture.go",
+          hunk: "@@ -1,1 +1,1 @@",
+          signature: "func Fixture(ctx context.Context) error {",
+          before: "call(context.Background())",
+          after: "call(ctx)",
+          marked: { before: "context.Background()", after: "ctx" },
+          author: "fixturebot",
+          authorInitials: "FB",
+          time: "now",
+          comment: "Pass `ctx` so a cancel stops the retry.",
+          context: ["return nil"],
         },
       },
     ];
