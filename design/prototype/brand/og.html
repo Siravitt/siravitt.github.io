@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- Source of brand/og.png (1200x630), the Open Graph share image. It shows only his name (plus the site's
+     own motif: the lit frame and the editor from the hero), so it needs no change when the real copy lands.
+     Re-render: Chrome headless, window 1200x630, screenshot. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #0a0c0f; }
+  body { position: relative; font-family: "Instrument Sans", sans-serif; color: #e9ecef; }
+  .mark { position: absolute; left: 80px; top: 80px; width: 72px; height: 72px; border-radius: 14px; background: #e8b84a; color: #0a0c0f;
+          display: grid; place-items: center; font-weight: 600; font-size: 46px; letter-spacing: -0.02em; }
+  h1 { position: absolute; left: 80px; bottom: 136px; margin: 0; font-weight: 500; font-size: 108px; line-height: .98; letter-spacing: -0.036em; font-stretch: 96%; }
+  .url { position: absolute; left: 80px; bottom: 80px; font: 400 26px/1 "DM Mono", monospace; color: #9ba3ad; }
+  .url b { color: #e8b84a; font-weight: 400; }
+  /* the hero's lit frame, cut by the image's right and bottom edges, with the editor inside */
+  .frame { position: absolute; left: 800px; top: 80px; width: 480px; height: 640px; border-radius: 12px; background: #d9ccb7; } /* v4.1: the sand lit frame (was sky #c6d3df) */
+  .win { position: absolute; left: 40px; top: 48px; width: 520px; height: 600px; border-radius: 10px; background: #17191c;
+         box-shadow: 0 0 0 1px rgb(255 255 255 / .08), 0 30px 70px -30px rgb(0 0 0 / .8); }
+  .bar { height: 36px; display: flex; align-items: center; gap: 6px; padding: 0 14px; border-bottom: 1px solid rgb(255 255 255 / .07); }
+  .bar i { width: 10px; height: 10px; border-radius: 50%; background: #3a3e43; }
+  pre { margin: 0; padding: 18px 20px; font: 400 17px/30px "DM Mono", monospace; color: #c9d1d9; }
+  .c { color: #7d8590; } .k { color: #ff9f7a; } .s { color: #a5e3a0; }
+  .hl { display: block; margin-left: -20px; padding-left: 18px; border-left: 2px solid #e8b84a; background: rgb(232 184 74 / .08); }
+</style>
+</head>
+<body>
+  <div class="mark">S</div>
+  <h1>Siravit<br>Tanratanavijit</h1>
+  <div class="url"><b>~/</b>siravitt.github.io</div>
+  <div class="frame"><div class="win"><div class="bar"><i></i><i></i><i></i></div><pre><span class="c">// site.ts</span>
+<span class="k">export const</span> site = {
+  person: {
+<span class="hl">    name: <span class="s">"Siravit Tanratanavijit"</span>,</span>  },
+  github: <span class="s">"Siravitt"</span>,
+};</pre></div></div>
+</body>
+</html>

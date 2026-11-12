@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- Source of the icon set (icon.png 512, apple-icon.png 180, favicon.ico 16+32+48): the nav's mark,
+     the first letter of his name on the accent tile. Re-render at 512x512 with a transparent background. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 512px; height: 512px; background: transparent; overflow: hidden; }
+  .tile { width: 512px; height: 512px; border-radius: 104px; background: #e8b84a; color: #0a0c0f; display: grid; place-items: center;
+          font: 600 352px/1 "Instrument Sans", sans-serif; letter-spacing: -0.02em; }
+  .tile span { transform: translateY(-4%); }
+  body.full .tile { border-radius: 0; }   /* apple-icon: iOS rounds the corners itself */
+</style>
+</head>
+<body>
+  <div class="tile"><span>S</span></div>
+  <script>if (location.hash === '#full') document.body.classList.add('full');</script>
+</body>
+</html>

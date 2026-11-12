@@ -1,0 +1,49 @@
+[
+  {
+    "file": "github.svg",
+    "icon": "logos:github-icon",
+    "name": "GitHub",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://github.com/"
+  },
+  {
+    "file": "go.svg",
+    "icon": "logos:go",
+    "name": "Go",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://golang.org/"
+  },
+  {
+    "file": "linkedin.svg",
+    "icon": "simple-icons:linkedin",
+    "name": "LinkedIn",
+    "kind": "mono",
+    "source": "simple-icons@10.4.0",
+    "author": "Simple Icons contributors",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/simple-icons/simple-icons",
+    "note": "v4: one-colour like GitHub. LinkedIn is no longer in current Simple Icons (15.x has no linkedin.svg); 10.4.0 is a release that ships it, CC0-1.0. The mark stays LinkedIn's trademark.",
+    "trademark": true,
+    "markUrl": "https://www.linkedin.com/"
+  },
+  { "file": "stack/go.svg", "icon": "simple-icons:go", "name": "Go", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://go.dev/" },
+  { "file": "stack/typescript.svg", "icon": "simple-icons:typescript", "name": "TypeScript", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://www.typescriptlang.org/" },
+  { "file": "stack/postgresql.svg", "icon": "simple-icons:postgresql", "name": "PostgreSQL", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://www.postgresql.org/" },
+  { "file": "stack/redis.svg", "icon": "simple-icons:redis", "name": "Redis", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://redis.io/" },
+  { "file": "stack/nextdotjs.svg", "icon": "simple-icons:nextdotjs", "name": "Next.js", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://nextjs.org/" },
+  { "file": "stack/react.svg", "icon": "simple-icons:react", "name": "React", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://react.dev/" },
+  { "file": "stack/tailwindcss.svg", "icon": "simple-icons:tailwindcss", "name": "Tailwind CSS", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://tailwindcss.com/" },
+  { "file": "stack/docker.svg", "icon": "simple-icons:docker", "name": "Docker", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://www.docker.com/" },
+  { "file": "stack/githubactions.svg", "icon": "simple-icons:githubactions", "name": "GitHub Actions", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://github.com/features/actions" },
+  { "file": "stack/git.svg", "icon": "simple-icons:git", "name": "Git", "kind": "mono", "source": "simple-icons@15.22.0", "author": "Simple Icons contributors", "licence": "CC0-1.0", "url": "https://github.com/simple-icons/simple-icons", "trademark": true, "markUrl": "https://git-scm.com/" }
+]

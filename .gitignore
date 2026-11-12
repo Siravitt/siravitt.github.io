@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Agent / design-tooling scratch (never committed)
+.taste-skill/
+**/.taste-skill/
+chrome-*/
+probe-*/
+shot-*/
+
+# Misc
+.DS_Store
+*.log

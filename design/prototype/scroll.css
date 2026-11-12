@@ -1,0 +1,180 @@
+/* scroll.css (v2): every scroll animation on the home page, in one file.
+   Build: this file becomes a block in globals.css (or a CSS module) plus Tailwind arbitrary properties;
+   scroll.js becomes the one small client component <ScrollMotion /> (see ../DESIGN.md §7, Motion).
+
+   Three layers, the same order as the cascade below:
+   0. Rest       — the final picture. No script, `prefers-reduced-motion: reduce`, print, and any browser
+                    without the features see this: every word visible, the timeline fully drawn,
+                    every dot lit, the code highlight on line 4.
+   1. Native     — CSS scroll-driven animations (`animation-timeline: view()/scroll()`, named view
+                    timelines, `timeline-scope`). Runs with no JavaScript. Chrome/Edge 115+, Safari 26+.
+   2. Fallback   — browsers without scroll timelines (Firefox today, older Safari): scroll.js adds
+                    `html.sm-io` and drives the same states with one IntersectionObserver and one
+                    rAF-throttled passive scroll read written to custom properties.
+
+   Only `transform` and `opacity` animate. Nothing is pinned or snapped, and the wheel/touch scroll is never smoothed
+   or hijacked: the page scrolls natively. (v3: only an in-page link's own jump glides, via `scroll-behavior`.)
+   Space is never reserved by the animation: every element keeps its box, so reveals cause no layout shift. */
+
+/* ============================================================ 0. rest (no motion) */
+
+/* v3 (Flame: "when click on topbar navigate with scroll smooth"): in-page links glide to their section.
+   CSS only: the browser animates its own anchor jump, so the hash, history (back/forward) and Find still behave
+   natively; nothing hijacks the wheel. Off under reduced motion (the kit's reduce rule forces `auto` as well). */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+/* every jump target stops just under the sticky header (72px, phone 56px), so its heading is never hidden under the bar */
+:is(#top, #about, #stack, #projects, #experience, #contact) { scroll-margin-top: var(--nav); }
+/* focus follows the jump (scroll.js moves it to the section, tabindex -1). A keyboard jump draws no ring round the
+   whole section; it marks it like the editor's active line instead: a 2px accent (amber-yellow) bar down the section's left edge. */
+:is(#top, #about, #stack, #projects, #experience, #contact):focus-visible { outline: none; box-shadow: inset 2px 0 0 var(--action); }
+
+/* the scroll progress line: on the header's bottom hairline */
+.scroll-progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; overflow: hidden; pointer-events: none; }
+.scroll-progress > i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
+
+/* the nav's active-section line: 2px in the ink, under the word (the kit's current-page bar; the accent stays for the progress line) */
+.nav__link { position: relative; }
+.nav__spy { position: absolute; left: var(--s-3); right: var(--s-3); bottom: -2px; height: 2px; border-radius: 2px;
+            background: currentColor; transform: scaleX(0); pointer-events: none; }
+@media (min-width: 1024px) and (max-width: 1279px) { .nav__spy { left: var(--s-2); right: var(--s-2); } }
+.nav.is-open .nav__spy { display: none; }
+
+/* hero editor: the highlighted line is its own bar, so it can travel line by line */
+.ed__code { position: relative; isolation: isolate; }
+.ed__hl { position: absolute; z-index: -1; left: 10px; right: 0; top: calc(16px + 3 * 22px); height: 22px;
+          border-left: 2px solid var(--p-accent); background: rgb(232 184 74 / .08); }
+
+/* experience: a rail on the left line, a dot per entry. At rest the rail is drawn and every dot is lit. */
+.exp { --rail-x: 40px; position: relative; padding-left: var(--rail-x); }
+.exp::before, .exp::after { content: ""; position: absolute; left: 7px; top: 6px; bottom: 0; width: 2px; border-radius: 2px; }
+.exp::before { background: var(--line); }
+.exp::after { background: color-mix(in oklab, var(--ink) 60%, transparent); transform-origin: 50% 0; }
+.exp__item { position: relative; }
+.exp__item::before, .exp__item::after { content: ""; position: absolute; left: calc(-1 * var(--rail-x) + 2px); top: calc(var(--s-5) + 2px);
+  width: 12px; height: 12px; border-radius: 50%; box-sizing: border-box; }
+.exp__item:first-child::before, .exp__item:first-child::after { top: 2px; }
+.exp__item::before { background: var(--bg); border: 2px solid var(--line-strong); }
+.exp__item::after { background: var(--accent); border: 2px solid var(--accent); box-shadow: 0 0 0 4px var(--bg); }
+@media (max-width: 639px) { .exp { --rail-x: 28px; } }
+
+/* ============================================================ 1. native: CSS scroll-driven animations */
+
+@keyframes sm-rise   { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: none; } }
+@keyframes sm-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes sm-grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes sm-assemble { from { opacity: 0; transform: translate(var(--dx, 0), var(--dy, 24px)) scale(.86); } to { opacity: 1; transform: none; } }
+@keyframes sm-lit    { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes sm-hl     { from { transform: translateY(0); } to { transform: translateY(var(--hl-to, 176px)); } }
+@keyframes sm-hero-text { to { opacity: .5; transform: translateY(-24px); } }
+@keyframes sm-hero-main { to { transform: translateY(-48px); } }
+@keyframes sm-hero-note { to { transform: translateY(-88px); } }
+/* the nav line: grows in from the left as its section reaches the middle band, leaves to the right */
+@keyframes sm-spy {
+  entry 0%   { transform: translateX(-50%) scaleX(0); }
+  entry 100% { transform: none; }
+  exit 0%    { transform: none; }
+  exit 100%  { transform: translateX(50%) scaleX(0); }
+}
+/* load, not scroll: the code lines arrive once, top to bottom, as the hero enters (the kit's entrance runs on the words) */
+@keyframes sm-type { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* the code types in on load (CSS only, so it runs with no script too; 0.3 s + 14 x 55 ms, done by 1.4 s) */
+  .ed__code .ln { animation: sm-type 360ms cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(300ms + var(--i, 0) * 55ms); }
+}
+
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  @supports (animation-timeline: view()) and (timeline-scope: --a) {
+    /* the five sections publish their view timelines to the whole page, so the nav can read them.
+       The inset turns the viewport into a band from 40% to 60% of its height: a section is "current"
+       while it crosses that band. */
+    html { timeline-scope: --sec-about, --sec-stack, --sec-projects, --sec-experience, --sec-contact; }
+    #about      { view-timeline: --sec-about block; }
+    #stack      { view-timeline: --sec-stack block; }
+    #projects   { view-timeline: --sec-projects block; }
+    #experience { view-timeline: --sec-experience block; }
+    #contact    { view-timeline: --sec-contact block; }
+    :is(#about, #stack, #projects, #experience, #contact) { view-timeline-inset: 40% 40%; }
+
+    .nav__spy { animation: sm-spy linear both; animation-range: entry 0% exit 100%; }
+    .nav__link[href="#about"] .nav__spy      { animation-timeline: --sec-about; }
+    .nav__link[href="#stack"] .nav__spy      { animation-timeline: --sec-stack; }
+    .nav__link[href="#projects"] .nav__spy   { animation-timeline: --sec-projects; }
+    .nav__link[href="#experience"] .nav__spy { animation-timeline: --sec-experience; }
+    .nav__link[href="#contact"] .nav__spy    { animation-timeline: --sec-contact; }
+
+    /* the progress line follows the whole page */
+    .scroll-progress > i { animation: sm-grow-x linear both; animation-timeline: scroll(root block); }
+
+    /* reveals: each block rises 32px and fades in over its first 180px in view; --i staggers a group
+       by 48px of scroll each (rows, logos, cards, entries). Scrubbed: it runs back on the way up. */
+    [data-rv] { animation: sm-rise cubic-bezier(.22, 1, .36, 1) both; animation-timeline: view();
+                animation-range: cover calc(var(--i, 0) * 48px) cover calc(180px + var(--i, 0) * 48px); }
+
+    /* hero: as it scrolls away, the words ease up and dim a little, the editor and the deploy card
+       rise at two speeds (slight depth), and the highlighted code line steps down the file, line by line */
+    .hero { view-timeline: --hero block; }
+    .hero__text { animation: sm-hero-text linear both; animation-timeline: --hero; animation-range: exit 0% exit 100%; }
+    .hero__art > .ly-piece--main { animation: sm-hero-main linear both; animation-timeline: --hero; animation-range: exit 0% exit 100%; }
+    .hero__art > .ly-piece--note { animation: sm-hero-note linear both; animation-timeline: --hero; animation-range: exit 0% exit 100%; }
+    .ed__hl { animation: sm-hl steps(9, jump-none) both; animation-timeline: --hero; animation-range: exit 0% exit 60%; }
+
+    /* stack: the ten logo tiles assemble into the grid from small offsets, in reading order */
+    .stack__art { view-timeline: --board block; }
+    .stack__board .tool { animation: sm-assemble cubic-bezier(.22, 1, .36, 1) both; animation-timeline: --board;
+                             animation-range: entry calc(5% + var(--i, 0) * 5%) entry calc(55% + var(--i, 0) * 4%); }
+
+    /* experience: the rail draws as its tip crosses the 60% line of the viewport (the inset makes the
+       viewport a line there), and each dot lights as the tip reaches it */
+    .exp { view-timeline: --exp block; view-timeline-inset: 60% 40%; }
+    .exp::after { animation: sm-grow-y linear both; animation-timeline: --exp; animation-range: cover 0% cover 100%; }
+    .exp__item { view-timeline: --exp-item block; view-timeline-inset: 60% 40%; }
+    .exp__item::after { animation: sm-lit cubic-bezier(.22, 1, .36, 1) both; animation-timeline: --exp-item;
+                        animation-range: cover 0px cover 40px; }
+  }
+}
+
+/* reduced motion, native timelines: the nav line still marks the section, but jumps instead of travelling */
+@media (prefers-reduced-motion: reduce) and (scripting: enabled) {
+  @supports (animation-timeline: view()) and (timeline-scope: --a) {
+    html { timeline-scope: --sec-about, --sec-stack, --sec-projects, --sec-experience, --sec-contact; }
+    #about { view-timeline: --sec-about block; } #stack { view-timeline: --sec-stack block; }
+    #projects { view-timeline: --sec-projects block; } #experience { view-timeline: --sec-experience block; }
+    #contact { view-timeline: --sec-contact block; }
+    :is(#about, #stack, #projects, #experience, #contact) { view-timeline-inset: 50% 49%; }
+    .nav__spy { animation: sm-grow-x steps(1, jump-start) none; animation-range: cover 0% cover 100%; }
+    .nav__link[href="#about"] .nav__spy { animation-timeline: --sec-about; }
+    .nav__link[href="#stack"] .nav__spy { animation-timeline: --sec-stack; }
+    .nav__link[href="#projects"] .nav__spy { animation-timeline: --sec-projects; }
+    .nav__link[href="#experience"] .nav__spy { animation-timeline: --sec-experience; }
+    .nav__link[href="#contact"] .nav__spy { animation-timeline: --sec-contact; }
+  }
+}
+
+/* ============================================================ 2. fallback: html.sm-io (scroll.js) */
+
+/* reveals: hidden only once the script is running, shown by IntersectionObserver, 600 ms, staggered 80 ms */
+html.sm-io [data-rv] { transition: opacity 600ms cubic-bezier(.22, 1, .36, 1), transform 600ms cubic-bezier(.22, 1, .36, 1);
+                       transition-delay: calc(var(--i, 0) * 80ms); }
+html.sm-io [data-rv]:not(.is-in) { opacity: 0; transform: translateY(32px); }
+html.sm-io .stack__board .tool { transition: opacity 600ms cubic-bezier(.22, 1, .36, 1), transform 600ms cubic-bezier(.22, 1, .36, 1),
+                                    border-color 150ms var(--ease), color 150ms var(--ease);
+                                    transition-delay: calc(var(--i, 0) * 60ms), calc(var(--i, 0) * 60ms), 0ms, 0ms; }
+html.sm-io .stack__board:not(.is-in) .tool { opacity: 0; transform: translate(var(--dx, 0), var(--dy, 24px)) scale(.86); }
+
+/* scroll-linked parts: one passive scroll read a frame writes --sm-page, --sm-hero, --sm-exp (0..1) */
+html.sm-io .scroll-progress > i { transform: scaleX(var(--sm-page, 0)); }
+html.sm-io .hero__text { opacity: calc(1 - var(--sm-hero, 0) * .5); transform: translateY(calc(var(--sm-hero, 0) * -24px)); }
+html.sm-io .hero__art > .ly-piece--main { transform: translateY(calc(var(--sm-hero, 0) * -48px)); }
+html.sm-io .hero__art > .ly-piece--note { transform: translateY(calc(var(--sm-hero, 0) * -88px)); }
+html.sm-io .ed__hl { transform: translateY(calc(var(--sm-hl, 0) * 22px)); }
+html.sm-io .exp::after { transform: scaleY(var(--sm-exp, 0)); }
+html.sm-io .exp__item::after { opacity: 0; transform: scale(.4); transition: opacity 240ms cubic-bezier(.22, 1, .36, 1), transform 240ms cubic-bezier(.22, 1, .36, 1); }
+html.sm-io .exp__item.is-lit::after { opacity: 1; transform: none; }
+html.sm-io .nav__spy { transition: transform 240ms cubic-bezier(.2, .8, .2, 1); transform-origin: 100% 50%; }
+html.sm-io .nav__link.is-current .nav__spy { transform: none; transform-origin: 0 50%; }
+
+/* phones: the editor shows 8 lines, so the highlight walks lines 4 to 8 */
+@media (max-width: 639px) { .ed__hl { --hl-to: 88px; animation-timing-function: steps(5, jump-none); } }
+
+@media print { .scroll-progress, .nav__spy { display: none; } [data-rv], .stack__board .tool { opacity: 1 !important; transform: none !important; } }
