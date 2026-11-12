@@ -152,7 +152,7 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
 | Display / h1 | Instrument Sans (width 96%) | `clamp(38px, 3.24vw + 25.4px, 72px)` | 500 | 1.02 | −0.036em |
 | h2 | Instrument Sans | `clamp(30px, 1.72vw + 23.3px, 48px)` | 500 | 1.1 | −0.028em |
 | About statement | Instrument Sans | = h2 | 500 | 1.16 | −0.028em |
-| Card title (h3) | Instrument Sans | 18px (20px ≥ 1280) | 500 | 1.4 | 0 |
+| Card title (h3) | Instrument Sans | 18px (20px ≥ 1024, corrected 2026-11-12, matches prototype) | 500 | 1.4 | 0 |
 | Lead | Instrument Sans | 18px (20px ≥ 1024, corrected 2026-11-12, matches prototype) | 400 | 1.6 | 0 |
 | Body | Instrument Sans | 16px | 400 | 1.6 | 0 |
 | Small / role line / links | Instrument Sans | 14px | 500 | 1.5 | 0 |
@@ -171,7 +171,8 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
 ## 4. Spacing and layout
 
 - 4px scale: `4 8 12 16 24 32 48 64 96 128` → Tailwind `1 2 3 4 6 8 12 16 24 32`. No in-between values.
-- Container: max 1280px content + side padding 24px (phone 16px) → `mx-auto max-w-7xl px-6 max-sm:px-4`.
+- Container: max 1280px content + side padding 24px on every width, including phones (corrected
+  2026-11-12, matches prototype; Flame) → `mx-auto max-w-[1328px] px-6`.
 - 12-column grid with a 24px gutter (12px on phones). Copy blocks span 5–6 columns, max 62ch.
 - Section padding: 120px top / 96px bottom on desktop (`pt-30 pb-24`), 96/48 on phones.
 - Nav height 72px desktop, 56px phone; sticky, `--background` at 90% with `backdrop-blur-sm` and a bottom `--border`.

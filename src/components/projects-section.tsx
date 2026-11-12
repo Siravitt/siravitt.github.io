@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { Project, SiteContent } from "@/content/site";
 import { PlaceholderText } from "@/components/placeholder-text";
+import { ProjectVisual } from "@/components/project-visual";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { isExternalHref } from "@/lib/links";
@@ -22,6 +23,7 @@ import { cn } from "cn";
  * the link row with no empty container; `tags: []` drops the tag line.
  * Each card carries its position within its row of two (`--i`, 0 or 1)
  * as a ticket-14 scroll-stagger hook only — nothing reads it yet.
+ * Ticket 09 adds the optional picture panel under a card's tags.
  */
 export function ProjectsSection({ site }: { site: SiteContent }) {
   const { projects, labels } = site;
@@ -125,6 +127,7 @@ function ProjectCard({
           {project.tags.join(" \u00b7 ")}
         </p>
       ) : null}
+      {project.visual ? <ProjectVisual visual={project.visual} /> : null}
     </Card>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { OtherPageShell } from "@/components/other-page-shell";
 import type { SiteContent } from "@/content/site";
+import { CONTAINER_CLASSNAME } from "@/lib/layout";
 
 /**
  * The restyled `/privacy.html` page (docs/tickets/04-footer-privacy-404.md):
@@ -13,7 +14,7 @@ export function PrivacyView({ site }: { site: SiteContent }) {
     <OtherPageShell site={site} current>
       <section
         aria-labelledby="doc-h"
-        className="mx-auto max-w-7xl px-6 pt-10 pb-24 max-sm:px-4 lg:pt-12"
+        className={`${CONTAINER_CLASSNAME} pt-10 pb-24 lg:pt-12`}
       >
         <div className="grid max-w-[760px] gap-6">
           <Link

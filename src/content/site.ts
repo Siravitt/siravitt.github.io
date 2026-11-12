@@ -128,12 +128,86 @@ export interface ProjectVisualImage {
   height: number;
 }
 
+/** One row of a terminal visual's test output. */
+export interface TerminalResult {
+  path: string;
+  time: string;
+}
+
 /**
- * A project's picture. Discriminated by `kind`; today only `"image"`
- * exists. Tickets 09 and 10 add the `"terminal"`, `"checklist"` and
- * `"diff-review"` mini-UI kinds to this union.
+ * 1 to 5 result rows (ticket 09 decision). A tuple union, like
+ * `ExperienceHighlights`, so the compiler — not a runtime check —
+ * rejects an empty or over-long `results` array.
  */
-export type ProjectVisual = ProjectVisualImage;
+export type TerminalResults =
+  | [TerminalResult]
+  | [TerminalResult, TerminalResult]
+  | [TerminalResult, TerminalResult, TerminalResult]
+  | [TerminalResult, TerminalResult, TerminalResult, TerminalResult]
+  | [
+      TerminalResult,
+      TerminalResult,
+      TerminalResult,
+      TerminalResult,
+      TerminalResult,
+    ];
+
+export interface ProjectVisualTerminal {
+  kind: "terminal";
+  /** Required: the picture's accessible name (ticket 09 decision). */
+  label: string;
+  /** The terminal window's title, e.g. "booking/api". */
+  title: string;
+  branch: string;
+  /** Required: a terminal visual with no command fails `pnpm typecheck`. */
+  command: string;
+  results: TerminalResults;
+  /** The status line after "PASS", e.g. "in 1.61s". */
+  summary: string;
+}
+
+/** One row of a checklist visual. */
+export interface ChecklistItem {
+  text: string;
+  done: boolean;
+}
+
+/**
+ * 1 to 6 items (ticket 09 decision), the same tuple-union pattern as
+ * `TerminalResults`: the "k of n" count and the progress bar's width
+ * are computed from `done`, never stored as extra fields.
+ */
+export type ChecklistItems =
+  | [ChecklistItem]
+  | [ChecklistItem, ChecklistItem]
+  | [ChecklistItem, ChecklistItem, ChecklistItem]
+  | [ChecklistItem, ChecklistItem, ChecklistItem, ChecklistItem]
+  | [ChecklistItem, ChecklistItem, ChecklistItem, ChecklistItem, ChecklistItem]
+  | [
+      ChecklistItem,
+      ChecklistItem,
+      ChecklistItem,
+      ChecklistItem,
+      ChecklistItem,
+      ChecklistItem,
+    ];
+
+export interface ProjectVisualChecklist {
+  kind: "checklist";
+  /** Required: the picture's accessible name (ticket 09 decision). */
+  label: string;
+  /** The checklist window's title, e.g. "Due this week". */
+  title: string;
+  items: ChecklistItems;
+}
+
+/**
+ * A project's picture. Discriminated by `kind`. Ticket 09 adds
+ * `"terminal"` and `"checklist"` to the `"image"` ticket 08 left in
+ * place; ticket 10 adds `"diff-review"`.
+ */
+export type ProjectVisual =
+  ProjectVisualImage | ProjectVisualTerminal | ProjectVisualChecklist;
 
 export interface Project {
   title: string;
@@ -347,6 +421,23 @@ export const site = {
         source: "https://github.com/Siravitt",
         live: "#projects",
       },
+      // Mini-UI text is real demo content, not placeholder copy (ticket
+      // 09 decision: it carries no [Placeholder] tag, the title and
+      // badge already mark the project as a mock).
+      visual: {
+        kind: "terminal",
+        label:
+          "A terminal running the booking API's test suite, finishing with a pass",
+        title: "booking/api",
+        branch: "main",
+        command: "go test ./...",
+        results: [
+          { path: "internal/booking", time: "0.41s" },
+          { path: "internal/notify", time: "0.27s" },
+          { path: "internal/store", time: "0.93s" },
+        ],
+        summary: "in 1.61s",
+      },
     },
     {
       title: "[Placeholder] Team dashboard in Next.js",
@@ -358,6 +449,18 @@ export const site = {
       tags: ["Next.js", "TypeScript", "Tailwind CSS"],
       badge: "Mock project",
       links: { source: "https://github.com/Siravitt" },
+      visual: {
+        kind: "checklist",
+        label: "A checklist of 5 tasks due this week, 3 of them done",
+        title: "Due this week",
+        items: [
+          { text: "Ship the task filters", done: true },
+          { text: "Review the sign-in flow", done: true },
+          { text: "Fix the date picker", done: true },
+          { text: "Write the release notes", done: false },
+          { text: "Demo to the team", done: false },
+        ],
+      },
     },
     {
       title: "[Placeholder] Pull request review bot",
