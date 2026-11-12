@@ -99,7 +99,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
           </span>
           <span>siravitt.github.io</span>
         </div>
-        <div className="flex">
+        <div className="flex min-h-[470px] max-sm:min-h-0">
           <div className="hidden w-32 shrink-0 flex-col gap-1.5 border-r border-white/10 px-3 py-3 text-[13px] text-[#9ba3ad] sm:flex">
             <span className="text-[11px] tracking-wide text-[#7d8590] uppercase">
               src
@@ -114,36 +114,47 @@ export function HeroArt({ site }: { site: SiteContent }) {
             </span>
             <span>og.png</span>
           </div>
-          <div className="relative min-w-0 flex-1 px-4 py-3 font-mono text-[13px] leading-[22px] text-[#c9d1d9]">
-            <div
-              data-ln-highlight="true"
-              aria-hidden="true"
-              className="absolute inset-x-0 border-l-2 border-primary bg-primary-tint"
-              style={{
-                top: HIGHLIGHT_LINE_INDEX * LINE_HEIGHT_PX,
-                height: LINE_HEIGHT_PX,
-              }}
-            />
-            {lines.map((line, i) => (
+          <div className="min-w-0 flex-1 px-4 py-3 font-mono text-[13px] leading-[22px] text-[#c9d1d9]">
+            {/*
+             * No padding here: a sibling positioned `absolute` against a
+             * padded containing block lands `top` against the *padding*
+             * edge, not the content edge, so a padded ancestor would push
+             * the highlight bar above line 0 by that padding (review
+             * round 1's "bar sits 12px above `name`" bug). This wrapper
+             * carries no padding so `top: index * LINE_HEIGHT_PX` lines
+             * up exactly with the rendered line.
+             */}
+            <div className="relative">
               <div
-                key={i}
-                data-ln={i}
-                className={
-                  i >= 8
-                    ? "relative truncate whitespace-nowrap max-sm:hidden"
-                    : "relative truncate whitespace-nowrap"
-                }
-              >
-                {line}
-              </div>
-            ))}
+                data-ln-highlight="true"
+                aria-hidden="true"
+                className="absolute inset-x-0 border-l-2 border-primary bg-primary-tint"
+                style={{
+                  top: HIGHLIGHT_LINE_INDEX * LINE_HEIGHT_PX,
+                  height: LINE_HEIGHT_PX,
+                }}
+              />
+              {lines.map((line, i) => (
+                <div
+                  key={i}
+                  data-ln={i}
+                  className={
+                    i >= 8
+                      ? "relative overflow-hidden text-ellipsis whitespace-pre max-sm:hidden"
+                      : "relative overflow-hidden text-ellipsis whitespace-pre"
+                  }
+                >
+                  {line}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       <div
         aria-hidden="true"
-        className="absolute -bottom-6 left-6 w-[calc(100%-6rem)] max-w-72 rounded-lg bg-white p-4 text-[#1c1917] shadow-lg max-sm:hidden"
+        className="absolute bottom-6 left-6 w-[300px] rounded-lg bg-white p-4 text-[#1c1917] shadow-lg max-sm:hidden"
       >
         <div className="flex items-center justify-between gap-2">
           <h5 className="text-[14px] font-medium">Deploy to GitHub Pages</h5>

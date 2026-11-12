@@ -43,6 +43,9 @@
   --color-placeholder: var(--placeholder);
   --color-placeholder-fill: var(--placeholder-fill);
   --color-placeholder-border: var(--placeholder-border);
+  /* the hero editor's highlighted-line fill (DESIGN.md §2); without this
+     mapping `bg-primary-tint` compiles to no CSS at all (review round 1) */
+  --color-primary-tint: var(--primary-tint);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);

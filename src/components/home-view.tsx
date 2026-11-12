@@ -37,9 +37,9 @@ export function HomeView({ site }: { site: SiteContent }) {
       >
         <section
           aria-labelledby="hero-h"
-          className="mx-auto grid max-w-7xl gap-x-12 gap-y-10 px-6 py-24 max-sm:px-4 lg:grid-cols-[5fr_6fr] lg:items-center"
+          className="mx-auto grid max-w-7xl gap-x-12 gap-y-10 px-6 py-24 max-sm:px-4 lg:grid-cols-[5fr_6fr]"
         >
-          <div className="min-w-0">
+          <div className="min-w-0 lg:flex lg:flex-col">
             <p className="mb-6 text-[14px] leading-[1.5] font-medium">
               <PlaceholderText text={site.person.role} />
             </p>
