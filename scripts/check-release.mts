@@ -4,37 +4,19 @@
 // and `.txt` (RSC payload) file for a release-guard marker, and exits
 // non-zero while any remains. CI's `release-guard` job runs this only on
 // PRs whose base is `main`; Flame can also run it locally before a
-// release. All the matching logic lives in `src/lib/release-guard.ts`
-// (unit-tested on its own) — this file is just the filesystem walk and
-// the printed report, run directly by Node's native TypeScript support
-// (no bundler, no new dependency).
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+// release. All the matching logic, file selection and the recursive
+// walk itself live in `src/lib/release-guard.ts` (unit-tested on their
+// own, including the walk — reviewer round 2) — this file is just the
+// `out/` existence check and the printed report, run directly by
+// Node's native TypeScript support (no bundler, no new dependency).
+import { statSync } from "node:fs";
+import { join } from "node:path";
 import {
-  isScannedFile,
+  collectScannedFiles,
   scanFilesForMarkers,
-  type ReleaseGuardFile,
 } from "../src/lib/release-guard.ts";
 
 const OUT_DIR = join(process.cwd(), "out");
-
-function collectScannedFiles(dir: string): ReleaseGuardFile[] {
-  const files: ReleaseGuardFile[] = [];
-  for (const entry of readdirSync(dir)) {
-    const fullPath = join(dir, entry);
-    const info = statSync(fullPath);
-    if (info.isDirectory()) {
-      files.push(...collectScannedFiles(fullPath));
-      continue;
-    }
-    if (!isScannedFile(entry)) continue;
-    files.push({
-      file: relative(process.cwd(), fullPath),
-      content: readFileSync(fullPath, "utf8"),
-    });
-  }
-  return files;
-}
 
 function main(): number {
   let outInfo;
@@ -49,7 +31,7 @@ function main(): number {
     return 1;
   }
 
-  const files = collectScannedFiles(OUT_DIR);
+  const files = collectScannedFiles(OUT_DIR, process.cwd());
   const hits = scanFilesForMarkers(files);
 
   if (hits.length === 0) {

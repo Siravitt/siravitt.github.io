@@ -1,14 +1,16 @@
-import { extname } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { extname, join, relative } from "node:path";
 
 /**
- * The release guard's pure scanning logic (docs/tickets/05-built-site-checks-release-guard.md,
+ * The release guard's scanning logic (docs/tickets/05-built-site-checks-release-guard.md,
  * "Decisions"; docs/tickets/README.md decision 2): the markers that must
- * never reach a built site on `main`, and which files under `out/` get
- * scanned for them. `scripts/check-release.mts` is the thin I/O wrapper —
- * it walks `out/` recursively, keeps whatever `isScannedFile` accepts,
- * reads it, and calls `scanFilesForMarkers`. Keeping both the file
- * selection and the scan itself pure and framework-free is what lets
- * them be unit-tested on literal inputs without a real build.
+ * never reach a built site on `main`, which files under `out/` get
+ * scanned for them, and the recursive walk that finds them —
+ * including `collectScannedFiles`/`walkDir` (reviewer round 2: the walk
+ * must be unit-tested, not left only in `scripts/check-release.mts`,
+ * since a dropped recursive step is invisible to literal-input tests on
+ * `scanFilesForMarkers` alone). `scripts/check-release.mts` is now a
+ * thin wrapper that points this walk at `out/` and prints the report.
  */
 export const RELEASE_GUARD_MARKERS = [
   "[Placeholder]",
@@ -82,4 +84,44 @@ export function scanFilesForMarkers(
   files: ReleaseGuardFile[],
 ): ReleaseGuardHit[] {
   return files.flatMap(scanFileForMarkers);
+}
+
+/**
+ * Recursively lists absolute paths of every file under `dir` for which
+ * `predicate(entryName)` is true. The shared walk behind
+ * `collectScannedFiles` below and `listOutFiles` in
+ * `tests/site/helpers.ts` — previously duplicated in three places.
+ */
+export function walkDir(
+  dir: string,
+  predicate: (entryName: string) => boolean,
+): string[] {
+  const paths: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    const info = statSync(fullPath);
+    if (info.isDirectory()) {
+      paths.push(...walkDir(fullPath, predicate));
+      continue;
+    }
+    if (predicate(entry)) paths.push(fullPath);
+  }
+  return paths;
+}
+
+/**
+ * Recursively finds every file under `dir` that `isScannedFile`
+ * accepts and reads its content. `file` is reported relative to
+ * `baseDir` (defaults to `dir` itself) so a caller walking
+ * `<cwd>/out` can report paths as `out/...` by passing `baseDir =
+ * process.cwd()` — this is what `scripts/check-release.mts` does.
+ */
+export function collectScannedFiles(
+  dir: string,
+  baseDir: string = dir,
+): ReleaseGuardFile[] {
+  return walkDir(dir, isScannedFile).map((fullPath) => ({
+    file: relative(baseDir, fullPath),
+    content: readFileSync(fullPath, "utf8"),
+  }));
 }

@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   RELEASE_GUARD_MARKERS,
+  collectScannedFiles,
   isScannedFile,
   scanFilesForMarkers,
 } from "@/lib/release-guard";
@@ -94,5 +98,66 @@ describe("isScannedFile", () => {
   it("does not scan .js or .css files", () => {
     expect(isScannedFile("out/_next/static/chunk.js")).toBe(false);
     expect(isScannedFile("out/_next/static/styles.css")).toBe(false);
+  });
+});
+
+/**
+ * `collectScannedFiles` on a real temporary directory (reviewer round
+ * 2: the recursive filesystem walk is the one piece of the guard that
+ * a literal-input test on `scanFilesForMarkers`/`isScannedFile` cannot
+ * reach — dropping the recursive step into subdirectories previously
+ * left `pnpm test` green and only showed up by running the real build).
+ * `fs.mkdtempSync` under `os.tmpdir()` gives each test an isolated,
+ * real directory tree without touching `out/`.
+ */
+describe("collectScannedFiles", () => {
+  let tempDir: string;
+
+  beforeEach(() => {
+    tempDir = mkdtempSync(join(tmpdir(), "release-guard-"));
+  });
+
+  afterEach(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("finds a scanned file nested one directory down", () => {
+    mkdirSync(join(tempDir, "privacy"));
+    writeFileSync(
+      join(tempDir, "privacy", "__next._full.txt"),
+      '1:{"children":"role"}',
+    );
+
+    expect(collectScannedFiles(tempDir)).toEqual([
+      {
+        file: join("privacy", "__next._full.txt"),
+        content: '1:{"children":"role"}',
+      },
+    ]);
+  });
+
+  it("finds a scanned file nested two directories down", () => {
+    mkdirSync(join(tempDir, "privacy", "deep"), { recursive: true });
+    writeFileSync(join(tempDir, "privacy", "deep", "x.html"), "<p>hi</p>");
+
+    expect(collectScannedFiles(tempDir)).toEqual([
+      { file: join("privacy", "deep", "x.html"), content: "<p>hi</p>" },
+    ]);
+  });
+
+  it("skips a nested file isScannedFile rejects", () => {
+    mkdirSync(join(tempDir, "privacy"));
+    writeFileSync(join(tempDir, "privacy", "a.js"), "console.log(1)");
+
+    expect(collectScannedFiles(tempDir)).toEqual([]);
+  });
+
+  it("reports paths relative to a given baseDir, not the scanned dir", () => {
+    mkdirSync(join(tempDir, "out", "privacy"), { recursive: true });
+    writeFileSync(join(tempDir, "out", "privacy", "x.html"), "<p>hi</p>");
+
+    expect(collectScannedFiles(join(tempDir, "out"), tempDir)).toEqual([
+      { file: join("out", "privacy", "x.html"), content: "<p>hi</p>" },
+    ]);
   });
 });

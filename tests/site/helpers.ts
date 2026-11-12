@@ -3,9 +3,10 @@
 // `pnpm build`. Parses HTML with `jsdom` — already a dev dependency for
 // the component tests' `environment: "jsdom"` — rather than adding a
 // new HTML parser (ticket decision).
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { extname, join, relative } from "node:path";
 import { JSDOM } from "jsdom";
+import { walkDir } from "@/lib/release-guard";
 
 export const OUT_DIR = join(process.cwd(), "out");
 
@@ -34,23 +35,15 @@ export function parseOutFile(relativePath: string): Document {
   return new JSDOM(readOutFile(relativePath)).window.document;
 }
 
-/** Lists every file under `out/` (relative paths) whose extension is in `extensions`. */
+/**
+ * Lists every file under `out/` (relative paths) whose extension is in
+ * `extensions`. Shares its recursive walk with the release guard's
+ * `collectScannedFiles` via `walkDir` (reviewer round 2: one walk,
+ * tested once, instead of a copy per caller).
+ */
 export function listOutFiles(extensions: string[]): string[] {
   const allowed = new Set(extensions);
-  const files: string[] = [];
-  const walk = (dir: string) => {
-    for (const entry of readdirSync(dir)) {
-      const fullPath = join(dir, entry);
-      const info = statSync(fullPath);
-      if (info.isDirectory()) {
-        walk(fullPath);
-        continue;
-      }
-      if (allowed.has(extname(entry))) {
-        files.push(relative(OUT_DIR, fullPath));
-      }
-    }
-  };
-  walk(OUT_DIR);
-  return files;
+  return walkDir(OUT_DIR, (entry) => allowed.has(extname(entry))).map(
+    (fullPath) => relative(OUT_DIR, fullPath),
+  );
 }
