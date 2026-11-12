@@ -414,7 +414,10 @@ function renderDiffComment(comment: string): ReactNode[] {
     index % 2 === 1 ? (
       <code
         key={index}
-        className="rounded-[4px] bg-foreground/10 px-1 py-px font-mono text-[12px] text-foreground"
+        // review round 3 finding 2: the kit's chip is an opaque fill
+        // (`--u-fill-2`, ink 7% over the window ground), not a translucent
+        // overlay, with a 1px inset hairline ring (`--u-line`, ink 9%).
+        className="rounded-[4px] bg-[color-mix(in_oklab,var(--foreground)_7%,var(--window))] px-1 py-px font-mono text-[12px] leading-4 text-foreground ring-1 ring-inset ring-[color-mix(in_oklab,var(--foreground)_9%,transparent)]"
       >
         {part}
       </code>
@@ -444,32 +447,32 @@ function DiffLine({
   return (
     <div
       className={cn(
-        "grid grid-cols-[36px_36px_minmax(0,1fr)] font-mono text-xs leading-5 @max-[439px]:grid-cols-[26px_minmax(0,1fr)] @max-[439px]:text-[11px] @max-[439px]:leading-4",
+        "grid grid-cols-[36px_36px_minmax(0,1fr)] font-mono text-xs leading-5 @max-[440px]:grid-cols-[26px_minmax(0,1fr)] @max-[440px]:text-[11px] @max-[440px]:leading-4",
         kind === "del" && "bg-diff-del/10",
         kind === "add" && "bg-diff-add/10",
       )}
     >
       <i
         className={cn(
-          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[439px]:col-start-1 @max-[439px]:row-start-1 @max-[439px]:pr-2",
+          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[440px]:col-start-1 @max-[440px]:row-start-1 @max-[440px]:pr-2",
           kind === "del" && "bg-diff-del/15 text-diff-del-ink",
           kind === "add" && "bg-diff-add/15 text-diff-add-ink",
-          kind !== "del" && "@max-[439px]:invisible",
+          kind !== "del" && "@max-[440px]:invisible",
         )}
       >
         {oldNumber ?? ""}
       </i>
       <i
         className={cn(
-          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[439px]:col-start-1 @max-[439px]:row-start-1 @max-[439px]:pr-2",
+          "pr-2.5 text-right text-[11px] text-muted-foreground not-italic @max-[440px]:col-start-1 @max-[440px]:row-start-1 @max-[440px]:pr-2",
           kind === "del" && "bg-diff-del/15 text-diff-del-ink",
           kind === "add" && "bg-diff-add/15 text-diff-add-ink",
-          kind === "del" && "@max-[439px]:invisible",
+          kind === "del" && "@max-[440px]:invisible",
         )}
       >
         {newNumber ?? ""}
       </i>
-      <span className="relative overflow-hidden whitespace-pre pr-3.5 pl-5 @max-[439px]:col-start-2">
+      <span className="relative overflow-hidden whitespace-pre pr-3.5 pl-5 @max-[440px]:col-start-2">
         {kind ? (
           <span
             aria-hidden="true"
@@ -496,14 +499,14 @@ function DiffThread({
   visual: Extract<ProjectVisualData, { kind: "diff" }>;
 }) {
   return (
-    <div className="relative border-y border-window-border bg-foreground/[0.03] py-2.5 pr-3.5 pl-[92px] @max-[439px]:pr-3 @max-[439px]:pl-[18px]">
+    <div className="relative border-y border-window-border bg-foreground/[0.03] py-2.5 pr-3.5 pl-[92px] @max-[440px]:pr-3 @max-[440px]:pl-[18px]">
       {/* the fragment's one accent touch inside the dark window (DESIGN §2,
        * "the ... comment marker inside the project mini-UIs" is listed
        * under --primary): a 2px bar set in from the comment's edge, never
        * a third diff colour beside the red/green rows. */}
       <span
         aria-hidden="true"
-        className="absolute top-3 bottom-3 left-[82px] w-0.5 rounded-full bg-primary @max-[439px]:left-2"
+        className="absolute top-3 bottom-3 left-[82px] w-0.5 rounded-full bg-primary @max-[440px]:left-2"
       />
       <div className="flex h-6 items-center gap-2">
         <span className="grid size-6 flex-none place-items-center rounded-full bg-[color-mix(in_oklab,oklch(0.74_0.08_220)_34%,var(--window))] text-[13px] font-semibold tracking-[-0.02em] text-[color-mix(in_oklab,oklch(0.74_0.08_220)_70%,var(--foreground))] shadow-[inset_0_0_0_1px_color-mix(in_oklab,oklch(0.6_0.08_220)_22%,transparent)]">
@@ -512,7 +515,7 @@ function DiffThread({
         <span className="truncate text-[13px] leading-5 font-medium">
           {visual.author}
         </span>
-        <span className="flex-none text-xs leading-4 text-muted-foreground @max-[339px]:hidden">
+        <span className="flex-none text-xs leading-4 text-muted-foreground @max-[340px]:hidden">
           {visual.time}
         </span>
         <span className="ring-inset ml-auto inline-flex h-[22px] flex-none items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--diff-add)_12%,var(--window))] px-2 text-[13px] font-medium text-diff-add-ink ring-1 ring-[color-mix(in_oklab,var(--diff-add)_30%,transparent)]">
@@ -529,7 +532,7 @@ function DiffThread({
           Applied
         </span>
       </div>
-      <p className="mt-1 pl-8 text-[13px] leading-5 text-[color-mix(in_oklab,var(--foreground)_80%,var(--window))] @max-[339px]:pl-0">
+      <p className="mt-1 pl-8 text-[13px] leading-5 text-[color-mix(in_oklab,var(--foreground)_80%,var(--window))] @max-[340px]:pl-0">
         {renderDiffComment(visual.comment)}
       </p>
     </div>
@@ -554,9 +557,9 @@ function DiffWindow({
 }) {
   return (
     <Window maxWidthClassName="max-w-[480px]" topClassName="top-6 sm:top-8">
-      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] pr-3.5 pl-2.5 @max-[439px]:h-9 @max-[439px]:pl-3">
+      <div className="flex h-10 items-center gap-2 border-b border-window-border bg-foreground/[0.03] pr-3.5 pl-2.5 @max-[440px]:h-9 @max-[440px]:pl-3">
         <svg
-          className="size-3.5 flex-none text-muted-foreground @max-[439px]:hidden"
+          className="size-3.5 flex-none text-muted-foreground @max-[440px]:hidden"
           viewBox="0 0 16 16"
           aria-hidden="true"
         >
@@ -579,14 +582,14 @@ function DiffWindow({
               (ticket 10 decision: empty alt, same-origin file). */}
           <img src="/icons/go.svg" alt="" width={13} height={5} />
         </span>
-        <span className="flex-none text-[12px] leading-4 text-muted-foreground @max-[469px]:hidden">
+        <span className="flex-none text-[12px] leading-4 text-muted-foreground @max-[470px]:hidden">
           {visual.repo}
         </span>
-        <i className="flex-none text-[12px] leading-4 text-muted-foreground not-italic @max-[469px]:hidden">
+        <i className="flex-none text-[12px] leading-4 text-[color-mix(in_oklab,var(--muted-foreground)_80%,var(--window))] not-italic @max-[470px]:hidden">
           /
         </i>
         <span className="min-w-0 flex-1 truncate font-mono text-[12px] leading-4 text-muted-foreground">
-          <span className="@max-[339px]:hidden">{visual.dir}</span>
+          <span className="@max-[340px]:hidden">{visual.dir}</span>
           <span className="font-medium text-foreground">{visual.file}</span>
         </span>
         <span className="ml-auto flex flex-none items-center gap-1.5">
@@ -601,7 +604,7 @@ function DiffWindow({
            * ground, matching the kit's `.ui-diff__bar`. */}
           <span
             aria-hidden="true"
-            className="ml-0.5 flex flex-none gap-0.5 @max-[439px]:hidden"
+            className="ml-0.5 flex flex-none gap-0.5 @max-[440px]:hidden"
           >
             <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-add)_80%,var(--window))]" />
             <i className="size-2 rounded-[2px] bg-[color-mix(in_oklab,var(--diff-add)_80%,var(--window))]" />
@@ -610,11 +613,11 @@ function DiffWindow({
           </span>
         </span>
       </div>
-      <div className="truncate border-b border-window-border bg-foreground/[0.02] h-7 pr-3.5 pl-[92px] font-mono text-[12px] leading-7 text-muted-foreground @min-[440px]:@max-[499px]:pl-12 @max-[439px]:h-6 @max-[439px]:pl-3 @max-[439px]:text-[11px] @max-[439px]:leading-6">
+      <div className="truncate border-b border-window-border bg-foreground/[0.02] h-7 pr-3.5 pl-[92px] font-mono text-[12px] leading-7 text-muted-foreground @min-[440px]:@max-[500px]:pl-12 @max-[440px]:h-6 @max-[440px]:pl-3 @max-[440px]:text-[11px] @max-[440px]:leading-6">
         <span className="text-[color-mix(in_oklab,var(--muted-foreground)_80%,var(--window))]">
           {visual.hunk}
         </span>{" "}
-        <em className="font-normal not-italic text-foreground/70 @max-[439px]:hidden">
+        <em className="font-normal not-italic @max-[440px]:hidden">
           {visual.signature}
         </em>
       </div>
