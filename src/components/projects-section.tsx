@@ -93,7 +93,7 @@ function ProjectCard({
         </div>
       ) : null}
 
-      <h3 className="text-[18px] leading-[1.4] font-medium lg:text-[20px]">
+      <h3 className="text-[18px] leading-[1.4] font-medium [font-stretch:100%] lg:text-[20px]">
         <PlaceholderText text={project.title} />
       </h3>
       <p className="mt-2 font-medium">

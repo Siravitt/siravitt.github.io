@@ -38,7 +38,7 @@ interface SectionShellProps {
 }
 
 export const DEFAULT_HEADING_CLASSNAME =
-  "text-[length:clamp(30px,1.72vw+23.3px,48px)] leading-[1.1] font-medium tracking-[-0.028em]";
+  "max-w-[760px] text-[length:clamp(30px,1.72vw+23.3px,48px)] leading-[1.1] font-medium tracking-[-0.028em]";
 
 /**
  * One section's shell: the anchor id, the H2 (`Title.` + muted tagline,
