@@ -49,6 +49,19 @@ describe("SectionShell", () => {
     expect(section).toHaveAttribute("tabindex", "-1");
   });
 
+  it("renders the heading with a custom class when headingClassName is set, replacing the default", () => {
+    render(
+      <SectionShell
+        id="about"
+        title="Fixture about"
+        headingClassName="fixture-label-class"
+      />,
+    );
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveClass("fixture-label-class");
+    expect(heading.className).not.toContain("tracking-[-0.02em]");
+  });
+
   it("renders as a <footer> when asked to (the contact section)", () => {
     render(<SectionShell id="contact" title="Fixture contact" as="footer" />);
     const heading = screen.getByRole("heading", { level: 2 });
