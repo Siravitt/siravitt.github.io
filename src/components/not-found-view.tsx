@@ -15,7 +15,7 @@ export function NotFoundView({ site }: { site: SiteContent }) {
     <OtherPageShell site={site}>
       <section
         aria-labelledby="nf-h"
-        className="mx-auto max-w-7xl px-6 py-24 max-sm:px-4"
+        className="mx-auto max-w-7xl px-6 pt-10 pb-24 max-sm:px-4 lg:pt-12"
       >
         <div className="grid max-w-[760px] gap-6">
           <p
@@ -30,7 +30,7 @@ export function NotFoundView({ site }: { site: SiteContent }) {
           >
             {site.notFound.title}
           </h1>
-          <p className="max-w-[62ch] text-[18px] leading-[1.6]">
+          <p className="max-w-[62ch] text-[18px] leading-[1.6] lg:text-[20px]">
             {site.notFound.text}
           </p>
           <div className="mt-3">

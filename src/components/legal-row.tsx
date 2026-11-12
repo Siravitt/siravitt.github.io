@@ -47,7 +47,7 @@ export function LegalRow({
           // inline-flex gives the <a> a real 44px border box, and the
           // matching negative vertical margin pulls that extra box back
           // out of the line's flow so the visible text and line height
-          // stay exactly as drawn (docs/screenshots/privacy-*, 404-*).
+          // stay exactly as drawn (design/screenshots/privacy-*, 404-*).
           className="-my-[13px] inline-flex h-11 items-center rounded-sm text-foreground underline decoration-border-strong underline-offset-[3px] hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {site.daedalus.privacyLabel}

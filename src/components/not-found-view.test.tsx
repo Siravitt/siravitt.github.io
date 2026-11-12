@@ -28,6 +28,17 @@ describe("NotFoundView", () => {
     expect(homeLink).toHaveAttribute("href", "/");
   });
 
+  it("shows the Daedalus legal row in the footer with the exact /privacy.html link", () => {
+    render(<NotFoundView site={siteFixture} />);
+    const privacyLink = screen.getByRole("link", {
+      name: siteFixture.daedalus.privacyLabel,
+    });
+    expect(privacyLink).toHaveAttribute("href", "/privacy.html");
+    expect(privacyLink.closest("p")?.textContent).toBe(
+      `${siteFixture.daedalus.line} \u00b7 ${siteFixture.daedalus.privacyLabel}`,
+    );
+  });
+
   it("hides the decorative 404 glyph from the accessibility tree", () => {
     render(<NotFoundView site={siteFixture} />);
     const decorative = screen.getByText("404");

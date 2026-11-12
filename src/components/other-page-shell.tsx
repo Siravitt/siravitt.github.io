@@ -41,7 +41,7 @@ export function OtherPageShell({
       >
         {children}
       </main>
-      <footer>
+      <footer className="border-t border-border bg-[color-mix(in_oklab,var(--background)_72%,#000)]">
         <div className="mx-auto max-w-7xl px-6 py-8 max-sm:px-4">
           <LegalRow site={site} current={current} variant="flush" />
         </div>

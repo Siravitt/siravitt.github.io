@@ -13,12 +13,12 @@ export function PrivacyView({ site }: { site: SiteContent }) {
     <OtherPageShell site={site} current>
       <section
         aria-labelledby="doc-h"
-        className="mx-auto max-w-7xl px-6 py-24 max-sm:px-4"
+        className="mx-auto max-w-7xl px-6 pt-10 pb-24 max-sm:px-4 lg:pt-12"
       >
         <div className="grid max-w-[760px] gap-6">
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center self-start text-[15px] font-medium text-muted-foreground underline decoration-border-strong underline-offset-4 hover:text-foreground hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="inline-flex min-h-11 items-center justify-self-start text-[14px] font-medium text-muted-foreground underline decoration-border-strong underline-offset-4 hover:text-foreground hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {site.labels.backToPortfolio}
           </Link>
@@ -28,7 +28,7 @@ export function PrivacyView({ site }: { site: SiteContent }) {
           >
             {site.daedalus.policyHeading}
           </h1>
-          <p className="max-w-[62ch] text-[18px] leading-[1.6]">
+          <p className="max-w-[62ch] text-[18px] leading-[1.6] lg:text-[20px]">
             {site.daedalus.policyText}
           </p>
         </div>

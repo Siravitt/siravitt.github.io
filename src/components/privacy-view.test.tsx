@@ -37,6 +37,32 @@ describe("PrivacyView", () => {
     ).toBeInTheDocument();
   });
 
+  it("holds exactly three content nodes in main: the back link, the H1 and the policy text (nothing added)", () => {
+    render(<PrivacyView site={siteFixture} />);
+    const main = screen.getByRole("main");
+
+    // AC 2: "Its main content holds exactly three things: the back link
+    // to /, the H1 and the policy text." A fourth paragraph slipped in
+    // after the policy text (e.g. "Last updated …") must fail this.
+    expect(main.querySelectorAll("a, h1, p")).toHaveLength(3);
+    expect(main.textContent).toBe(
+      siteFixture.labels.backToPortfolio +
+        siteFixture.daedalus.policyHeading +
+        siteFixture.daedalus.policyText,
+    );
+  });
+
+  it("shows the Daedalus legal row in the footer with the exact /privacy.html link", () => {
+    render(<PrivacyView site={siteFixture} />);
+    const privacyLink = screen.getByRole("link", {
+      name: siteFixture.daedalus.privacyLabel,
+    });
+    expect(privacyLink).toHaveAttribute("href", "/privacy.html");
+    expect(privacyLink.closest("p")?.textContent).toBe(
+      `${siteFixture.daedalus.line} \u00b7 ${siteFixture.daedalus.privacyLabel}`,
+    );
+  });
+
   it("has the current page's Privacy link marked aria-current='page' in the footer", () => {
     render(<PrivacyView site={siteFixture} />);
     const privacyLink = screen.getByRole("link", {
