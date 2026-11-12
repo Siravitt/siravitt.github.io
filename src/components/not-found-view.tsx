@@ -35,6 +35,13 @@ export function NotFoundView({ site }: { site: SiteContent }) {
           </p>
           <div className="mt-3">
             <Button
+              // Carried-over fix from the ticket 04 review (Flame OK'd
+              // into this PR): on phones the prototype's `.btn-row`
+              // stretches a lone action full width
+              // (design/prototype/assets/system.css:475-476); without
+              // it the button sat at an intrinsic ~199px instead of the
+              // ~358px in design/screenshots/404-mobile-390.png.
+              className="max-sm:w-full"
               render={
                 <Link href="/">
                   {site.notFound.actionLabel}
