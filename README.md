@@ -85,6 +85,15 @@ Self-hosted at build via `next/font` (no request to Google at runtime):
 
 _Added in ticket 17._
 
+## Credits
+
+Marks drawn in the Stack panel (DESIGN.md §6b) are one-colour SVGs from
+[Simple Icons](https://github.com/simple-icons/simple-icons) 15.22.0 (CC0-1.0),
+copied unchanged to `public/icons/stack/`: Go, TypeScript, PostgreSQL, Redis,
+Next.js, React, Tailwind CSS, Docker, GitHub Actions and Git. The brand marks
+stay trademarks of their respective owners; they're used only to name the
+tools listed in `site.ts`.
+
 ## Legacy root files
 
 `index.html` and `privacy.html` at the repo root were the pre-Next.js site.

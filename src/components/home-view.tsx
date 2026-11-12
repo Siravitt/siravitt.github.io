@@ -1,10 +1,12 @@
 import type { SiteContent } from "@/content/site";
+import { AboutSection } from "@/components/about-section";
 import { Header } from "@/components/header";
 import { HeroArt } from "@/components/hero-art";
 import { HeroFacts } from "@/components/hero-facts";
 import { LegalRow } from "@/components/legal-row";
 import { PlaceholderText } from "@/components/placeholder-text";
 import { SectionShell } from "@/components/section-shell";
+import { StackSection } from "@/components/stack-section";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { getVisibleSections } from "@/lib/sections";
@@ -96,14 +98,22 @@ export function HomeView({ site }: { site: SiteContent }) {
           </div>
         </section>
 
-        <SectionShell id="about" title={site.sections.about.title} />
+        <SectionShell
+          id="about"
+          title={site.sections.about.title}
+          headingClassName="mb-8 text-[13px] leading-[1.4] font-medium text-muted-foreground"
+        >
+          <AboutSection site={site} />
+        </SectionShell>
 
         {isVisible("stack") && (
           <SectionShell
             id="stack"
             title={site.sections.stack.title}
-            tagline={site.sections.stack.tagline}
-          />
+            renderHeading={false}
+          >
+            {(headingId) => <StackSection site={site} headingId={headingId} />}
+          </SectionShell>
         )}
 
         {isVisible("projects") && (

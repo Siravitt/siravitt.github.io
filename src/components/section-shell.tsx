@@ -10,8 +10,28 @@ interface SectionShellProps {
   tagline?: string;
   /** `section` for About/Stack/Projects/Experience; `footer` for Contact (ticket 03 decision). */
   as?: "section" | "footer";
-  children?: ReactNode;
+  /**
+   * Overrides the heading's default display-size classes. About's H2
+   * renders as a muted label instead (DESIGN.md §6 "About statement"),
+   * so ticket 07 passes its own classes here rather than forking the
+   * shell for one section.
+   */
+  headingClassName?: string;
+  /**
+   * False when the body places its own `<h2 id={headingId}>` inside its
+   * own layout, instead of the shell rendering it full-width above
+   * `children` (ticket 07 review round 1: Stack's H2 lives in the left
+   * column, top-aligned with the marks panel, DESIGN.md §6b). The shell
+   * still owns the id/`aria-labelledby`/`tabIndex`/scroll-margin
+   * contract; `children` becomes a render-prop called with `headingId`
+   * so the body's own heading keeps that same id. Defaults to `true`.
+   */
+  renderHeading?: boolean;
+  children?: ReactNode | ((headingId: string) => ReactNode);
 }
+
+export const DEFAULT_HEADING_CLASSNAME =
+  "text-[length:clamp(28px,1.5vw+20px,40px)] leading-[1.1] font-medium tracking-[-0.02em]";
 
 /**
  * One section's shell: the anchor id, the H2 (`Title.` + muted tagline,
@@ -26,6 +46,8 @@ export function SectionShell({
   title,
   tagline,
   as: Tag = "section",
+  headingClassName,
+  renderHeading = true,
   children,
 }: SectionShellProps) {
   const headingId = `${id}-h`;
@@ -37,22 +59,24 @@ export function SectionShell({
       className="scroll-mt-18 pt-24 pb-12 outline-none max-sm:scroll-mt-14 sm:pt-30 sm:pb-24 focus-visible:shadow-[inset_2px_0_0_var(--ring)]"
     >
       <div className="mx-auto max-w-7xl px-6 max-sm:px-4">
-        <h2
-          id={headingId}
-          className="text-[length:clamp(28px,1.5vw+20px,40px)] leading-[1.1] font-medium tracking-[-0.02em]"
-        >
-          {title}
-          {tagline ? (
-            <>
-              {"."}
-              <span className="text-muted-foreground">
-                {" "}
-                <PlaceholderText text={tagline} />
-              </span>
-            </>
-          ) : null}
-        </h2>
-        {children}
+        {renderHeading ? (
+          <h2
+            id={headingId}
+            className={headingClassName ?? DEFAULT_HEADING_CLASSNAME}
+          >
+            {title}
+            {tagline ? (
+              <>
+                {"."}
+                <span className="text-muted-foreground">
+                  {" "}
+                  <PlaceholderText text={tagline} />
+                </span>
+              </>
+            ) : null}
+          </h2>
+        ) : null}
+        {typeof children === "function" ? children(headingId) : children}
       </div>
     </Tag>
   );
