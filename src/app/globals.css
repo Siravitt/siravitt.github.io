@@ -50,6 +50,13 @@
      round 1 finding 1): the window sits on the dark ground, not white. */
   --color-window: var(--window);
   --color-window-border: var(--window-border);
+  /* decorative, ticket 10 carried-over fix 3b: the terminal's PASS tick
+     and the diff's added lines/marks share one green; the diff's
+     removed lines/marks get a paired red. Neither is a semantic
+     "success"/"error" colour (shadcn's own `--destructive` stays for
+     that); both are drawing chrome inside an `aria-hidden` picture. */
+  --color-diff-add: var(--diff-add);
+  --color-diff-del: var(--diff-del);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
@@ -135,6 +142,12 @@
     inset 0 1px 0 oklch(1 0 0 / 0.088), 0 1px 1px oklab(0 0 0 / 0.169),
     0 2px 4px -1px oklab(0 0 0 / 0.19), 0 12px 24px -8px oklab(0 0 0 / 0.338),
     0 32px 64px -24px oklch(0 0 0 / 0.423);
+  /* decorative mini-UI tokens (ticket 10): a mini-UI's own green/red,
+     not shadcn's `--destructive`. Replaces the terminal's hardcoded
+     `#3fae66` PASS tick (carried-over fix 3b) and gives the diff's
+     added/removed lines and marks the same pair. */
+  --diff-add: #3fae66;
+  --diff-del: #e5484d;
 }
 
 html {

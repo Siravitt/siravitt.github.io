@@ -94,6 +94,11 @@ Next.js, React, Tailwind CSS, Docker, GitHub Actions and Git. The brand marks
 stay trademarks of their respective owners; they're used only to name the
 tools listed in `site.ts`.
 
+The small Go mark in the review-bot picture (DESIGN.md §6 Icons) is a colour
+SVG from [gilbarbara/logos](https://github.com/gilbarbara/logos) (CC0-1.0),
+copied unchanged to `public/icons/go.svg`. The mark stays Go's trademark;
+it's used only to name the tool in the mock project's drawing.
+
 ## Legacy root files
 
 `index.html` and `privacy.html` at the repo root were the pre-Next.js site.

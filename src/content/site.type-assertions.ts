@@ -88,3 +88,41 @@ export const rejectsChecklistVisualWithoutItems: ProjectVisual = {
   // @ts-expect-error a checklist needs at least 1 item, not 0
   items: [],
 };
+
+// The compiler rejects a diff visual with no `before` line.
+// @ts-expect-error a diff visual requires a `before` line
+export const rejectsDiffVisualWithoutBefore: ProjectVisual = {
+  kind: "diff",
+  label: "Fixture diff label",
+  repo: "fixture",
+  dir: "internal/",
+  file: "fixture.go",
+  hunk: "@@ -1,1 +1,1 @@",
+  signature: "func Fixture() {",
+  after: "return nil",
+  marked: { before: "old", after: "new" },
+  author: "fixturebot",
+  authorInitials: "FB",
+  time: "now",
+  comment: "Fixture comment",
+  context: [],
+};
+
+// The compiler rejects a diff visual with no `label`.
+// @ts-expect-error a diff visual requires a label
+export const rejectsDiffVisualWithoutLabel: ProjectVisual = {
+  kind: "diff",
+  repo: "fixture",
+  dir: "internal/",
+  file: "fixture.go",
+  hunk: "@@ -1,1 +1,1 @@",
+  signature: "func Fixture() {",
+  before: "old call()",
+  after: "new call()",
+  marked: { before: "old", after: "new" },
+  author: "fixturebot",
+  authorInitials: "FB",
+  time: "now",
+  comment: "Fixture comment",
+  context: [],
+};
