@@ -220,6 +220,9 @@ describe("ProjectsSection", () => {
     expect(img).toHaveAttribute("width", "10");
     expect(img).toHaveAttribute("height", "10");
     expect(img).toHaveAttribute("loading", "lazy");
+    // ticket 16: an image visual has no drawn run, so its panel (the
+    // `<img>` itself, here) carries no motion hook.
+    expect(img).not.toHaveAttribute("data-mini-ui");
   });
 
   it("a project with an image but no links renders the panel and no link row", () => {
@@ -274,6 +277,20 @@ describe("ProjectsSection", () => {
     expect(panel).toHaveTextContent("go test ./...");
     expect(panel).toHaveTextContent("internal/one");
     expect(panel).toHaveTextContent("internal/two");
+    // ticket 16: the panel itself is the motion hook `<ScrollMotion />`
+    // observes; the command and each result line carry their own
+    // (`data-term-typed`, `data-line-index`) for the run's stagger.
+    expect(panel).toHaveAttribute("data-mini-ui");
+    expect(panel.querySelector("[data-term-typed]")).toHaveTextContent(
+      "go test ./...",
+    );
+    const lines = panel.querySelectorAll("[data-line-index]");
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toHaveAttribute("data-line-index", "0");
+    expect(lines[0].getAttribute("style")).toContain("--i: 0");
+    expect(lines[1]).toHaveAttribute("data-line-index", "1");
+    expect(lines[1].getAttribute("style")).toContain("--i: 1");
+    expect(panel.querySelector("[data-term-pass]")).toHaveTextContent("PASS");
     expect(within(panel).queryAllByRole("link", { hidden: true })).toHaveLength(
       0,
     );
@@ -341,6 +358,22 @@ describe("ProjectsSection", () => {
     expect(panel).toHaveTextContent("call(context.Background())");
     expect(panel).toHaveTextContent("call(ctx)");
     expect(panel).toHaveTextContent("return nil");
+    // ticket 16: the before/after lines, the thread and the one
+    // context line each carry their own motion hook.
+    expect(panel).toHaveAttribute("data-mini-ui");
+    expect(panel.querySelector('[data-diff-line="before"]')).toHaveTextContent(
+      "call(context.Background())",
+    );
+    expect(panel.querySelector('[data-diff-line="after"]')).toHaveTextContent(
+      "call(ctx)",
+    );
+    expect(panel.querySelector("[data-diff-thread]")).not.toBeNull();
+    expect(panel.querySelector("[data-diff-chip]")).toHaveTextContent(
+      "Applied",
+    );
+    expect(panel.querySelector('[data-diff-line="context"]')).toHaveTextContent(
+      "return nil",
+    );
     expect(
       within(panel).getByText("ctx", { selector: "code" }),
     ).toBeInTheDocument();
@@ -479,6 +512,10 @@ describe("ProjectsSection", () => {
         name: "Fixture checklist label",
       });
       expect(panel).toHaveTextContent(expected);
+      // ticket 16: a done item carries the motion hook, an open one
+      // doesn't (nothing to tick).
+      expect(panel.querySelectorAll("[data-tick-done]")).toHaveLength(done);
+      expect(panel).toHaveAttribute("data-mini-ui");
     },
   );
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type {
   ChecklistItem,
   ProjectVisual as ProjectVisualData,
@@ -45,7 +45,7 @@ export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
 
   if (visual.kind === "terminal") {
     return (
-      <Panel role="img" ariaLabel={visual.label}>
+      <Panel role="img" ariaLabel={visual.label} motion>
         <TerminalWindow visual={visual} />
       </Panel>
     );
@@ -53,14 +53,14 @@ export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
 
   if (visual.kind === "checklist") {
     return (
-      <Panel role="img" ariaLabel={visual.label}>
+      <Panel role="img" ariaLabel={visual.label} motion>
         <ChecklistWindow visual={visual} />
       </Panel>
     );
   }
 
   return (
-    <Panel role="img" ariaLabel={visual.label}>
+    <Panel role="img" ariaLabel={visual.label} motion>
       {/* The prototype's `.stage--fade-b` (cards.css): only the layer that
           wraps the diff window dissolves into the panel's ground over its
           last 64px (56px on phones) — the sand panel itself (`Panel`,
@@ -78,16 +78,22 @@ export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
 function Panel({
   role,
   ariaLabel,
+  motion,
   children,
 }: {
   role?: "img";
   ariaLabel?: string;
+  /** Ticket 16 hook: `<ScrollMotion />` adds `.is-in` here once, the
+   * first time the panel is 15% in view — never set on an `image`
+   * visual, which has no drawn run to play. */
+  motion?: boolean;
   children: ReactNode;
 }) {
   return (
     <div
       role={role}
       aria-label={ariaLabel}
+      data-mini-ui={motion ? "" : undefined}
       className="frame-mesh relative mt-6 min-h-[228px] grow shrink-0 overflow-hidden rounded-lg max-sm:min-h-[200px]"
     >
       {children}
@@ -139,6 +145,59 @@ function Window({
   );
 }
 
+/** Per-character pace (ms) for the terminal type-in, capped at the kit's
+ * ~80ms/character (`terminal-run/fragment.js`) so a short command doesn't
+ * crawl; `TERMINAL_TYPE_MS_CAP` below bounds a long one instead. */
+function terminalPerCharMs(commandLength: number): number {
+  return Math.min(80, 800 / commandLength);
+}
+
+// The kit's nominal pacing for its 13-char command, 3 results
+// (terminal-run/fragment.js). Capping type-in at this value, and the
+// line span at its 2-gap width, keeps PASS/prompt inside the ticket's
+// ≤3.2s budget for any command length and 1-5 results.
+const TERMINAL_TYPE_MS_CAP = 800;
+const TERMINAL_LINE_GAP_MS = 260;
+const TERMINAL_LINE_SPAN_CAP_MS = 520;
+
+export interface TerminalTiming {
+  typeMs: number;
+  lineGapMs: number;
+  lineDelays: number[];
+  passMs: number;
+  promptMs: number;
+}
+
+/** The terminal run's full schedule: the type-in, each result line's
+ * delay, PASS's delay and the fresh prompt's delay, all derived from
+ * the command's length and the result count so PASS and the prompt
+ * can never land before the last line - or past the budget above. */
+export function terminalTiming(
+  commandLength: number,
+  resultCount: number,
+): TerminalTiming {
+  const typeMs = Math.min(
+    TERMINAL_TYPE_MS_CAP,
+    Math.round(terminalPerCharMs(commandLength) * commandLength),
+  );
+  const span =
+    resultCount > 1
+      ? Math.min(
+          TERMINAL_LINE_GAP_MS * (resultCount - 1),
+          TERMINAL_LINE_SPAN_CAP_MS,
+        )
+      : 0;
+  const lineGapMs = resultCount > 1 ? span / (resultCount - 1) : 0;
+  const lineBase = 250 + typeMs; // mirrors sm-term-type's 150ms delay + 100ms pad
+  const lineDelays = Array.from(
+    { length: resultCount },
+    (_, i) => lineBase + i * lineGapMs,
+  );
+  const passMs = lineBase + span + 180 + 700; // +180 is the last line's own reveal, +700 the gap before PASS
+  const promptMs = passMs + 350; // PASS's 220ms run + a 130ms gap before the fresh prompt
+  return { typeMs, lineGapMs, lineDelays, passMs, promptMs };
+}
+
 /**
  * Splits a repo title ("booking/api") into its parent folder and leaf
  * segment at the last `/`, so the terminal prompt can hide the parent
@@ -158,7 +217,7 @@ export function splitTitle(title: string): { dir: string; leaf: string } {
 function TerminalPrompt({ title }: { title: string }) {
   const { dir, leaf } = splitTitle(title);
   return (
-    <span className="text-muted-foreground">
+    <span className="shrink-0 whitespace-nowrap text-muted-foreground">
       ~/<span className="@max-[300px]:hidden">{dir}</span>
       {leaf} ${" "}
     </span>
@@ -191,6 +250,8 @@ function TerminalWindow({
 }: {
   visual: Extract<ProjectVisualData, { kind: "terminal" }>;
 }) {
+  const resultCount = visual.results.length;
+  const timing = terminalTiming(visual.command.length, resultCount);
   return (
     <Window maxWidthClassName="max-w-[440px]">
       <div className="flex h-10 items-center gap-2.5 border-b border-window-border bg-foreground/[0.03] px-3.5">
@@ -206,22 +267,48 @@ function TerminalWindow({
           {visual.branch}
         </span>
       </div>
-      <div className="px-4 py-3 font-mono @max-[300px]:px-3">
-        <p className="truncate">
+      {/* --cmd-len/--type-ms size the type-in; --line-gap-ms paces the
+          result lines; --pass-ms/--next-ms place PASS and the fresh
+          prompt, all from terminalTiming so they can't land out of order. */}
+      <div
+        className="px-4 py-3 font-mono @max-[300px]:px-3"
+        style={
+          {
+            "--cmd-len": visual.command.length,
+            "--type-ms": `${timing.typeMs}ms`,
+            "--line-gap-ms": `${timing.lineGapMs}ms`,
+            "--pass-ms": `${timing.passMs}ms`,
+            "--next-ms": `${timing.promptMs}ms`,
+          } as CSSProperties
+        }
+      >
+        <p className="flex min-w-0 items-baseline gap-[1ch]">
           <TerminalPrompt title={visual.title} />
-          <span className="font-medium">{visual.command}</span>
+          {/* ticket 16: the command is already in the DOM (no CLS); the
+              type-in only clips it progressively with steps(), never
+              changing its box. No `flex-1`: the span's width stays its
+              own text width (so steps() lands on glyph boundaries) and
+              only shrinks below that, with `truncate`, when it doesn't
+              fit. The row's `gap-[1ch]` (not a trailing text space,
+              which a flex item's line box would trim) keeps the "$ "
+              gap. */}
+          <span data-term-typed className="min-w-0 shrink truncate font-medium">
+            {visual.command}
+          </span>
         </p>
         {visual.results.map((result, index) => (
           <TerminalResultLine key={result.path} result={result} index={index} />
         ))}
-        <p className="flex items-center gap-2">
+        <p data-term-pass className="flex items-center gap-2">
           <span className="grid size-4 flex-none place-items-center rounded-full bg-diff-add text-window">
             ✓
           </span>
           <b className="font-medium">PASS</b>
           <span className="text-muted-foreground">{visual.summary}</span>
         </p>
-        <p className="truncate">
+        {/* data-term-next: the fresh prompt arrives only after PASS,
+            not visible from t=0. */}
+        <p data-term-next className="truncate">
           <TerminalPrompt title={visual.title} />
           <span
             aria-hidden="true"
@@ -233,7 +320,9 @@ function TerminalWindow({
   );
 }
 
-/** `data-line-index` is a ticket-16 motion hook only; nothing reads it yet. */
+/** `--i` and `data-line-index` are ticket-16 motion hooks: each result
+ * line fades/slides in staggered by its index once the panel's run
+ * starts (project-visual's data-mini-ui gets `.is-in`). */
 function TerminalResultLine({
   result,
   index,
@@ -242,7 +331,11 @@ function TerminalResultLine({
   index: number;
 }) {
   return (
-    <p data-line-index={index} className="flex h-5 items-center gap-2.5">
+    <p
+      data-line-index={index}
+      style={{ "--i": index } as CSSProperties}
+      className="flex h-5 items-center gap-2.5"
+    >
       <span
         className="grid size-3.5 flex-none place-items-center text-muted-foreground"
         aria-hidden="true"
@@ -280,7 +373,8 @@ function ChecklistWindow({
         </span>
       </div>
       <div className="mx-4 mb-2 h-1 overflow-hidden rounded-full bg-border">
-        {/* data-bar is a ticket-16 motion hook only; nothing reads it yet. */}
+        {/* data-bar (ticket 16): already at its finished width (`ratio`);
+            the run grows it in from 0 with `scaleX` (scroll-motion.css). */}
         <div
           data-bar
           className="h-full rounded-full bg-primary"
@@ -296,11 +390,17 @@ function ChecklistWindow({
   );
 }
 
-/** `data-tick-index` is a ticket-16 motion hook only; nothing reads it yet. */
+/** `--i`/`data-tick-index` share one index (ticket 16); `data-tick-done`
+ * only on a *done* item: its box+check pops in staggered by `--i`. */
 function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }) {
   return (
-    <li data-tick-index={index} className="flex h-10 items-center gap-3 px-4">
+    <li
+      data-tick-index={index}
+      style={{ "--i": index } as CSSProperties}
+      className="flex h-10 items-center gap-3 px-4"
+    >
       <span
+        data-tick-done={item.done ? "" : undefined}
         className={cn(
           "grid size-[18px] flex-none place-items-center rounded-full text-window",
           item.done ? "bg-foreground" : "ring-[1.5px] ring-foreground/15",
@@ -428,7 +528,9 @@ function renderDiffComment(comment: string): ReactNode[] {
 }
 
 /** One numbered row of the diff's unified view: a changed (`add`/`del`)
- * line carries its own sign and tint, a context line carries neither. */
+ * line carries its own sign and tint, a context line carries neither.
+ * `dataDiffLine`/`style` are ticket-16 motion hooks: the before/after
+ * lines and each context line (staggered by `--i`) fade/slide in. */
 function DiffLine({
   oldNumber,
   newNumber,
@@ -436,6 +538,8 @@ function DiffLine({
   code,
   marked,
   keyPrefix,
+  dataDiffLine,
+  style,
 }: {
   oldNumber: number | null;
   newNumber: number | null;
@@ -443,9 +547,13 @@ function DiffLine({
   code: string;
   marked?: string;
   keyPrefix: string;
+  dataDiffLine?: "before" | "after" | "context";
+  style?: CSSProperties;
 }) {
   return (
     <div
+      data-diff-line={dataDiffLine}
+      style={style}
       className={cn(
         "grid grid-cols-[36px_36px_minmax(0,1fr)] font-mono text-xs leading-5 @max-[440px]:grid-cols-[26px_minmax(0,1fr)] @max-[440px]:text-[11px] @max-[440px]:leading-4",
         kind === "del" && "bg-diff-del/10",
@@ -492,14 +600,19 @@ function DiffLine({
 
 /** The bot's comment thread under the applied suggestion: avatar,
  * name, time, the static "Applied" chip (ticket 10 decision: no
- * "Apply suggestion" button, nothing focusable) and the message. */
+ * "Apply suggestion" button, nothing focusable) and the message.
+ * `data-diff-thread`/`data-diff-chip` are ticket-16 motion hooks: the
+ * thread fades in after the before/after lines, then the chip pops. */
 function DiffThread({
   visual,
 }: {
   visual: Extract<ProjectVisualData, { kind: "diff" }>;
 }) {
   return (
-    <div className="relative border-y border-window-border bg-foreground/[0.03] py-2.5 pr-3.5 pl-[92px] @max-[440px]:pr-3 @max-[440px]:pl-[18px]">
+    <div
+      data-diff-thread
+      className="relative border-y border-window-border bg-foreground/[0.03] py-2.5 pr-3.5 pl-[92px] @max-[440px]:pr-3 @max-[440px]:pl-[18px]"
+    >
       {/* the fragment's one accent touch inside the dark window (DESIGN §2,
        * "the ... comment marker inside the project mini-UIs" is listed
        * under --primary): a 2px bar set in from the comment's edge, never
@@ -518,7 +631,10 @@ function DiffThread({
         <span className="flex-none text-xs leading-4 text-muted-foreground @max-[340px]:hidden">
           {visual.time}
         </span>
-        <span className="ring-inset ml-auto inline-flex h-[22px] flex-none items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--diff-add)_12%,var(--window))] px-2 text-[13px] font-medium text-diff-add-ink ring-1 ring-[color-mix(in_oklab,var(--diff-add)_30%,transparent)]">
+        <span
+          data-diff-chip
+          className="ring-inset ml-auto inline-flex h-[22px] flex-none items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--diff-add)_12%,var(--window))] px-2 text-[13px] font-medium text-diff-add-ink ring-1 ring-[color-mix(in_oklab,var(--diff-add)_30%,transparent)]"
+        >
           <svg viewBox="0 0 16 16" className="size-3" aria-hidden="true">
             <path
               d="m4 8.4 2.6 2.6L12 5.4"
@@ -629,6 +745,7 @@ function DiffWindow({
           code={visual.before}
           marked={visual.marked.before}
           keyPrefix="before"
+          dataDiffLine="before"
         />
         <DiffLine
           oldNumber={null}
@@ -637,6 +754,7 @@ function DiffWindow({
           code={visual.after}
           marked={visual.marked.after}
           keyPrefix="after"
+          dataDiffLine="after"
         />
         <DiffThread visual={visual} />
         {visual.context.map((line, index) => (
@@ -646,6 +764,8 @@ function DiffWindow({
             newNumber={14 + index}
             code={line}
             keyPrefix={`context-${index}`}
+            dataDiffLine="context"
+            style={{ "--i": index } as CSSProperties}
           />
         ))}
       </div>

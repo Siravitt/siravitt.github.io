@@ -24,7 +24,10 @@
    2. Fallback (`scroll.js` → `<ScrollMotion />`, ticket 15): below,
       under `html.sm-io` only — the class the component adds, so a
       failed script never hides anything (Review Focus 3). The project
-      mini-UI motion (row 11) is ticket 16; not ported here. */
+      mini-UI motion (row 11, ticket 16, adapted to play once) is a
+      third layer, under `html.sm-run` — its own always-on observer,
+      not gated by native scroll-timeline support (see that section's
+      own header comment, below layer 2). */
 
 @keyframes sm-rise {
   from {
@@ -132,6 +135,17 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+/* ticket 16: the terminal command's type-in. The text is already in
+   the DOM (no CLS) — clip-path only hides, never resizes, its box, so
+   steps() can reveal it in discrete chunks like a cursor typing. */
+@keyframes sm-term-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
   }
 }
 
@@ -365,6 +379,24 @@
     opacity: 1 !important;
     transform: none !important;
   }
+
+  /* ticket 16: same forcing as above, for each mini-UI's run. */
+  [data-term-typed] {
+    clip-path: none !important;
+  }
+  [data-line-index],
+  [data-term-pass],
+  [data-term-next],
+  [data-tick-done],
+  [data-diff-line],
+  [data-diff-thread],
+  [data-diff-chip] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [data-bar] {
+    transform: scaleX(1) !important;
+  }
 }
 
 /* ============================================================ 2. fallback: html.sm-io (ticket 15, <ScrollMotion />)
@@ -441,4 +473,120 @@ html.sm-io [data-nav-spy] {
 html.sm-io [data-nav-link].is-current [data-nav-spy] {
   transform: none;
   transform-origin: 0 50%;
+}
+
+/* ============================================================ 3. Project
+   mini-UI motion (ticket 16, DESIGN.md §7.1 row 11 adapted to once):
+   each mini-UI plays its CSS-keyframe run once, 15% in view, under
+   `html.sm-run` — a sibling of `sm-io`, added independently of native
+   scroll-timeline support (a one-shot run has no native mirror).
+   `animation-fill-mode: both` + one iteration + `.is-in` persisting
+   means a run never replays on scroll-away-and-back. */
+
+/* terminal: the command types in one step per character (`--cmd-len`,
+   `--type-ms`), then each result line and PASS fade/slide in staggered
+   by `--i` * `--line-gap-ms`. PASS and the fresh prompt use
+   `--pass-ms`/`--next-ms` (project-visual.tsx's terminalTiming), so a
+   longer command or more lines can never land after PASS. */
+html.sm-run [data-mini-ui]:not(.is-in) [data-term-typed] {
+  clip-path: inset(0 100% 0 0);
+}
+html.sm-run [data-mini-ui].is-in [data-term-typed] {
+  animation: sm-term-type var(--type-ms, 650ms) steps(var(--cmd-len, 13)) 150ms
+    both;
+}
+html.sm-run [data-mini-ui]:not(.is-in) [data-line-index],
+html.sm-run [data-mini-ui]:not(.is-in) [data-term-pass],
+html.sm-run [data-mini-ui]:not(.is-in) [data-term-next] {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+html.sm-run [data-mini-ui].is-in [data-line-index] {
+  animation: sm-type 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(
+    150ms + var(--type-ms, 650ms) + 100ms + var(--i, 0) *
+      var(--line-gap-ms, 260ms)
+  );
+}
+html.sm-run [data-mini-ui].is-in [data-term-pass] {
+  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) var(--pass-ms, 2450ms)
+    both;
+}
+html.sm-run [data-mini-ui].is-in [data-term-next] {
+  animation: sm-type 300ms cubic-bezier(0.22, 1, 0.36, 1) var(--next-ms, 2800ms)
+    both;
+}
+
+/* checklist: a *done* item's box+check pops in, staggered by `--i`; the
+   bar (already at its final width — ticket 09) grows from 0 with
+   `scaleX`, origin left, over a fixed 2500ms so the run reads about
+   3s regardless of how many items are done. */
+html.sm-run [data-mini-ui]:not(.is-in) [data-tick-done] {
+  opacity: 0;
+  transform: scale(0.4);
+}
+html.sm-run [data-mini-ui].is-in [data-tick-done] {
+  animation: sm-lit 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(300ms + var(--i, 0) * 220ms);
+}
+html.sm-run [data-mini-ui]:not(.is-in) [data-bar] {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+html.sm-run [data-mini-ui].is-in [data-bar] {
+  transform-origin: left;
+  animation: sm-grow-x 2500ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
+}
+
+/* diff: the old line arrives with its comment thread, then the
+   suggestion lands, then the chip turns "Applied", then up to four
+   context lines settle in last, staggered by `--i`. */
+html.sm-run [data-mini-ui]:not(.is-in) [data-diff-line],
+html.sm-run [data-mini-ui]:not(.is-in) [data-diff-thread] {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+html.sm-run [data-mini-ui]:not(.is-in) [data-diff-chip] {
+  opacity: 0;
+  transform: scale(0.4);
+}
+html.sm-run [data-mini-ui].is-in [data-diff-line="before"] {
+  animation: sm-type 200ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
+}
+html.sm-run [data-mini-ui].is-in [data-diff-thread] {
+  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) 700ms both;
+}
+html.sm-run [data-mini-ui].is-in [data-diff-line="after"] {
+  animation: sm-type 200ms cubic-bezier(0.22, 1, 0.36, 1) 1400ms both;
+}
+html.sm-run [data-mini-ui].is-in [data-diff-chip] {
+  animation: sm-lit 220ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms both;
+}
+html.sm-run [data-mini-ui].is-in [data-diff-line="context"] {
+  animation: sm-type 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(2200ms + var(--i, 0) * 220ms);
+}
+
+/* `.is-skip`: a panel revealed already above the viewport (or scrolled
+   fully past while mid-run) snaps to the finished frame, the same
+   forced values as the print rule — not `Animation.finish()`, which
+   can race several panels landing `.is-in` in the same callback. */
+html.sm-run [data-mini-ui].is-skip [data-term-typed] {
+  animation: none !important;
+  clip-path: none !important;
+}
+html.sm-run [data-mini-ui].is-skip [data-line-index],
+html.sm-run [data-mini-ui].is-skip [data-term-pass],
+html.sm-run [data-mini-ui].is-skip [data-term-next],
+html.sm-run [data-mini-ui].is-skip [data-tick-done],
+html.sm-run [data-mini-ui].is-skip [data-diff-line],
+html.sm-run [data-mini-ui].is-skip [data-diff-thread],
+html.sm-run [data-mini-ui].is-skip [data-diff-chip] {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+html.sm-run [data-mini-ui].is-skip [data-bar] {
+  animation: none !important;
+  transform: scaleX(1) !important;
 }

@@ -6,14 +6,20 @@ import { ScrollMotion } from "@/components/scroll-motion";
 class FakeIntersectionObserver implements IntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
   readonly root = null;
-  readonly rootMargin = "";
+  readonly rootMargin: string;
   readonly scrollMargin = "";
-  readonly thresholds: ReadonlyArray<number> = [];
+  readonly thresholds: ReadonlyArray<number>;
   observed: Element[] = [];
   callback: IntersectionObserverCallback;
 
-  constructor(callback: IntersectionObserverCallback) {
+  constructor(
+    callback: IntersectionObserverCallback,
+    options?: IntersectionObserverInit,
+  ) {
     this.callback = callback;
+    this.rootMargin = options?.rootMargin ?? "";
+    const threshold = options?.threshold ?? 0;
+    this.thresholds = Array.isArray(threshold) ? threshold : [threshold];
     FakeIntersectionObserver.instances.push(this);
   }
   observe(target: Element) {
@@ -349,5 +355,229 @@ describe("ScrollMotion", () => {
     expect(observer.observed).not.toContain(rv);
 
     rv.remove();
+  });
+
+  describe("ticket 16: project mini-UI motion", () => {
+    afterEach(() => {
+      document.querySelectorAll("[data-mini-ui]").forEach((el) => el.remove());
+    });
+
+    // every mini-ui test runs with native timeline support true, isolating
+    // `FakeIntersectionObserver.instances[0]` to this job's own observer —
+    // proving it runs independently of the native-support check that gates
+    // `sm-io` (job 2-3).
+    function stubMiniUiEligible() {
+      stubReducedMotion(false);
+      stubNativeTimelineSupport(true);
+      window.IntersectionObserver =
+        FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    }
+
+    function mountPanel(): HTMLElement {
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+      return panel;
+    }
+
+    function ioEntry(
+      target: Element,
+      isIntersecting: boolean,
+      rect: { top: number; bottom?: number },
+    ): IntersectionObserverEntry {
+      return {
+        target,
+        isIntersecting,
+        boundingClientRect: rect as DOMRectReadOnly,
+        intersectionRatio: isIntersecting ? 0.2 : 0,
+        intersectionRect: {} as DOMRectReadOnly,
+        rootBounds: null,
+        time: 0,
+      };
+    }
+
+    it("creates one observer, watching at 15% with the fallback's own bottom-weighted margin", () => {
+      stubMiniUiEligible();
+      const panel = mountPanel();
+
+      render(<ScrollMotion />);
+
+      expect(document.documentElement).toHaveClass("sm-run");
+      expect(document.documentElement).not.toHaveClass("sm-io");
+      expect(FakeIntersectionObserver.instances).toHaveLength(1);
+      const observer = FakeIntersectionObserver.instances[0];
+      expect(observer.observed).toContain(panel);
+      expect(observer.thresholds).toEqual([0.15]);
+      expect(observer.rootMargin).toBe("0px 0px -10% 0px");
+    });
+
+    it.each([
+      {
+        label: "intersecting from below",
+        isIntersecting: true,
+        rect: { top: 50, bottom: 302 },
+        wantIn: true,
+        wantSkip: false,
+      },
+      {
+        label: "already fully above the viewport (bottom<=0)",
+        isIntersecting: false,
+        rect: { top: -300, bottom: -48 },
+        wantIn: true,
+        wantSkip: true,
+      },
+    ])(
+      "an observer entry $label unobserves and sets is-in=$wantIn is-skip=$wantSkip",
+      ({ isIntersecting, rect, wantIn, wantSkip }) => {
+        stubMiniUiEligible();
+        const panel = mountPanel();
+        render(<ScrollMotion />);
+        const observer = FakeIntersectionObserver.instances[0];
+
+        act(() => {
+          observer.callback([ioEntry(panel, isIntersecting, rect)], observer);
+        });
+
+        expect(panel.classList.contains("is-in")).toBe(wantIn);
+        expect(panel.classList.contains("is-skip")).toBe(wantSkip);
+        expect(observer.observed).not.toContain(panel);
+      },
+    );
+
+    it.each([
+      ["fully past (bottom<=0)", { top: -300, bottom: -48 }, true],
+      [
+        "still mostly visible (top<0, bottom>0)",
+        { top: -20, bottom: 232 },
+        false,
+      ],
+    ])(
+      "a pending panel the IO never reports gets is-in on a scroll sweep, is-skip only when %s",
+      (_label, rect, wantSkip) => {
+        stubMiniUiEligible();
+        stubRequestAnimationFrame();
+        const panel = mountPanel();
+        vi.spyOn(panel, "getBoundingClientRect").mockReturnValue({
+          top: 400,
+          bottom: 652,
+        } as DOMRect);
+
+        render(<ScrollMotion />);
+        expect(panel).not.toHaveClass("is-in");
+
+        vi.spyOn(panel, "getBoundingClientRect").mockReturnValue(
+          rect as DOMRect,
+        );
+        fireEvent.scroll(window);
+
+        expect(panel).toHaveClass("is-in");
+        expect(panel.classList.contains("is-skip")).toBe(wantSkip);
+      },
+    );
+
+    it.each([
+      {
+        label: "fully past (bottom<=0)",
+        rect: { top: -300, bottom: -48 },
+        wantSkip: true,
+      },
+      {
+        label: "still mostly visible (top<0, bottom>0)",
+        rect: { top: -20, bottom: 232 },
+        wantSkip: false,
+      },
+    ])(
+      "a panel already playing sets is-skip=$wantSkip when it is $label",
+      ({ rect, wantSkip }) => {
+        stubMiniUiEligible();
+        stubRequestAnimationFrame();
+        const panel = mountPanel();
+        render(<ScrollMotion />);
+        const observer = FakeIntersectionObserver.instances[0];
+
+        act(() => {
+          observer.callback(
+            [ioEntry(panel, true, { top: 50, bottom: 302 })],
+            observer,
+          );
+        });
+        expect(panel).toHaveClass("is-in");
+        expect(panel).not.toHaveClass("is-skip");
+
+        vi.spyOn(panel, "getBoundingClientRect").mockReturnValue(
+          rect as DOMRect,
+        );
+        fireEvent.scroll(window);
+
+        expect(panel.classList.contains("is-skip")).toBe(wantSkip);
+      },
+    );
+
+    it("an on-load #hash jump racing the browser's own anchor scroll still gets is-skip once the settle timer finds it above the viewport", () => {
+      vi.useFakeTimers();
+      stubMiniUiEligible();
+      const panel = mountPanel();
+
+      render(<ScrollMotion />);
+      const observer = FakeIntersectionObserver.instances[0];
+
+      // the IO's very first callback can race the anchor scroll,
+      // reporting the pre-scroll (intersecting) position moments
+      // before the real scroll lands the panel above the viewport.
+      act(() => {
+        observer.callback(
+          [ioEntry(panel, true, { top: 50, bottom: 302 })],
+          observer,
+        );
+      });
+      expect(panel).toHaveClass("is-in");
+      expect(panel).not.toHaveClass("is-skip");
+
+      vi.spyOn(panel, "getBoundingClientRect").mockReturnValue({
+        top: -300,
+        bottom: -48,
+      } as DOMRect);
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
+      expect(panel).toHaveClass("is-skip");
+      vi.useRealTimers();
+    });
+
+    it("with reduced motion, no panel gets is-in and sm-run is not added", () => {
+      stubReducedMotion(true);
+      window.IntersectionObserver =
+        FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+      const panel = mountPanel();
+
+      render(<ScrollMotion />);
+
+      expect(document.documentElement).not.toHaveClass("sm-run");
+      expect(panel).not.toHaveClass("is-in");
+    });
+
+    it("a page with no [data-mini-ui] panel creates no observer and adds no sm-run", () => {
+      stubMiniUiEligible();
+      render(<ScrollMotion />);
+
+      expect(document.documentElement).not.toHaveClass("sm-run");
+      expect(FakeIntersectionObserver.instances).toHaveLength(0);
+    });
+
+    it("unmounting disconnects the observer, removes the scroll/resize listeners and removes sm-run", () => {
+      stubMiniUiEligible();
+      mountPanel();
+
+      const { unmount } = render(<ScrollMotion />);
+      expect(document.documentElement).toHaveClass("sm-run");
+      const observer = FakeIntersectionObserver.instances[0];
+      const disconnectSpy = vi.spyOn(observer, "disconnect");
+
+      unmount();
+
+      expect(disconnectSpy).toHaveBeenCalled();
+      expect(document.documentElement).not.toHaveClass("sm-run");
+    });
   });
 });
