@@ -6,14 +6,20 @@ import { ScrollMotion } from "@/components/scroll-motion";
 class FakeIntersectionObserver implements IntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
   readonly root = null;
-  readonly rootMargin = "";
+  readonly rootMargin: string;
   readonly scrollMargin = "";
-  readonly thresholds: ReadonlyArray<number> = [];
+  readonly thresholds: ReadonlyArray<number>;
   observed: Element[] = [];
   callback: IntersectionObserverCallback;
 
-  constructor(callback: IntersectionObserverCallback) {
+  constructor(
+    callback: IntersectionObserverCallback,
+    options?: IntersectionObserverInit,
+  ) {
     this.callback = callback;
+    this.rootMargin = options?.rootMargin ?? "";
+    const threshold = options?.threshold ?? 0;
+    this.thresholds = Array.isArray(threshold) ? threshold : [threshold];
     FakeIntersectionObserver.instances.push(this);
   }
   observe(target: Element) {
@@ -400,11 +406,15 @@ describe("ScrollMotion", () => {
       panel.remove();
     });
 
-    it("a [data-mini-ui] panel already above the viewport gets is-in at once", () => {
+    it("a [data-mini-ui] panel already above the viewport gets is-in at once and finishes its run immediately (review round 2 finding 7: it must not play unseen)", () => {
       stubMiniUiEligible();
       const panel = document.createElement("div");
       panel.setAttribute("data-mini-ui", "");
       document.body.appendChild(panel);
+      const finish = vi.fn();
+      panel.getAnimations = vi
+        .fn()
+        .mockReturnValue([{ finish }] as unknown as Animation[]);
 
       render(<ScrollMotion />);
       const observer = FakeIntersectionObserver.instances[0];
@@ -427,10 +437,61 @@ describe("ScrollMotion", () => {
       });
 
       expect(panel).toHaveClass("is-in");
+      expect(panel.getAnimations).toHaveBeenCalledWith({ subtree: true });
+      expect(finish).toHaveBeenCalled();
       panel.remove();
     });
 
-    it("a mini-ui panel the IO never reports still gets is-in once a scroll frame finds its rect above the viewport", () => {
+    it("a panel the observer finds naturally intersecting gets is-in without finishing its run early", () => {
+      stubMiniUiEligible();
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+      const finish = vi.fn();
+      panel.getAnimations = vi
+        .fn()
+        .mockReturnValue([{ finish }] as unknown as Animation[]);
+
+      render(<ScrollMotion />);
+      const observer = FakeIntersectionObserver.instances[0];
+
+      act(() => {
+        observer.callback(
+          [
+            {
+              target: panel,
+              isIntersecting: true,
+              boundingClientRect: { top: 50 } as DOMRectReadOnly,
+              intersectionRatio: 0.2,
+              intersectionRect: {} as DOMRectReadOnly,
+              rootBounds: null,
+              time: 0,
+            },
+          ],
+          observer,
+        );
+      });
+
+      expect(panel).toHaveClass("is-in");
+      expect(finish).not.toHaveBeenCalled();
+      panel.remove();
+    });
+
+    it("the mini-ui observer watches at 15% with the same bottom-weighted margin as the fallback (a threshold:0 mutation must not pass)", () => {
+      stubMiniUiEligible();
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+
+      render(<ScrollMotion />);
+
+      const observer = FakeIntersectionObserver.instances[0];
+      expect(observer.thresholds).toEqual([0.15]);
+      expect(observer.rootMargin).toBe("0px 0px -10% 0px");
+      panel.remove();
+    });
+
+    it("a mini-ui panel the IO never reports still gets is-in once a scroll frame finds its rect above the viewport, finishing its run immediately", () => {
       stubMiniUiEligible();
       stubRequestAnimationFrame();
       const panel = document.createElement("div");
@@ -438,6 +499,10 @@ describe("ScrollMotion", () => {
       vi.spyOn(panel, "getBoundingClientRect").mockReturnValue({
         top: 400,
       } as DOMRect);
+      const finish = vi.fn();
+      panel.getAnimations = vi
+        .fn()
+        .mockReturnValue([{ finish }] as unknown as Animation[]);
       document.body.appendChild(panel);
 
       render(<ScrollMotion />);
@@ -449,6 +514,7 @@ describe("ScrollMotion", () => {
       fireEvent.scroll(window);
 
       expect(panel).toHaveClass("is-in");
+      expect(finish).toHaveBeenCalled();
       panel.remove();
     });
 

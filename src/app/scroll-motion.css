@@ -389,6 +389,7 @@
   }
   [data-line-index],
   [data-term-pass],
+  [data-term-next],
   [data-tick-done],
   [data-diff-line],
   [data-diff-thread],
@@ -492,39 +493,53 @@ html.sm-io [data-nav-link].is-current [data-nav-spy] {
    class is ever added) sees only the rest state, already the finished
    picture. `animation-fill-mode: both` + one iteration + `.is-in`
    persisting (never removed) means the run never replays on
-   scroll-away-and-back. Timings are generous, fixed constants sized to
-   the data's own caps (`TerminalResults` 1-5, `ChecklistItems` 1-5,
-   `DiffContextLines` 0-4): the worst case (5 items) still finishes
-   well inside the ticket's 3.2s ceiling. */
+   scroll-away-and-back. Each run's finish is pinned to fixed delays
+   (the checklist bar, PASS, the diff chip) rather than scaled to the
+   data's own caps (`TerminalResults` 1-5, `ChecklistItems` 1-6,
+   `DiffContextLines` 0-4): the worst case still finishes inside the
+   ticket's 3.2s ceiling, and the typical case doesn't finish early. */
 
-/* terminal: the command types in (steps, clip-path only — the text
-   never resizes its box), then each result line and the PASS status
-   row fade/slide in, staggered by `--i` (ticket 09's TerminalResultLine
-   index). */
+/* terminal: the command types in one step per character (`--cmd-len`,
+   `--type-ms` from project-visual.tsx, review round 2 finding 4), then
+   each result line and the PASS row fade/slide in staggered by `--i`.
+   PASS and the fresh prompt use fixed delays, not `--type-ms`: the
+   worst case (5 lines, the kit's own 13-char command) still finishes
+   lines well before PASS's 2450ms (review round 2 finding 3: the kit
+   only shows the fresh prompt after PASS). */
 html.sm-run [data-mini-ui]:not(.is-in) [data-term-typed] {
   clip-path: inset(0 100% 0 0);
 }
 html.sm-run [data-mini-ui].is-in [data-term-typed] {
-  animation: sm-term-type 650ms steps(16, jump-end) 150ms both;
+  animation: sm-term-type var(--type-ms, 650ms) steps(var(--cmd-len, 13)) 150ms
+    both;
 }
 html.sm-run [data-mini-ui]:not(.is-in) [data-line-index],
-html.sm-run [data-mini-ui]:not(.is-in) [data-term-pass] {
+html.sm-run [data-mini-ui]:not(.is-in) [data-term-pass],
+html.sm-run [data-mini-ui]:not(.is-in) [data-term-next] {
   opacity: 0;
   transform: translateX(-6px);
 }
 html.sm-run [data-mini-ui].is-in [data-line-index] {
   animation: sm-type 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(800ms + var(--i, 0) * 200ms);
+  animation-delay: calc(
+    150ms + var(--type-ms, 650ms) + 100ms + var(--i, 0) * 260ms
+  );
 }
 html.sm-run [data-mini-ui].is-in [data-term-pass] {
-  animation: sm-type 180ms cubic-bezier(0.22, 1, 0.36, 1) 1850ms both;
+  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) 2450ms both;
+}
+html.sm-run [data-mini-ui].is-in [data-term-next] {
+  animation: sm-type 300ms cubic-bezier(0.22, 1, 0.36, 1) 2800ms both;
 }
 
 /* checklist: a *done* item's box+check pops in (opacity/scale, reusing
    the experience dots' `sm-lit`), staggered by `--i`; the bar (already
    at its final, static width — ticket 09 — so resizing never happens)
-   grows from 0 with `scaleX`, origin left. An item that was never done
-   has no `[data-tick-done]` at all: nothing to hide or animate. */
+   grows from 0 with `scaleX`, origin left, over a fixed 2500ms so the
+   run reads about 3s regardless of how many items are done (review
+   round 2 finding 5 — a short 1300ms bar read as "well under 3s"). An
+   item that was never done has no `[data-tick-done]` at all: nothing
+   to hide or animate. */
 html.sm-run [data-mini-ui]:not(.is-in) [data-tick-done] {
   opacity: 0;
   transform: scale(0.4);
@@ -539,12 +554,15 @@ html.sm-run [data-mini-ui]:not(.is-in) [data-bar] {
 }
 html.sm-run [data-mini-ui].is-in [data-bar] {
   transform-origin: left;
-  animation: sm-grow-x 1300ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
+  animation: sm-grow-x 2500ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
 }
 
-/* diff: the before/after lines arrive, then the comment thread, then
-   the "Applied" chip pops (reusing `sm-lit`), then up to four context
-   lines settle in, staggered by `--i`. */
+/* diff: the old line arrives with its comment thread (the kit and the
+   ticket read the thread as part of "the old line", not after the
+   suggestion), then the suggestion lands, then the chip turns
+   "Applied", then up to four context lines settle in last, staggered
+   by `--i` (review round 2 finding 6: the build had the thread arrive
+   after its own suggestion). */
 html.sm-run [data-mini-ui]:not(.is-in) [data-diff-line],
 html.sm-run [data-mini-ui]:not(.is-in) [data-diff-thread] {
   opacity: 0;
@@ -557,16 +575,16 @@ html.sm-run [data-mini-ui]:not(.is-in) [data-diff-chip] {
 html.sm-run [data-mini-ui].is-in [data-diff-line="before"] {
   animation: sm-type 200ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
 }
-html.sm-run [data-mini-ui].is-in [data-diff-line="after"] {
-  animation: sm-type 200ms cubic-bezier(0.22, 1, 0.36, 1) 750ms both;
-}
 html.sm-run [data-mini-ui].is-in [data-diff-thread] {
-  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) 1300ms both;
+  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) 700ms both;
+}
+html.sm-run [data-mini-ui].is-in [data-diff-line="after"] {
+  animation: sm-type 200ms cubic-bezier(0.22, 1, 0.36, 1) 1400ms both;
 }
 html.sm-run [data-mini-ui].is-in [data-diff-chip] {
-  animation: sm-lit 220ms cubic-bezier(0.22, 1, 0.36, 1) 1650ms both;
+  animation: sm-lit 220ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms both;
 }
 html.sm-run [data-mini-ui].is-in [data-diff-line="context"] {
   animation: sm-type 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(2010ms + var(--i, 0) * 140ms);
+  animation-delay: calc(2200ms + var(--i, 0) * 220ms);
 }

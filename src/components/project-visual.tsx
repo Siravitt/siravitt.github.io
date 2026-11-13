@@ -146,6 +146,23 @@ function Window({
   );
 }
 
+/** One step's time (ms) for the terminal type-in, clamped to the kit's
+ * 50-80ms/character range (`terminal-run/fragment.js`), so a short
+ * command still reads at a natural pace and a long one doesn't crawl.
+ */
+function terminalPerCharMs(command: string): number {
+  return Math.max(50, Math.min(80, 800 / command.length));
+}
+
+/** The type-in's total duration (ms): one step per character, so
+ * `steps(command.length)` (ticket 16 review round 1 finding 4 — a
+ * fixed step count on a variable-length command clips glyphs mid-way)
+ * never reveals a glyph half drawn.
+ */
+export function terminalTypeMs(command: string): number {
+  return Math.round(terminalPerCharMs(command) * command.length);
+}
+
 /**
  * Splits a repo title ("booking/api") into its parent folder and leaf
  * segment at the last `/`, so the terminal prompt can hide the parent
@@ -213,7 +230,19 @@ function TerminalWindow({
           {visual.branch}
         </span>
       </div>
-      <div className="px-4 py-3 font-mono @max-[300px]:px-3">
+      {/* --cmd-len/--type-ms (ticket 16 review round 2 finding 4): the
+          type-in's step count and duration follow the command's own
+          length, inherited by every hook below, so steps() always
+          lands one step per character instead of clipping a glyph. */}
+      <div
+        className="px-4 py-3 font-mono @max-[300px]:px-3"
+        style={
+          {
+            "--cmd-len": visual.command.length,
+            "--type-ms": `${terminalTypeMs(visual.command)}ms`,
+          } as CSSProperties
+        }
+      >
         <p className="truncate">
           <TerminalPrompt title={visual.title} />
           {/* ticket 16: the command is already in the DOM (no CLS); the
@@ -236,7 +265,10 @@ function TerminalWindow({
           <b className="font-medium">PASS</b>
           <span className="text-muted-foreground">{visual.summary}</span>
         </p>
-        <p className="truncate">
+        {/* data-term-next (round 2 finding 3): the kit's fresh prompt
+            arrives only after PASS, so it starts hidden like the rest
+            of the run instead of sitting on screen from t=0. */}
+        <p data-term-next className="truncate">
           <TerminalPrompt title={visual.title} />
           <span
             aria-hidden="true"
@@ -301,7 +333,8 @@ function ChecklistWindow({
         </span>
       </div>
       <div className="mx-4 mb-2 h-1 overflow-hidden rounded-full bg-border">
-        {/* data-bar is a ticket-16 motion hook only; nothing reads it yet. */}
+        {/* data-bar (ticket 16): already at its finished width (`ratio`);
+            the run grows it in from 0 with `scaleX` (scroll-motion.css). */}
         <div
           data-bar
           className="h-full rounded-full bg-primary"

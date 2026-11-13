@@ -124,17 +124,27 @@ export function ScrollMotion(): null {
       const visualIo = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
-            if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
-              revealVisual(entry.target);
+            if (entry.isIntersecting) {
+              revealVisual(entry.target, false);
+            } else if (entry.boundingClientRect.top < 0) {
+              revealVisual(entry.target, true);
             }
           }
         },
         { rootMargin: "0px 0px -10% 0px", threshold: 0.15 },
       );
-      const revealVisual = (el: Element) => {
+      // `immediate` (review round 2 finding 7): a target revealed
+      // because it is already above the viewport — not because the
+      // visitor scrolled it up from below — finishes its run at once
+      // instead of playing it unseen, so scrolling back up to it later
+      // (or a deep link landing past it) always shows the final frame.
+      const revealVisual = (el: Element, immediate: boolean) => {
         el.classList.add("is-in");
         visualIo.unobserve(el);
         visualPending.delete(el);
+        if (immediate) {
+          el.getAnimations({ subtree: true }).forEach((a) => a.finish());
+        }
       };
       miniUiTargets.forEach((el) => visualIo.observe(el));
 
@@ -146,7 +156,7 @@ export function ScrollMotion(): null {
       const sweepVisuals = () => {
         visualQueued = false;
         for (const el of visualPending) {
-          if (el.getBoundingClientRect().top < 0) revealVisual(el);
+          if (el.getBoundingClientRect().top < 0) revealVisual(el, true);
         }
       };
       const queueVisualSweep = () => {
