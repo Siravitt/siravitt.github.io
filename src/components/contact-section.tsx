@@ -130,11 +130,17 @@ function ProfileLink({
       href={href}
       className="group inline-flex w-fit max-sm:min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium decoration-border-strong underline-offset-4 hover:underline hover:decoration-current focus-visible:underline focus-visible:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      {icon}
+      {/* Carried-over fix (Flame, 2026-11-13): Chrome draws the <a>'s
+       * inherited underline through an inline-block descendant as its
+       * own short, independently-positioned line (not a continuation
+       * of the label's); `no-underline` on the icon and the glyph
+       * stops each from drawing one at all — only the label text
+       * itself underlines. */}
+      <span className="no-underline">{icon}</span>
       {label}
       <span
         aria-hidden="true"
-        className="inline-block transition-transform duration-150 group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
+        className="inline-block no-underline transition-transform duration-150 group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
       >
         {"\u2197"}
       </span>

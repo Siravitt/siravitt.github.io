@@ -113,6 +113,23 @@ describe("ProjectsSection", () => {
     ).toHaveTextContent("Fixture Demo\u2192");
   });
 
+  it("keeps the underline off the trailing glyph, only on the label (carried-over fix, Flame 2026-11-13)", () => {
+    const mixed: Project = {
+      ...threeProjects[0],
+      links: {
+        source: "https://example.com/external",
+        live: "/internal-page",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([mixed])} />);
+    const article = screen.getByRole("article");
+    const link = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    const glyph = link.querySelector('span[aria-hidden="true"]');
+    expect(glyph?.className).toContain("no-underline");
+  });
+
   it("a project with only a source link renders exactly that one link", () => {
     render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
     const article = screen.getAllByRole("article")[1];

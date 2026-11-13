@@ -154,7 +154,10 @@ function ProjectLink({
       <span
         aria-hidden="true"
         className={cn(
-          "inline-block transition-transform duration-150",
+          // Carried-over fix (Flame, 2026-11-13): no-underline stops
+          // Chrome drawing the <a>'s underline through this
+          // inline-block glyph as its own separate short line.
+          "inline-block no-underline transition-transform duration-150",
           external
             ? "group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
             : "group-hover:translate-x-[3px]",

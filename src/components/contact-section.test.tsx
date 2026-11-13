@@ -48,6 +48,19 @@ describe("ContactSection", () => {
     );
   });
 
+  it("keeps the underline off the logo and the trailing glyph, only on the label (carried-over fix, Flame 2026-11-13)", () => {
+    render(<ContactSection site={siteFixture} />);
+    const githubLink = screen.getByRole("link", {
+      name: siteFixture.contact.githubLabel,
+    });
+    const svg = githubLink.querySelector("svg") as SVGSVGElement;
+    const glyph = githubLink.querySelector(
+      'span[aria-hidden="true"]',
+    ) as HTMLElement;
+    expect(svg.closest("span")?.className).toContain("no-underline");
+    expect(glyph.className).toContain("no-underline");
+  });
+
   it("has a LinkedIn profile link named by the fixture's linkedinLabel, to the fixture URL, with a decorative logo", () => {
     render(<ContactSection site={siteFixture} />);
     const linkedinLink = screen.getByRole("link", {

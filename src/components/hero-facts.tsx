@@ -33,7 +33,13 @@ export function HeroFacts({ site }: { site: SiteContent }) {
                   className="rounded-sm underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   <PlaceholderText text={fact.value} />
-                  <span aria-hidden="true">
+                  {/* Carried-over fix (Flame, 2026-11-13): no-underline
+                   * + inline-block stop the link's underline from
+                   * drawing its own short line under the glyph. */}
+                  <span
+                    aria-hidden="true"
+                    className="inline-block no-underline"
+                  >
                     {" "}
                     {isExternalHref(fact.href) ? "\u2197" : "\u2192"}
                   </span>
