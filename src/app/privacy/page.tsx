@@ -20,6 +20,13 @@ import { site } from "@/content/site";
 // `images` is carried over explicitly from `(await parent).openGraph`.
 // Twitter has the same shallow-merge trap for `card`/`images`, carried
 // over from `(await parent).twitter` the same way.
+//
+// Reviewer round 2 fix 1 (regression in the fix above): the explicit
+// `openGraph` object here *replaces* the layout's, so `type: "website"`
+// (one of the four required Open Graph properties) was silently
+// dropped from out/privacy.html (`grep og:type` found 0 matches).
+// Set it explicitly rather than spreading the whole parent object, so
+// `title`/`description`/`url` stay privacy's own.
 export async function generateMetadata(
   _props: Record<string, never>,
   parent: ResolvingMetadata,
@@ -33,6 +40,7 @@ export async function generateMetadata(
     description,
     alternates: { canonical: site.daedalus.privacyPath },
     openGraph: {
+      type: "website",
       title,
       description,
       url: site.daedalus.privacyPath,

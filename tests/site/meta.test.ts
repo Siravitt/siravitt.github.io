@@ -182,6 +182,17 @@ describe("out/privacy.html: its own title, still the absolute OG image", () => {
     expect(privacyOgDescription).not.toBe(homeOgDescription);
   });
 
+  // Reviewer round 2 fix 1: privacy's own `openGraph` object replaced
+  // the layout's instead of extending it, so `og:type` (one of the
+  // four required OG properties) was silently dropped from
+  // out/privacy.html. Literal "website" is one of the ticket's named
+  // fixed-part literals.
+  it('still has og:type "website"', () => {
+    const doc = parseOutFile("privacy.html");
+    const ogType = doc.querySelector('meta[property="og:type"]');
+    expect(ogType?.getAttribute("content")).toBe("website");
+  });
+
   it("still has an absolute og:image pointing at a file that exists", () => {
     const doc = parseOutFile("privacy.html");
     const ogImage = doc.querySelector('meta[property="og:image"]');
