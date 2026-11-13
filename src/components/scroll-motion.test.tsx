@@ -308,4 +308,46 @@ describe("ScrollMotion", () => {
     section.remove();
     link.remove();
   });
+
+  it("a hashchange after unmount moves no focus (reviewer round 1 fix 3: the listener must come off too)", () => {
+    const section = document.createElement("section");
+    section.id = "experience";
+    document.body.appendChild(section);
+
+    const { unmount } = render(<ScrollMotion />);
+    unmount();
+
+    document.body.focus();
+    window.location.hash = "#experience";
+    fireEvent(window, new Event("hashchange"));
+
+    expect(document.activeElement).not.toBe(section);
+    section.remove();
+  });
+
+  it("reviewer round 1 fix 1: a target the IO never reports still gets is-in once a scroll frame finds its rect above the viewport", () => {
+    const rv = document.createElement("div");
+    rv.setAttribute("data-rv", "");
+    // starts below the viewport, so the IO's own callback never fires for it
+    vi.spyOn(rv, "getBoundingClientRect").mockReturnValue({
+      top: 400,
+    } as DOMRect);
+    document.body.appendChild(rv);
+
+    render(<ScrollMotion />);
+    const observer = FakeIntersectionObserver.instances[0];
+    expect(observer.observed).toContain(rv);
+    expect(rv).not.toHaveClass("is-in");
+
+    // a fragment jump lands the page past it, between IO callbacks
+    vi.spyOn(rv, "getBoundingClientRect").mockReturnValue({
+      top: -50,
+    } as DOMRect);
+    fireEvent.scroll(window);
+
+    expect(rv).toHaveClass("is-in");
+    expect(observer.observed).not.toContain(rv);
+
+    rv.remove();
+  });
 });

@@ -111,21 +111,34 @@ export function ScrollMotion(): null {
 
       // reveals: [data-rv] blocks and the logo board get .is-in once,
       // the first time they are 15% in view. Anything already above
-      // the screen (a jump to #experience) is shown at once.
+      // the screen (a jump to #experience) is shown at once — but the
+      // IO only calls back on an intersection-state *change*, so a
+      // fragment jump or a fast glide that lands past a target between
+      // frames can leave it unreported (reviewer round 1 fix 1). `update`
+      // below re-checks every still-pending target's rect each frame as
+      // a second path to the same `revealTarget`.
+      const pending = new Set<Element>();
       const io = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
             if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
-              entry.target.classList.add("is-in");
-              io.unobserve(entry.target);
+              revealTarget(entry.target);
             }
           }
         },
         { rootMargin: "0px 0px -10% 0px", threshold: 0.15 },
       );
+      const revealTarget = (el: Element) => {
+        el.classList.add("is-in");
+        io.unobserve(el);
+        pending.delete(el);
+      };
       document
         .querySelectorAll("[data-rv], [data-stack-board]")
-        .forEach((el) => io.observe(el));
+        .forEach((el) => {
+          pending.add(el);
+          io.observe(el);
+        });
 
       // scroll-linked parts: one passive listener, one read a frame,
       // written to custom properties.
@@ -149,6 +162,17 @@ export function ScrollMotion(): null {
           "--sm-page",
           max > 0 ? clamp(scrollY / max).toFixed(4) : "0",
         );
+
+        // reviewer round 1 fix 1: a pending target the IO never reported
+        // (its own callback only fires on a state *change*) still gets
+        // revealed once a scroll/resize frame finds it already above
+        // the viewport — covers a fragment jump or a glide that skips
+        // past it between frames.
+        for (const el of pending) {
+          if (el.getBoundingClientRect().top < 0) {
+            revealTarget(el);
+          }
+        }
 
         if (hero) {
           const rect = hero.getBoundingClientRect();
@@ -192,8 +216,8 @@ export function ScrollMotion(): null {
           link.classList.toggle(
             "is-current",
             index === current &&
-              Boolean(section) &&
-              section!.getBoundingClientRect().bottom > vh * 0.5,
+              section != null &&
+              section.getBoundingClientRect().bottom > vh * 0.5,
           );
         });
       };
