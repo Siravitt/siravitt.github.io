@@ -36,7 +36,7 @@ export function ContactSection({ site }: { site: SiteContent }) {
   return (
     <>
       {contact.intro ? (
-        <p className="mt-4 max-w-[62ch] text-[18px] leading-[1.6] lg:text-[20px]">
+        <p className="mt-4 max-w-[62ch] text-[18px] leading-[1.5] lg:text-[20px]">
           <PlaceholderText text={contact.intro} />
         </p>
       ) : null}
@@ -73,11 +73,11 @@ export function ContactSection({ site }: { site: SiteContent }) {
         }
       />
 
-      <div className="mt-12 grid grid-cols-12 gap-x-6 gap-y-6 sm:gap-y-12">
+      <div className="mt-12 sm:mt-16 grid grid-cols-12 gap-x-6 gap-y-6 sm:gap-y-12">
         <p className="col-span-12 max-w-[30ch] text-[18px] leading-[1.25] font-medium tracking-[-0.028em] lg:col-span-6 lg:text-[20px]">
           <PlaceholderText text={footer.lede} />
         </p>
-        <div className="col-span-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-6 lg:col-start-7">
+        <div className="col-span-12 grid grid-cols-2 gap-x-3 sm:gap-x-6 gap-y-10 sm:col-span-6 lg:col-start-7">
           <FooterColumn heading={footer.sectionsHeading}>
             {sectionLinks.map((key) => (
               <li key={key}>
@@ -144,7 +144,9 @@ function FooterColumn({
       <h3 className="mb-4 text-[14px] leading-[1.4] font-medium text-muted-foreground [font-stretch:100%]">
         {heading}
       </h3>
-      <ul className="grid gap-3 text-[14px] max-sm:gap-0">{children}</ul>
+      <ul className="grid gap-3 text-[14px] leading-[1.55] max-sm:gap-0">
+        {children}
+      </ul>
     </div>
   );
 }
@@ -160,7 +162,7 @@ function FooterColumnLink({
   return (
     <a
       href={href}
-      className="inline-flex items-center rounded-sm font-normal text-foreground hover:underline max-sm:min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="inline-flex items-center rounded-sm font-normal text-foreground hover:underline max-sm:min-h-11 max-sm:min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {children}
     </a>

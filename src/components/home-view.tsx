@@ -149,7 +149,7 @@ export function HomeView({ site }: { site: SiteContent }) {
         className="border-t border-border bg-[color-mix(in_oklab,var(--background)_72%,#000)]"
       >
         <ContactSection site={site} />
-        <LegalRow site={site} />
+        <LegalRow site={site} className="mt-6 sm:mt-12" />
       </SectionShell>
     </>
   );
