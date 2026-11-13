@@ -44,20 +44,23 @@ const buttonVariants = cva(
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         // DESIGN.md §6a "default, size xl" (Contact's big keycap):
-        // min-h-16/xl:min-h-[72px] is the ticket's own binding
-        // simplification of the prototype's continuous
-        // `clamp(64px, 1.4vw+48px, 72px)` (docs/tickets/12-contact-closing.md,
-        // "Design refs"). min-h + h-auto (not a fixed h-) plus py-3,
-        // rather than a fixed height, so the 64/72px box only grows for
-        // a label long enough to wrap (reviewer round 1 fix 8, Review
-        // Focus 1: a 30-char label at 320px must not force the button —
-        // or the page — to scroll sideways); every caller's own label
-        // span carries `whitespace-normal` to allow that wrap, since
-        // this cva's own base `whitespace-nowrap` stays for every other
-        // size. The display face keeps the prototype's own continuous
-        // clamp (20–26px, `site.css` `.btn--xl`) since nothing pins it
-        // to a step; below 640 (full width) it drops to the prototype's
-        // flat 18px (`site.css` max-width:639px override).
+        // `min-h-[clamp(64px,1.4vw+48px,72px)]` reproduces the
+        // prototype's own continuous rule verbatim (`system.css:1061`
+        // `.btn--xl { height: clamp(64px, 1.4vw + 48px, 72px); }` —
+        // carried-over polish item 4, Flame 2026-11-13: was the fixed
+        // `min-h-16 xl:min-h-[72px]` two-step jump from ticket 12,
+        // which measured 72px at 1440 against the prototype's 68.16px).
+        // min-h + h-auto (not a fixed h-) plus py-3, rather than a fixed
+        // height, so the box only grows for a label long enough to wrap
+        // (reviewer round 1 fix 8, Review Focus 1: a 30-char label at
+        // 320px must not force the button — or the page — to scroll
+        // sideways); every caller's own label span carries
+        // `whitespace-normal` to allow that wrap, since this cva's own
+        // base `whitespace-nowrap` stays for every other size. The
+        // display face keeps the prototype's own continuous clamp
+        // (20–26px, `site.css` `.btn--xl`) since nothing pins it to a
+        // step; below 640 (full width) it drops to the prototype's flat
+        // 18px (`site.css` max-width:639px override).
         // Carried-over polish (Flame 2026-11-13): the prototype's own
         // phone rule (`site.css` `@media (max-width:639px) { .btn--xl
         // { height: 48px; font: 500 18px/1 ... } }`) is a FIXED 48px
@@ -71,7 +74,7 @@ const buttonVariants = cva(
         // — or the page — to scroll sideways; re-verified after this
         // change). `leading-none` (was the default ~1.5, prototype
         // measures 1.0) only changes anything once wrapped.
-        xl: "min-h-16 h-auto justify-between gap-1.5 px-6 py-3 pl-8 text-[18px] leading-none max-sm:min-h-12 max-sm:py-0 xl:min-h-[72px] sm:text-[length:clamp(20px,0.6vw+16px,26px)]",
+        xl: "min-h-[clamp(64px,1.4vw+48px,72px)] h-auto justify-between gap-1.5 px-6 py-3 pl-8 text-[18px] leading-none max-sm:min-h-12 max-sm:py-0 sm:text-[length:clamp(20px,0.6vw+16px,26px)]",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

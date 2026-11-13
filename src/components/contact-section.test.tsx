@@ -128,6 +128,31 @@ describe("ContactSection", () => {
     ]);
   });
 
+  // Reviewer round 2 fix 2: the prototype's shared text-link style
+  // draws the underline on `:hover` *and* `:focus-visible`
+  // (`motion.css:97`); `hover:underline` alone left keyboard focus
+  // with no visible line. Covers both the Sections and Elsewhere
+  // columns, which share `FooterColumnLink`.
+  it("Sections and Elsewhere column links show the underline on focus-visible, not only hover (polish item 1)", () => {
+    render(<ContactSection site={siteFixture} />);
+    const sectionsHeading = screen.getByText(
+      siteFixture.footer.sectionsHeading,
+    );
+    const elsewhereHeading = screen.getByText(
+      siteFixture.footer.elsewhereHeading,
+    );
+    const sectionsLink = within(
+      sectionsHeading.closest("div") as HTMLElement,
+    ).getAllByRole("link")[0];
+    const elsewhereLink = within(
+      elsewhereHeading.closest("div") as HTMLElement,
+    ).getAllByRole("link")[0];
+    for (const link of [sectionsLink, elsewhereLink]) {
+      expect(link.className).toMatch(/\bfocus-visible:underline\b/);
+      expect(link.className).toMatch(/\bfocus-visible:decoration-current\b/);
+    }
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(<ContactSection site={siteFixture} />);
     expect(await axe(container)).toHaveNoViolations();

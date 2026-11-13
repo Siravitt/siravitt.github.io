@@ -141,6 +141,47 @@ describe("out/privacy.html: its own title, still the absolute OG image", () => {
     );
   });
 
+  // Reviewer round 2 fix 1: a plain `openGraph`/`twitter` override on
+  // the privacy page shallow-replaced the layout's, so the built HTML
+  // kept the layout's *home* title/description in the share card — a
+  // link to /privacy.html pasted into Slack would show the portfolio
+  // title. The own title/description are read from `site`, never a
+  // copied literal, so Flame's policy copy can't desync this test.
+  it("has og:title and twitter:title equal to privacy's own title, not the home title", () => {
+    const home = parseOutFile("index.html");
+    const privacy = parseOutFile("privacy.html");
+    const ownTitle = `${site.daedalus.policyHeading}: ${site.person.name}`;
+    const homeOgTitle = home
+      .querySelector('meta[property="og:title"]')
+      ?.getAttribute("content");
+    const privacyOgTitle = privacy
+      .querySelector('meta[property="og:title"]')
+      ?.getAttribute("content");
+    const privacyTwitterTitle = privacy
+      .querySelector('meta[name="twitter:title"]')
+      ?.getAttribute("content");
+    expect(privacyOgTitle).toBe(ownTitle);
+    expect(privacyTwitterTitle).toBe(ownTitle);
+    expect(privacyOgTitle).not.toBe(homeOgTitle);
+  });
+
+  it("has og:description and twitter:description equal to privacy's own policy text, not the home description", () => {
+    const home = parseOutFile("index.html");
+    const privacy = parseOutFile("privacy.html");
+    const homeOgDescription = home
+      .querySelector('meta[property="og:description"]')
+      ?.getAttribute("content");
+    const privacyOgDescription = privacy
+      .querySelector('meta[property="og:description"]')
+      ?.getAttribute("content");
+    const privacyTwitterDescription = privacy
+      .querySelector('meta[name="twitter:description"]')
+      ?.getAttribute("content");
+    expect(privacyOgDescription).toBe(site.daedalus.policyText);
+    expect(privacyTwitterDescription).toBe(site.daedalus.policyText);
+    expect(privacyOgDescription).not.toBe(homeOgDescription);
+  });
+
   it("still has an absolute og:image pointing at a file that exists", () => {
     const doc = parseOutFile("privacy.html");
     const ogImage = doc.querySelector('meta[property="og:image"]');
@@ -148,5 +189,42 @@ describe("out/privacy.html: its own title, still the absolute OG image", () => {
     expect(url.startsWith(`${SITE_ORIGIN}/`)).toBe(true);
     const relativePath = outPathFromUrl(url, SITE_ORIGIN) as string;
     expect(existsSync(join(OUT_DIR, relativePath))).toBe(true);
+  });
+
+  it("still has an absolute twitter:image and the summary_large_image card", () => {
+    const doc = parseOutFile("privacy.html");
+    const card = doc.querySelector('meta[name="twitter:card"]');
+    const image = doc.querySelector('meta[name="twitter:image"]');
+    expect(card?.getAttribute("content")).toBe("summary_large_image");
+    const url = image?.getAttribute("content") ?? "";
+    expect(url.startsWith(`${SITE_ORIGIN}/`)).toBe(true);
+    const relativePath = outPathFromUrl(url, SITE_ORIGIN) as string;
+    expect(existsSync(join(OUT_DIR, relativePath))).toBe(true);
+  });
+});
+
+describe("OG/Twitter alt text tracks site.meta.title (ceo round 2 item 5)", () => {
+  // The *.alt.txt convention can't import `site.ts` (it's a plain text
+  // file Next reads at build time for the generated image's `alt`),
+  // so the alt text is a copy of `site.meta.title`. This test is the
+  // guard against that copy drifting silently: it reads the built
+  // og:image:alt/twitter:image:alt tags (not the source .alt.txt files
+  // directly), so it also proves the convention actually wires through.
+  it("out/index.html's og:image:alt and twitter:image:alt equal site.meta.title", () => {
+    const doc = parseOutFile("index.html");
+    const ogAlt = doc
+      .querySelector('meta[property="og:image:alt"]')
+      ?.getAttribute("content");
+    const twitterAlt = doc
+      .querySelector('meta[name="twitter:image:alt"]')
+      ?.getAttribute("content");
+    expect(
+      ogAlt,
+      "update opengraph-image.alt.txt + twitter-image.alt.txt to match site.meta.title",
+    ).toBe(site.meta.title);
+    expect(
+      twitterAlt,
+      "update opengraph-image.alt.txt + twitter-image.alt.txt to match site.meta.title",
+    ).toBe(site.meta.title);
   });
 });

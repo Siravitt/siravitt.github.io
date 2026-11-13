@@ -161,7 +161,11 @@ function FooterColumn({
   );
 }
 
-/** A Sections/Elsewhere column link: plain text, no arrow glyph (DESIGN.md §6a "footer" row; reviewer round 1 fix 5). */
+/** A Sections/Elsewhere column link: plain text, no arrow glyph (DESIGN.md §6a "footer" row; reviewer round 1 fix 5).
+ * Reviewer round 2 fix 2: the prototype draws the underline on
+ * `:hover` *and* `:focus-visible` (`motion.css:97`, `.footer ul
+ * a:is(:hover, :focus-visible)`), matching `ProfileLink` above —
+ * `hover:underline` alone left keyboard focus with no visible line. */
 function FooterColumnLink({
   href,
   children,
@@ -172,7 +176,7 @@ function FooterColumnLink({
   return (
     <a
       href={href}
-      className="inline-flex items-center rounded-sm font-normal text-foreground hover:underline max-sm:min-h-11 max-sm:min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="inline-flex items-center rounded-sm font-normal text-foreground decoration-current hover:underline focus-visible:underline focus-visible:decoration-current max-sm:min-h-11 max-sm:min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {children}
     </a>
