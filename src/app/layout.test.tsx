@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ScrollMotion } from "@/components/scroll-motion";
 
 // next/font/google's exports are a build-time Next.js macro (SWC
 // transform): calling them outside `next build`/`next dev` throws, so
@@ -34,10 +35,15 @@ describe("RootLayout", () => {
     expect(html.props.className).toContain("motion-safe:scroll-smooth");
   });
 
-  it("renders children inside <body>", () => {
+  it("renders children inside <body>, after the one <ScrollMotion /> client component (ticket 15, DESIGN.md §7.4)", () => {
     const html = RootLayout({ children: <div>fixture children</div> });
     const body = html.props.children;
     expect(body.type).toBe("body");
-    expect(body.props.children.props.children).toBe("fixture children");
+    const [scrollMotion, children] = body.props.children as [
+      { type: unknown },
+      { props: { children: string } },
+    ];
+    expect(scrollMotion.type).toBe(ScrollMotion);
+    expect(children.props.children).toBe("fixture children");
   });
 });
