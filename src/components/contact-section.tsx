@@ -43,7 +43,7 @@ export function ContactSection({ site }: { site: SiteContent }) {
         </p>
       ) : null}
 
-      <ul className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+      <ul className="mt-6 grid gap-4">
         <li>
           <ProfileLink
             href={contact.github}
@@ -122,7 +122,7 @@ function ProfileLink({
   return (
     <a
       href={href}
-      className="group inline-flex min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group inline-flex w-fit max-sm:min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {icon}
       {label}

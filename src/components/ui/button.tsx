@@ -40,8 +40,15 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        // DESIGN.md §6a "default, size xl" (Contact's big keycap).
-        xl: "h-16 justify-between gap-1.5 px-6 pl-8 text-xl xl:h-[72px]",
+        // DESIGN.md §6a "default, size xl" (Contact's big keycap):
+        // h-16/xl:h-[72px] is the ticket's own binding simplification
+        // of the prototype's continuous `clamp(64px, 1.4vw+48px, 72px)`
+        // (docs/tickets/12-contact-closing.md, "Design refs"). The
+        // display face keeps the prototype's own continuous clamp
+        // (20–26px, `site.css` `.btn--xl`) since nothing pins it to a
+        // step; below 640 (full width) it drops to the prototype's
+        // flat 18px (`site.css` max-width:639px override).
+        xl: "h-16 justify-between gap-1.5 px-6 pl-8 text-[18px] xl:h-[72px] sm:text-[length:clamp(20px,0.6vw+16px,26px)]",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
