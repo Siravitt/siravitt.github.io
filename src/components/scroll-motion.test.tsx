@@ -350,4 +350,147 @@ describe("ScrollMotion", () => {
 
     rv.remove();
   });
+
+  describe("ticket 16: project mini-UI motion", () => {
+    // every mini-ui test runs with native timeline support true, so the
+    // ticket 14/15 fallback (job 2-3) never creates its own observer —
+    // isolating `FakeIntersectionObserver.instances[0]` to this job's
+    // own observer and proving the job runs independently of the
+    // native-support check that gates `sm-io`.
+    function stubMiniUiEligible() {
+      stubReducedMotion(false);
+      stubNativeTimelineSupport(true);
+      window.IntersectionObserver =
+        FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    }
+
+    it("adds is-in to a [data-mini-ui] panel when its observer entry intersects, even with native timeline support (sm-io never runs)", () => {
+      stubMiniUiEligible();
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+
+      render(<ScrollMotion />);
+
+      expect(document.documentElement).toHaveClass("sm-run");
+      expect(document.documentElement).not.toHaveClass("sm-io");
+      expect(FakeIntersectionObserver.instances).toHaveLength(1);
+      const observer = FakeIntersectionObserver.instances[0];
+      expect(observer.observed).toContain(panel);
+
+      act(() => {
+        observer.callback(
+          [
+            {
+              target: panel,
+              isIntersecting: true,
+              boundingClientRect: { top: 50 } as DOMRectReadOnly,
+              intersectionRatio: 0.2,
+              intersectionRect: {} as DOMRectReadOnly,
+              rootBounds: null,
+              time: 0,
+            },
+          ],
+          observer,
+        );
+      });
+
+      expect(panel).toHaveClass("is-in");
+      expect(observer.observed).not.toContain(panel);
+      panel.remove();
+    });
+
+    it("a [data-mini-ui] panel already above the viewport gets is-in at once", () => {
+      stubMiniUiEligible();
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+
+      render(<ScrollMotion />);
+      const observer = FakeIntersectionObserver.instances[0];
+
+      act(() => {
+        observer.callback(
+          [
+            {
+              target: panel,
+              isIntersecting: false,
+              boundingClientRect: { top: -80 } as DOMRectReadOnly,
+              intersectionRatio: 0,
+              intersectionRect: {} as DOMRectReadOnly,
+              rootBounds: null,
+              time: 0,
+            },
+          ],
+          observer,
+        );
+      });
+
+      expect(panel).toHaveClass("is-in");
+      panel.remove();
+    });
+
+    it("a mini-ui panel the IO never reports still gets is-in once a scroll frame finds its rect above the viewport", () => {
+      stubMiniUiEligible();
+      stubRequestAnimationFrame();
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      vi.spyOn(panel, "getBoundingClientRect").mockReturnValue({
+        top: 400,
+      } as DOMRect);
+      document.body.appendChild(panel);
+
+      render(<ScrollMotion />);
+      expect(panel).not.toHaveClass("is-in");
+
+      vi.spyOn(panel, "getBoundingClientRect").mockReturnValue({
+        top: -50,
+      } as DOMRect);
+      fireEvent.scroll(window);
+
+      expect(panel).toHaveClass("is-in");
+      panel.remove();
+    });
+
+    it("with reduced motion, no [data-mini-ui] panel gets is-in and sm-run is not added", () => {
+      stubReducedMotion(true);
+      window.IntersectionObserver =
+        FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+
+      render(<ScrollMotion />);
+
+      expect(document.documentElement).not.toHaveClass("sm-run");
+      expect(panel).not.toHaveClass("is-in");
+      panel.remove();
+    });
+
+    it("a page with no [data-mini-ui] panel creates no extra observer and adds no sm-run", () => {
+      stubMiniUiEligible();
+      render(<ScrollMotion />);
+
+      expect(document.documentElement).not.toHaveClass("sm-run");
+      expect(FakeIntersectionObserver.instances).toHaveLength(0);
+    });
+
+    it("unmounting disconnects the mini-ui observer, removes the scroll/resize listeners and removes sm-run", () => {
+      stubMiniUiEligible();
+      const panel = document.createElement("div");
+      panel.setAttribute("data-mini-ui", "");
+      document.body.appendChild(panel);
+
+      const { unmount } = render(<ScrollMotion />);
+      expect(document.documentElement).toHaveClass("sm-run");
+      const observer = FakeIntersectionObserver.instances[0];
+      const disconnectSpy = vi.spyOn(observer, "disconnect");
+
+      unmount();
+
+      expect(disconnectSpy).toHaveBeenCalled();
+      expect(document.documentElement).not.toHaveClass("sm-run");
+      panel.remove();
+    });
+  });
 });

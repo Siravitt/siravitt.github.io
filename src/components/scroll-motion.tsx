@@ -10,12 +10,26 @@ import { useEffect } from "react";
  * markup hooks, plus the `<details>` menu-close decision below. Every
  * listener and the observer are torn down on unmount.
  *
- * Three jobs, in a fixed exit order:
+ * Four jobs, in a fixed exit order:
  * 0. Focus follows an in-page jump (every browser, including reduced
  *    motion — focus is not motion) and a link tap inside the open
  *    header menu closes it (ticket decision, Q1 answer a). Both are
  *    always set up.
- * 1-2. The IntersectionObserver/rAF fallback for browsers without CSS
+ * 1. Project mini-UI motion (ticket 16, DESIGN.md §7.1 row 11 adapted to
+ *    once): every project's drawn mini-UI (terminal/checklist/diff)
+ *    plays its CSS-keyframe run once, the first time its `[data-mini-ui]`
+ *    panel is 15% in view. Unlike job 2 below, this does **not** exit on
+ *    native scroll-timeline support — a one-shot run has no native CSS
+ *    mirror to fall back from, so it is JS-triggered in every browser
+ *    motion is allowed in (ticket decision). It only exits on
+ *    `prefers-reduced-motion: reduce` or a missing `IntersectionObserver`,
+ *    and adds `html.sm-run` — a sibling of `sm-io`, not `sm-io` itself
+ *    (ticket decision: "`sm-io` or a sibling class"), so hidden start
+ *    states exist only under a script-added class even on a browser
+ *    where `sm-io`'s own fallback (job 2) never runs. Mirrors job 2's
+ *    reveal sweep (`rect.top < 0` → `is-in` + unobserve) for a target
+ *    the IO's own callback never reports.
+ * 2-3. The IntersectionObserver/rAF fallback for browsers without CSS
  *    scroll-driven animations (DESIGN.md §7.2 layer 3). It exits, in
  *    order, on `prefers-reduced-motion: reduce`, on native support
  *    (`animation-timeline: view()` **and** `timeline-scope: --a` both
@@ -89,7 +103,70 @@ export function ScrollMotion(): null {
     };
     document.addEventListener("click", handleMenuLinkClick);
 
-    // 1-2. The fallback (DESIGN.md §7.2 layer 3). Exit order is fixed:
+    // 1. Project mini-UI motion (ticket 16): its own IntersectionObserver,
+    // independent of the fallback's native-support check below — a
+    // one-shot keyframe run has no native CSS mirror, so it is
+    // JS-triggered in every browser motion is allowed in. `sm-run` is a
+    // sibling of `sm-io` (added even when `sm-io` itself never runs).
+    // Skips creating an observer at all when there is nothing to reveal
+    // (no `[data-mini-ui]` panel on the page), so a page with none adds
+    // no second IntersectionObserver and no `sm-run` class.
+    let disconnectVisuals: (() => void) | undefined;
+    const miniUiTargets = [...document.querySelectorAll("[data-mini-ui]")];
+    if (
+      miniUiTargets.length > 0 &&
+      !matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      "IntersectionObserver" in window
+    ) {
+      html.classList.add("sm-run");
+
+      const visualPending = new Set<Element>(miniUiTargets);
+      const visualIo = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
+              revealVisual(entry.target);
+            }
+          }
+        },
+        { rootMargin: "0px 0px -10% 0px", threshold: 0.15 },
+      );
+      const revealVisual = (el: Element) => {
+        el.classList.add("is-in");
+        visualIo.unobserve(el);
+        visualPending.delete(el);
+      };
+      miniUiTargets.forEach((el) => visualIo.observe(el));
+
+      // mirrors the fallback's own sweep below: a target the IO's own
+      // callback never reports (a fragment jump landing past it between
+      // frames) still gets revealed once a scroll/resize frame finds it
+      // already above the viewport.
+      let visualQueued = false;
+      const sweepVisuals = () => {
+        visualQueued = false;
+        for (const el of visualPending) {
+          if (el.getBoundingClientRect().top < 0) revealVisual(el);
+        }
+      };
+      const queueVisualSweep = () => {
+        if (!visualQueued) {
+          visualQueued = true;
+          requestAnimationFrame(sweepVisuals);
+        }
+      };
+      addEventListener("scroll", queueVisualSweep, { passive: true });
+      addEventListener("resize", queueVisualSweep);
+
+      disconnectVisuals = () => {
+        visualIo.disconnect();
+        removeEventListener("scroll", queueVisualSweep);
+        removeEventListener("resize", queueVisualSweep);
+        html.classList.remove("sm-run");
+      };
+    }
+
+    // 2-3. The fallback (DESIGN.md §7.2 layer 3). Exit order is fixed:
     // reduced motion, then native support, then no IntersectionObserver.
     const shouldRunFallback = (): boolean => {
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -245,6 +322,7 @@ export function ScrollMotion(): null {
       document.removeEventListener("click", handleMenuLinkClick);
       removeEventListener("hashchange", handleHashChange);
       disconnectFallback?.();
+      disconnectVisuals?.();
     };
   }, []);
 
