@@ -139,6 +139,24 @@ describe("ProjectsSection", () => {
     expect(label.className).toContain("underline");
   });
 
+  it("the label's faint rest-state underline sweeps to currentColor on :focus-visible, the same as on hover (carried-over fix, ticket 14 review)", () => {
+    const mixed: Project = {
+      ...threeProjects[0],
+      links: {
+        source: "https://example.com/external",
+        live: "/internal-page",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([mixed])} />);
+    const article = screen.getByRole("article");
+    const link = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    const label = within(link).getByText("Fixture Source");
+    expect(label.className).toContain("group-hover:decoration-current");
+    expect(label.className).toContain("group-focus-visible:decoration-current");
+  });
+
   it("a project with only a source link renders exactly that one link", () => {
     render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
     const article = screen.getAllByRole("article")[1];

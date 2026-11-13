@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, DM_Mono } from "next/font/google";
+import { ScrollMotion } from "@/components/scroll-motion";
 import { site } from "@/content/site";
 import { getTimelineScope } from "@/lib/sections";
 import "./globals.css";
@@ -91,7 +92,10 @@ export default function RootLayout({
       className={`${instrumentSans.variable} ${dmMono.variable} motion-safe:scroll-smooth`}
       style={{ timelineScope } as React.CSSProperties}
     >
-      <body>{children}</body>
+      <body>
+        <ScrollMotion />
+        {children}
+      </body>
     </html>
   );
 }

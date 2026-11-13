@@ -155,8 +155,15 @@ function ProjectLink({
        * this `inline-flex` `<a>`, which was propagating it into the
        * glyph as its own short line, onto the label `<span>` only. The
        * rest-state underline (DESIGN.md §6a, always on for these
-       * links, not hover-only) lives on that span too. */}
-      <span className="underline decoration-border-strong underline-offset-4 group-hover:decoration-current">
+       * links, not hover-only) lives on that span too.
+       * Carried-over fix (ticket 14 review, DESIGN.md §8 "Hover:
+       * links" — underline from `--border-strong` to `currentColor`):
+       * `group-focus-visible:decoration-current` matches the existing
+       * `group-hover:decoration-current`, so the faint line also
+       * sweeps to `currentColor` on keyboard focus, not just hover.
+       * The ↗/→ glyph span above stays its own sibling and is never
+       * underlined. */}
+      <span className="underline decoration-border-strong underline-offset-4 group-hover:decoration-current group-focus-visible:decoration-current">
         {label}
       </span>
       <span
