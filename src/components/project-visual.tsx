@@ -145,12 +145,11 @@ function Window({
   );
 }
 
-/** One step's time (ms) for the terminal type-in, clamped to the kit's
- * 50-80ms/character range (`terminal-run/fragment.js`), so a short
- * command still reads at a natural pace and a long one doesn't crawl.
- */
+/** Per-character pace (ms) for the terminal type-in, capped at the kit's
+ * ~80ms/character (`terminal-run/fragment.js`) so a short command doesn't
+ * crawl; `TERMINAL_TYPE_MS_CAP` below bounds a long one instead. */
 function terminalPerCharMs(commandLength: number): number {
-  return Math.max(50, Math.min(80, 800 / commandLength));
+  return Math.min(80, 800 / commandLength);
 }
 
 // The kit's nominal pacing for its 13-char command, 3 results
@@ -218,7 +217,7 @@ export function splitTitle(title: string): { dir: string; leaf: string } {
 function TerminalPrompt({ title }: { title: string }) {
   const { dir, leaf } = splitTitle(title);
   return (
-    <span className="text-muted-foreground">
+    <span className="flex-none whitespace-nowrap text-muted-foreground">
       ~/<span className="@max-[300px]:hidden">{dir}</span>
       {leaf} ${" "}
     </span>
@@ -283,15 +282,13 @@ function TerminalWindow({
           } as CSSProperties
         }
       >
-        <p className="truncate">
+        <p className="flex min-w-0 items-baseline">
           <TerminalPrompt title={visual.title} />
           {/* ticket 16: the command is already in the DOM (no CLS); the
               type-in only clips it progressively with steps(), never
-              changing its box. */}
-          <span
-            data-term-typed
-            className="inline-block align-baseline font-medium"
-          >
+              changing its box. Truncating here (not on the row) keeps
+              develop's "prefix + …" look for a command too long to fit. */}
+          <span data-term-typed className="min-w-0 flex-1 truncate font-medium">
             {visual.command}
           </span>
         </p>
