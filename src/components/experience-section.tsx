@@ -20,6 +20,10 @@ import { Badge } from "@/components/ui/badge";
  * entry's dot (two `aria-hidden` spans: an unlit ring under a lit fill,
  * review round 1 fix — the prototype draws both at rest,
  * `scroll.css:56-57`) are decorative, never announced (ticket decision).
+ * `after:origin-top` (ticket 15 review, carried-over fix 5) keeps the
+ * lit fill's `scaleY` draw-in anchored to the rail's top edge — the
+ * default `50% 50%` origin drew it from the centre instead, so its tip
+ * never rode the 60% line ticket 14's `--sm-exp`/view-timeline target.
  * The rest-state rail is already fully drawn and every dot lit
  * (DESIGN.md §6 "Experience timeline": "At rest: rail drawn, every dot
  * lit") — ticket 14 owns the scroll-linked draw-in and light-up (it
@@ -49,7 +53,7 @@ export function ExperienceSection({ site }: { site: SiteContent }) {
       ) : null}
       <ol
         data-exp-rail
-        className="relative pl-10 before:absolute before:top-1.5 before:bottom-0 before:left-[7px] before:w-0.5 before:rounded-full before:bg-border after:absolute after:top-1.5 after:bottom-0 after:left-[7px] after:w-0.5 after:rounded-full after:bg-foreground/60 max-sm:pl-7"
+        className="relative pl-10 before:absolute before:top-1.5 before:bottom-0 before:left-[7px] before:w-0.5 before:rounded-full before:bg-border after:absolute after:top-1.5 after:bottom-0 after:left-[7px] after:w-0.5 after:origin-top after:rounded-full after:bg-foreground/60 max-sm:pl-7"
       >
         {experience.map((entry, index) => (
           <ExperienceItem
