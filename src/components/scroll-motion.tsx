@@ -135,28 +135,46 @@ export function ScrollMotion(): null {
       );
       // `immediate` (review round 2 finding 7): a target revealed
       // because it is already above the viewport — not because the
-      // visitor scrolled it up from below — finishes its run at once
-      // instead of playing it unseen, so scrolling back up to it later
-      // (or a deep link landing past it) always shows the final frame.
+      // visitor scrolled it up from below — skips straight to the
+      // finished frame (`is-skip`, scroll-motion.css) instead of
+      // playing the run unseen, so scrolling back up to it later (or a
+      // deep link landing past it) always shows the final picture.
+      // `is-skip` forces the same values the print rule does, rather
+      // than relying on `Animation.finish()`: several panels can land
+      // `is-in` in the same IO callback (every target reports its
+      // initial state in one batch) before the browser has even
+      // created their animations, too early for `finish()` to reach.
       const revealVisual = (el: Element, immediate: boolean) => {
         el.classList.add("is-in");
+        if (immediate) el.classList.add("is-skip");
         visualIo.unobserve(el);
         visualPending.delete(el);
-        if (immediate) {
-          el.getAnimations({ subtree: true }).forEach((a) => a.finish());
-        }
       };
       miniUiTargets.forEach((el) => visualIo.observe(el));
 
       // mirrors the fallback's own sweep below: a target the IO's own
       // callback never reports (a fragment jump landing past it between
       // frames) still gets revealed once a scroll/resize frame finds it
-      // already above the viewport.
+      // already above the viewport. Also corrects a target the IO's
+      // *first* callback already revealed without `is-skip`: on an
+      // initial `#hash` load, that first callback can race the
+      // browser's own anchor scroll and report the pre-scroll position
+      // (still intersecting) moments before the real scroll lands it
+      // above the viewport — this sweep upgrades it once settled.
       let visualQueued = false;
       const sweepVisuals = () => {
         visualQueued = false;
         for (const el of visualPending) {
           if (el.getBoundingClientRect().top < 0) revealVisual(el, true);
+        }
+        for (const el of miniUiTargets) {
+          if (
+            el.classList.contains("is-in") &&
+            !el.classList.contains("is-skip") &&
+            el.getBoundingClientRect().top < 0
+          ) {
+            el.classList.add("is-skip");
+          }
         }
       };
       const queueVisualSweep = () => {
@@ -167,11 +185,16 @@ export function ScrollMotion(): null {
       };
       addEventListener("scroll", queueVisualSweep, { passive: true });
       addEventListener("resize", queueVisualSweep);
+      // one explicit pass shortly after mount: an on-load `#hash` jump
+      // may already be done settling by the time this fires, with no
+      // further "scroll" event left to trigger the sweep above.
+      const settleTimer = setTimeout(sweepVisuals, 200);
 
       disconnectVisuals = () => {
         visualIo.disconnect();
         removeEventListener("scroll", queueVisualSweep);
         removeEventListener("resize", queueVisualSweep);
+        clearTimeout(settleTimer);
         html.classList.remove("sm-run");
       };
     }
