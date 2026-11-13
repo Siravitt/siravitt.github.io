@@ -148,16 +148,21 @@ function ProjectLink({
     <a
       href={href}
       aria-label={`${label} ${relation} ${title}`}
-      className="group inline-flex items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 max-sm:min-h-11 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group inline-flex items-center gap-2 rounded-sm text-[14px] font-medium max-sm:min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      {label}
+      {/* Reviewer round 2 (round 1 fix 5 wasn't effective): see the
+       * matching comment on `ProfileLink` above — decoration moves off
+       * this `inline-flex` `<a>`, which was propagating it into the
+       * glyph as its own short line, onto the label `<span>` only. The
+       * rest-state underline (DESIGN.md §6a, always on for these
+       * links, not hover-only) lives on that span too. */}
+      <span className="underline decoration-border-strong underline-offset-4 group-hover:decoration-current">
+        {label}
+      </span>
       <span
         aria-hidden="true"
         className={cn(
-          // Carried-over fix (Flame, 2026-11-13): no-underline stops
-          // Chrome drawing the <a>'s underline through this
-          // inline-block glyph as its own separate short line.
-          "inline-block no-underline transition-transform duration-150",
+          "inline-block transition-transform duration-150",
           external
             ? "group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
             : "group-hover:translate-x-[3px]",

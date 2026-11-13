@@ -148,7 +148,18 @@ export function Header({
                     <span
                       data-nav-spy
                       aria-hidden="true"
-                      className="pointer-events-none absolute inset-x-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-current lg:inset-x-2 xl:inset-x-3"
+                      // Reviewer round 1 fix 1+2: Tailwind's `scale-x-0`
+                      // sets the CSS `scale` property, which multiplies
+                      // with the keyframes' `transform: scaleX()` and
+                      // pins the drawn width at 0 regardless of scroll
+                      // position. `[transform:scaleX(0)]` sets the same
+                      // property the animation animates, so the rest
+                      // state and the animated state share one axis.
+                      // `inset-x-0` (was `inset-x-3`/`lg:inset-x-2`/
+                      // `xl:inset-x-3`) makes the line span the word:
+                      // this `<a>` carries no horizontal padding, so
+                      // any inset left it short of the link's own width.
+                      className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-0.5 origin-left [transform:scaleX(0)] rounded-full bg-current"
                     />
                   </a>
                 </li>
@@ -174,7 +185,11 @@ export function Header({
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 overflow-hidden"
       >
-        <i className="block h-full origin-left scale-x-0 bg-primary" />
+        {/* Reviewer round 1 fix 1: see the matching comment on
+         * `[data-nav-spy]` above — `[transform:scaleX(0)]` replaces
+         * Tailwind's `scale-x-0` so the rest state and the keyframes'
+         * `transform: scaleX()` share the same CSS property. */}
+        <i className="block h-full origin-left [transform:scaleX(0)] bg-primary" />
       </div>
     </header>
   );

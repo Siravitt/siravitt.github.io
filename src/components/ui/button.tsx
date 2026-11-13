@@ -1,3 +1,22 @@
+"use client";
+
+// Carried-over fix round 2 (reviewer round 1, item 4): this file must be a
+// Client Component. React Server Components serialize props across the
+// server→client boundary over Flight, which DROPS keys whose value is
+// `undefined` (confirmed by instrumenting Base UI's `useButton` during
+// `pnpm build`: an explicit `role={undefined}` passed from a Server
+// Component arrived at `getButtonProps` with no `role` key at all, so
+// Base UI's own `role: 'button'` default never got overridden and
+// shipped in `out/*.html`). Without "use client" here, every Button
+// below (header logo/Email, mobile menu, hero CTAs, Contact's xl
+// keycap, the 404 back link) crossed that boundary once more at
+// `<ButtonPrimitive>` and leaked `role="button" tabindex="0"` into the
+// built HTML even though the same code renders correctly under jsdom
+// (same-process, no Flight serialization). Marking this component
+// itself "use client" moves the boundary up one level, so the
+// `nativeButton`/`role`/`tabIndex`/`type` resolution below happens
+// entirely inside client-rendered code and the `undefined` overrides
+// survive into the DOM.
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";

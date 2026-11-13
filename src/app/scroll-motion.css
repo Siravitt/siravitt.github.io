@@ -332,3 +332,36 @@
     animation-timing-function: steps(5, jump-none);
   }
 }
+
+/* Reviewer round 1 fix 3 / prototype `scroll.css:180`: a printed page
+   has no scroll position, but Chrome still matches
+   `(scripting: enabled)` and the `@supports` feature query while
+   printing, so every scroll-driven animation above stays attached with
+   its view-timeline unable to resolve a real progress — it renders
+   at the start of its range (the reveals' and the stack tools'
+   `opacity: 0`, the rail's and the dots' `scaleY(0)`/`scale(.4)`),
+   leaving most of the page blank in `Page.printToPDF`. The decorative
+   progress line and nav-spy carry no information on paper, so they're
+   hidden outright (matching the prototype); the reveals, tools, rail
+   and dots are forced to the finished/rest picture instead. */
+@media print {
+  [data-scroll-progress],
+  [data-nav-spy] {
+    display: none;
+  }
+
+  [data-rv],
+  [data-stack-tool] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [data-exp-rail]::after {
+    transform: scaleY(1) !important;
+  }
+
+  [data-exp-dot] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

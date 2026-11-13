@@ -48,17 +48,23 @@ describe("ContactSection", () => {
     );
   });
 
-  it("keeps the underline off the logo and the trailing glyph, only on the label (carried-over fix, Flame 2026-11-13)", () => {
+  it("puts the hover/focus underline on the label span only, never on the <a> itself (reviewer round 1 fix 5)", () => {
     render(<ContactSection site={siteFixture} />);
     const githubLink = screen.getByRole("link", {
       name: siteFixture.contact.githubLabel,
     });
-    const svg = githubLink.querySelector("svg") as SVGSVGElement;
-    const glyph = githubLink.querySelector(
-      'span[aria-hidden="true"]',
-    ) as HTMLElement;
-    expect(svg.closest("span")?.className).toContain("no-underline");
-    expect(glyph.className).toContain("no-underline");
+    // This `<a>` is `inline-flex`: a decoration class set directly on
+    // it propagates into each blockified child as its own separate
+    // short line (the bug the round 1 fix didn't actually close —
+    // `no-underline` on a descendant can't remove a propagated
+    // decoration). The `<a>` must carry no decoration/underline class
+    // at all; only the label `<span>` does.
+    expect(githubLink.className).not.toMatch(/\bunderline\b/);
+    expect(githubLink.className).not.toMatch(/\bdecoration-/);
+    const label = screen.getByText(siteFixture.contact.githubLabel);
+    expect(label.tagName).toBe("SPAN");
+    expect(label.className).toContain("group-hover:underline");
+    expect(label.className).toContain("group-focus-visible:underline");
   });
 
   it("has a LinkedIn profile link named by the fixture's linkedinLabel, to the fixture URL, with a decorative logo", () => {
