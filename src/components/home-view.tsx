@@ -1,4 +1,5 @@
 import { AboutSection } from "@/components/about-section";
+import { ExperienceSection } from "@/components/experience-section";
 import { Header } from "@/components/header";
 import { HeroArt } from "@/components/hero-art";
 import { HeroFacts } from "@/components/hero-facts";
@@ -134,11 +135,9 @@ export function HomeView({ site }: { site: SiteContent }) {
         )}
 
         {isVisible("experience") && (
-          <SectionShell
-            id="experience"
-            title={site.sections.experience.title}
-            tagline={site.sections.experience.tagline}
-          />
+          <SectionShell id="experience" title={site.sections.experience.title}>
+            <ExperienceSection site={site} />
+          </SectionShell>
         )}
       </main>
 
