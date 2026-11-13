@@ -103,13 +103,19 @@ the checklist below).
 
 ## Release checklist
 
-Flame's steps, at release time, in order. The first four happen once; steps
-2 and 3 are things only he can change (repo settings), so agents never
-touch them.
+Flame's steps, at release time, in order. Steps 2, 3 and 7 are one-time
+repo settings only Flame can change (agents never touch them); steps 1, 4
+and 5 — and 6 if it's needed — happen every release.
 
-1. Real content is in place in `src/content/site.ts`, and `release-guard`
-   (the CI job that runs only on PRs into `main`) is green on the
-   `develop` → `main` release PR.
+1. All placeholder and mock content in `src/content/site.ts` is replaced:
+   none of `check:release`'s guard markers (`src/lib/release-guard.ts`)
+   remain anywhere in the built site — the literal strings
+   `[Placeholder]`, `example.com`, `linkedin.com/in/placeholder`, or
+   `Mock project`. Run `pnpm build && pnpm check:release` locally and keep
+   fixing content until it exits `0` before opening the release PR;
+   `release-guard` (the CI job that runs only on PRs into `main` — it's
+   `skipped`, not run, on PRs into `develop`) must also be green on the
+   `develop` → `main` release PR itself.
 2. Settings → Pages → Source → **GitHub Actions**, right before merging.
    Never merge while Pages still deploys `main` from a branch: Pages would
    then publish the Next.js source tree instead of the built site, and
