@@ -73,11 +73,11 @@ export function ContactSection({ site }: { site: SiteContent }) {
         }
       />
 
-      <div className="mt-12 grid gap-y-6 sm:gap-y-12 lg:grid-cols-12 lg:gap-x-6">
-        <p className="max-w-[30ch] text-[18px] leading-[1.25] font-medium tracking-[-0.028em] lg:col-span-6 lg:text-[20px]">
+      <div className="mt-12 grid grid-cols-12 gap-x-6 gap-y-6 sm:gap-y-12">
+        <p className="col-span-12 max-w-[30ch] text-[18px] leading-[1.25] font-medium tracking-[-0.028em] lg:col-span-6 lg:text-[20px]">
           <PlaceholderText text={footer.lede} />
         </p>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:col-span-6 lg:col-start-7">
+        <div className="col-span-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-6 lg:col-start-7">
           <FooterColumn heading={footer.sectionsHeading}>
             {sectionLinks.map((key) => (
               <li key={key}>
