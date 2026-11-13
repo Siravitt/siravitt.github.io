@@ -83,10 +83,9 @@ function Panel({
 }: {
   role?: "img";
   ariaLabel?: string;
-  /** Ticket 16 motion hook: `<ScrollMotion />`'s own (always-on)
-   * IntersectionObserver adds `.is-in` here, once, the first time the
-   * panel is 15% in view — never set on an `image` visual, which has
-   * no drawn run to play. */
+  /** Ticket 16 hook: `<ScrollMotion />` adds `.is-in` here once, the
+   * first time the panel is 15% in view — never set on an `image`
+   * visual, which has no drawn run to play. */
   motion?: boolean;
   children: ReactNode;
 }) {
@@ -154,13 +153,30 @@ function terminalPerCharMs(command: string): number {
   return Math.max(50, Math.min(80, 800 / command.length));
 }
 
-/** The type-in's total duration (ms): one step per character, so
- * `steps(command.length)` (ticket 16 review round 1 finding 4 — a
- * fixed step count on a variable-length command clips glyphs mid-way)
- * never reveals a glyph half drawn.
- */
+/** Type-in duration (ms): one step per character, so `steps(command.length)`
+ * never reveals a glyph half drawn on a variable-length command. */
 export function terminalTypeMs(command: string): number {
   return Math.round(terminalPerCharMs(command) * command.length);
+}
+
+/** PASS's delay (ms), derived from the type-in's duration and the result
+ * count so a longer command or more lines can never land after it. */
+export function terminalPassDelayMs(
+  typeMs: number,
+  resultCount: number,
+): number {
+  // 150/100/260/180 mirror sm-term-type's own delay and the per-line
+  // stagger/duration in scroll-motion.css; 700 is the gap before PASS.
+  const lastLineEnd = 150 + typeMs + 100 + (resultCount - 1) * 260 + 180;
+  return lastLineEnd + 700;
+}
+
+/** The fresh prompt's delay (ms): always after PASS's own run finishes. */
+export function terminalNextDelayMs(
+  typeMs: number,
+  resultCount: number,
+): number {
+  return terminalPassDelayMs(typeMs, resultCount) + 220 + 130;
 }
 
 /**
@@ -215,6 +231,8 @@ function TerminalWindow({
 }: {
   visual: Extract<ProjectVisualData, { kind: "terminal" }>;
 }) {
+  const typeMs = terminalTypeMs(visual.command);
+  const resultCount = visual.results.length;
   return (
     <Window maxWidthClassName="max-w-[440px]">
       <div className="flex h-10 items-center gap-2.5 border-b border-window-border bg-foreground/[0.03] px-3.5">
@@ -230,16 +248,17 @@ function TerminalWindow({
           {visual.branch}
         </span>
       </div>
-      {/* --cmd-len/--type-ms (ticket 16 review round 2 finding 4): the
-          type-in's step count and duration follow the command's own
-          length, inherited by every hook below, so steps() always
-          lands one step per character instead of clipping a glyph. */}
+      {/* --cmd-len/--type-ms size the type-in; --pass-ms/--next-ms
+          derive PASS's and the fresh prompt's delays from it, so a
+          longer command or more result lines can't land after PASS. */}
       <div
         className="px-4 py-3 font-mono @max-[300px]:px-3"
         style={
           {
             "--cmd-len": visual.command.length,
-            "--type-ms": `${terminalTypeMs(visual.command)}ms`,
+            "--type-ms": `${typeMs}ms`,
+            "--pass-ms": `${terminalPassDelayMs(typeMs, resultCount)}ms`,
+            "--next-ms": `${terminalNextDelayMs(typeMs, resultCount)}ms`,
           } as CSSProperties
         }
       >
@@ -265,9 +284,8 @@ function TerminalWindow({
           <b className="font-medium">PASS</b>
           <span className="text-muted-foreground">{visual.summary}</span>
         </p>
-        {/* data-term-next (round 2 finding 3): the kit's fresh prompt
-            arrives only after PASS, so it starts hidden like the rest
-            of the run instead of sitting on screen from t=0. */}
+        {/* data-term-next: the fresh prompt arrives only after PASS,
+            not visible from t=0. */}
         <p data-term-next className="truncate">
           <TerminalPrompt title={visual.title} />
           <span
@@ -350,11 +368,8 @@ function ChecklistWindow({
   );
 }
 
-/** `--i` (ticket 16 motion hook) and `data-tick-index` share one index;
- * `data-tick-done` (set only when `item.done`) is the other ticket-16
- * hook: a *done* item's box+check pops in staggered by `--i` once the
- * panel's run starts. An item that was never done has no such start
- * state (nothing to tick) and never changes. */
+/** `--i`/`data-tick-index` share one index (ticket 16); `data-tick-done`
+ * only on a *done* item: its box+check pops in staggered by `--i`. */
 function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }) {
   return (
     <li

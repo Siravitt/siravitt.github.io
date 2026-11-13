@@ -15,20 +15,11 @@ import { useEffect } from "react";
  *    motion — focus is not motion) and a link tap inside the open
  *    header menu closes it (ticket decision, Q1 answer a). Both are
  *    always set up.
- * 1. Project mini-UI motion (ticket 16, DESIGN.md §7.1 row 11 adapted to
- *    once): every project's drawn mini-UI (terminal/checklist/diff)
- *    plays its CSS-keyframe run once, the first time its `[data-mini-ui]`
- *    panel is 15% in view. Unlike job 2 below, this does **not** exit on
- *    native scroll-timeline support — a one-shot run has no native CSS
- *    mirror to fall back from, so it is JS-triggered in every browser
- *    motion is allowed in (ticket decision). It only exits on
- *    `prefers-reduced-motion: reduce` or a missing `IntersectionObserver`,
- *    and adds `html.sm-run` — a sibling of `sm-io`, not `sm-io` itself
- *    (ticket decision: "`sm-io` or a sibling class"), so hidden start
- *    states exist only under a script-added class even on a browser
- *    where `sm-io`'s own fallback (job 2) never runs. Mirrors job 2's
- *    reveal sweep (`rect.top < 0` → `is-in` + unobserve) for a target
- *    the IO's own callback never reports.
+ * 1. Project mini-UI motion (ticket 16): each `[data-mini-ui]` panel
+ *    plays its CSS-keyframe run once, the first time it's 15% in view.
+ *    Its own always-on observer, independent of job 2's native-support
+ *    check — a one-shot run has no native mirror to fall back from.
+ *    Adds `html.sm-run`, a sibling of `sm-io`.
  * 2-3. The IntersectionObserver/rAF fallback for browsers without CSS
  *    scroll-driven animations (DESIGN.md §7.2 layer 3). It exits, in
  *    order, on `prefers-reduced-motion: reduce`, on native support
@@ -103,14 +94,10 @@ export function ScrollMotion(): null {
     };
     document.addEventListener("click", handleMenuLinkClick);
 
-    // 1. Project mini-UI motion (ticket 16): its own IntersectionObserver,
-    // independent of the fallback's native-support check below — a
-    // one-shot keyframe run has no native CSS mirror, so it is
-    // JS-triggered in every browser motion is allowed in. `sm-run` is a
-    // sibling of `sm-io` (added even when `sm-io` itself never runs).
-    // Skips creating an observer at all when there is nothing to reveal
-    // (no `[data-mini-ui]` panel on the page), so a page with none adds
-    // no second IntersectionObserver and no `sm-run` class.
+    // 1. Project mini-UI motion (ticket 16): its own observer, independent
+    // of job 2's native-support check below — a one-shot run has no
+    // native mirror to fall back from. Skipped when the page has no
+    // [data-mini-ui] panel.
     let disconnectVisuals: (() => void) | undefined;
     const miniUiTargets = [...document.querySelectorAll("[data-mini-ui]")];
     if (
@@ -124,54 +111,45 @@ export function ScrollMotion(): null {
       const visualIo = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
+            const rect = entry.boundingClientRect;
             if (entry.isIntersecting) {
               revealVisual(entry.target, false);
-            } else if (entry.boundingClientRect.top < 0) {
-              revealVisual(entry.target, true);
+            } else if (rect.top < 0) {
+              revealVisual(entry.target, rect.bottom <= 0);
             }
           }
         },
         { rootMargin: "0px 0px -10% 0px", threshold: 0.15 },
       );
-      // `immediate` (review round 2 finding 7): a target revealed
-      // because it is already above the viewport — not because the
-      // visitor scrolled it up from below — skips straight to the
-      // finished frame (`is-skip`, scroll-motion.css) instead of
-      // playing the run unseen, so scrolling back up to it later (or a
-      // deep link landing past it) always shows the final picture.
-      // `is-skip` forces the same values the print rule does, rather
-      // than relying on `Animation.finish()`: several panels can land
-      // `is-in` in the same IO callback (every target reports its
-      // initial state in one batch) before the browser has even
-      // created their animations, too early for `finish()` to reach.
-      const revealVisual = (el: Element, immediate: boolean) => {
+      // `skip` plays the finished frame at once (`.is-skip`,
+      // scroll-motion.css) instead of the run: only once the panel's
+      // *bottom* has fully left the viewport, not merely its top — a
+      // tall panel scrolling past still reads its top as negative
+      // while most of it is still on screen.
+      const revealVisual = (el: Element, skip: boolean) => {
         el.classList.add("is-in");
-        if (immediate) el.classList.add("is-skip");
+        if (skip) el.classList.add("is-skip");
         visualIo.unobserve(el);
         visualPending.delete(el);
       };
       miniUiTargets.forEach((el) => visualIo.observe(el));
 
-      // mirrors the fallback's own sweep below: a target the IO's own
-      // callback never reports (a fragment jump landing past it between
-      // frames) still gets revealed once a scroll/resize frame finds it
-      // already above the viewport. Also corrects a target the IO's
-      // *first* callback already revealed without `is-skip`: on an
-      // initial `#hash` load, that first callback can race the
-      // browser's own anchor scroll and report the pre-scroll position
-      // (still intersecting) moments before the real scroll lands it
-      // above the viewport — this sweep upgrades it once settled.
+      // A target the IO never reports (a fast scroll or #hash jump
+      // landing past it between frames) still gets revealed on the
+      // next scroll/resize frame; a target already playing gets
+      // skipped only once it has fully scrolled past.
       let visualQueued = false;
       const sweepVisuals = () => {
         visualQueued = false;
         for (const el of visualPending) {
-          if (el.getBoundingClientRect().top < 0) revealVisual(el, true);
+          const rect = el.getBoundingClientRect();
+          if (rect.top < 0) revealVisual(el, rect.bottom <= 0);
         }
         for (const el of miniUiTargets) {
           if (
             el.classList.contains("is-in") &&
             !el.classList.contains("is-skip") &&
-            el.getBoundingClientRect().top < 0
+            el.getBoundingClientRect().bottom <= 0
           ) {
             el.classList.add("is-skip");
           }
@@ -185,9 +163,8 @@ export function ScrollMotion(): null {
       };
       addEventListener("scroll", queueVisualSweep, { passive: true });
       addEventListener("resize", queueVisualSweep);
-      // one explicit pass shortly after mount: an on-load `#hash` jump
-      // may already be done settling by the time this fires, with no
-      // further "scroll" event left to trigger the sweep above.
+      // one explicit pass shortly after mount: an on-load #hash jump
+      // may already have settled with no further scroll event to fire.
       const settleTimer = setTimeout(sweepVisuals, 200);
 
       disconnectVisuals = () => {

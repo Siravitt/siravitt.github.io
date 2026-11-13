@@ -380,10 +380,7 @@
     transform: none !important;
   }
 
-  /* ticket 16: the same forcing as above, for each mini-UI's run (its
-     own `sm-run`/`is-in` state carries no information on paper, and
-     Chrome still matches `(scripting: enabled)` while printing — see
-     the comment above this block). */
+  /* ticket 16: same forcing as above, for each mini-UI's run. */
   [data-term-typed] {
     clip-path: none !important;
   }
@@ -480,32 +477,17 @@ html.sm-io [data-nav-link].is-current [data-nav-spy] {
 
 /* ============================================================ 3. Project
    mini-UI motion (ticket 16, DESIGN.md §7.1 row 11 adapted to once):
-   each drawn mini-UI (terminal/checklist/diff) plays its CSS-keyframe
-   run once, the moment its `[data-mini-ui]` panel is 15% in view.
-   Unlike the fallback above, this is JS-triggered in *every* browser
-   motion is allowed in (`<ScrollMotion />`'s own, always-on
-   IntersectionObserver — ticket decision: a one-shot run has no native
-   scroll-timeline mirror to fall back from). Its hidden start states
-   therefore live under `html.sm-run`, a sibling of `sm-io` — not
-   `sm-io` itself, which only the gated fallback adds — so a visitor on
-   a native-timeline browser (where `sm-io` never runs) still gets the
-   run, and a visitor with JS off or reduced motion (where neither
-   class is ever added) sees only the rest state, already the finished
-   picture. `animation-fill-mode: both` + one iteration + `.is-in`
-   persisting (never removed) means the run never replays on
-   scroll-away-and-back. Each run's finish is pinned to fixed delays
-   (the checklist bar, PASS, the diff chip) rather than scaled to the
-   data's own caps (`TerminalResults` 1-5, `ChecklistItems` 1-6,
-   `DiffContextLines` 0-4): the worst case still finishes inside the
-   ticket's 3.2s ceiling, and the typical case doesn't finish early. */
+   each mini-UI plays its CSS-keyframe run once, 15% in view, under
+   `html.sm-run` — a sibling of `sm-io`, added independently of native
+   scroll-timeline support (a one-shot run has no native mirror).
+   `animation-fill-mode: both` + one iteration + `.is-in` persisting
+   means a run never replays on scroll-away-and-back. */
 
 /* terminal: the command types in one step per character (`--cmd-len`,
-   `--type-ms` from project-visual.tsx, review round 2 finding 4), then
-   each result line and the PASS row fade/slide in staggered by `--i`.
-   PASS and the fresh prompt use fixed delays, not `--type-ms`: the
-   worst case (5 lines, the kit's own 13-char command) still finishes
-   lines well before PASS's 2450ms (review round 2 finding 3: the kit
-   only shows the fresh prompt after PASS). */
+   `--type-ms`), then each result line and PASS fade/slide in staggered
+   by `--i`. PASS and the fresh prompt use `--pass-ms`/`--next-ms`
+   (project-visual.tsx), derived from the type-in so a longer command
+   or more lines can never land after PASS. */
 html.sm-run [data-mini-ui]:not(.is-in) [data-term-typed] {
   clip-path: inset(0 100% 0 0);
 }
@@ -526,20 +508,18 @@ html.sm-run [data-mini-ui].is-in [data-line-index] {
   );
 }
 html.sm-run [data-mini-ui].is-in [data-term-pass] {
-  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) 2450ms both;
+  animation: sm-type 220ms cubic-bezier(0.22, 1, 0.36, 1) var(--pass-ms, 2450ms)
+    both;
 }
 html.sm-run [data-mini-ui].is-in [data-term-next] {
-  animation: sm-type 300ms cubic-bezier(0.22, 1, 0.36, 1) 2800ms both;
+  animation: sm-type 300ms cubic-bezier(0.22, 1, 0.36, 1) var(--next-ms, 2800ms)
+    both;
 }
 
-/* checklist: a *done* item's box+check pops in (opacity/scale, reusing
-   the experience dots' `sm-lit`), staggered by `--i`; the bar (already
-   at its final, static width — ticket 09 — so resizing never happens)
-   grows from 0 with `scaleX`, origin left, over a fixed 2500ms so the
-   run reads about 3s regardless of how many items are done (review
-   round 2 finding 5 — a short 1300ms bar read as "well under 3s"). An
-   item that was never done has no `[data-tick-done]` at all: nothing
-   to hide or animate. */
+/* checklist: a *done* item's box+check pops in, staggered by `--i`; the
+   bar (already at its final width — ticket 09) grows from 0 with
+   `scaleX`, origin left, over a fixed 2500ms so the run reads about
+   3s regardless of how many items are done. */
 html.sm-run [data-mini-ui]:not(.is-in) [data-tick-done] {
   opacity: 0;
   transform: scale(0.4);
@@ -557,12 +537,9 @@ html.sm-run [data-mini-ui].is-in [data-bar] {
   animation: sm-grow-x 2500ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
 }
 
-/* diff: the old line arrives with its comment thread (the kit and the
-   ticket read the thread as part of "the old line", not after the
-   suggestion), then the suggestion lands, then the chip turns
-   "Applied", then up to four context lines settle in last, staggered
-   by `--i` (review round 2 finding 6: the build had the thread arrive
-   after its own suggestion). */
+/* diff: the old line arrives with its comment thread, then the
+   suggestion lands, then the chip turns "Applied", then up to four
+   context lines settle in last, staggered by `--i`. */
 html.sm-run [data-mini-ui]:not(.is-in) [data-diff-line],
 html.sm-run [data-mini-ui]:not(.is-in) [data-diff-thread] {
   opacity: 0;
@@ -589,12 +566,10 @@ html.sm-run [data-mini-ui].is-in [data-diff-line="context"] {
   animation-delay: calc(2200ms + var(--i, 0) * 220ms);
 }
 
-/* `.is-skip` (review round 2 finding 7): a target revealed because
-   it's already above the viewport shows the finished frame at once —
-   the same forced values as the print rule above, not a race with
-   `Animation.finish()` (several panels can land `.is-in` in the same
-   IntersectionObserver callback, before the browser has even created
-   their animations). Never removed, so it survives scroll-away. */
+/* `.is-skip`: a panel revealed already above the viewport (or scrolled
+   fully past while mid-run) snaps to the finished frame, the same
+   forced values as the print rule — not `Animation.finish()`, which
+   can race several panels landing `.is-in` in the same callback. */
 html.sm-run [data-mini-ui].is-skip [data-term-typed] {
   animation: none !important;
   clip-path: none !important;
