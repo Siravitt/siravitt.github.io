@@ -1,3 +1,22 @@
+"use client";
+
+// Carried-over fix round 2 (reviewer round 1, item 4): this file must be a
+// Client Component. React Server Components serialize props across the
+// server→client boundary over Flight, which DROPS keys whose value is
+// `undefined` (confirmed by instrumenting Base UI's `useButton` during
+// `pnpm build`: an explicit `role={undefined}` passed from a Server
+// Component arrived at `getButtonProps` with no `role` key at all, so
+// Base UI's own `role: 'button'` default never got overridden and
+// shipped in `out/*.html`). Without "use client" here, every Button
+// below (header logo/Email, mobile menu, hero CTAs, Contact's xl
+// keycap, the 404 back link) crossed that boundary once more at
+// `<ButtonPrimitive>` and leaked `role="button" tabindex="0"` into the
+// built HTML even though the same code renders correctly under jsdom
+// (same-process, no Flight serialization). Marking this component
+// itself "use client" moves the boundary up one level, so the
+// `nativeButton`/`role`/`tabIndex`/`type` resolution below happens
+// entirely inside client-rendered code and the `undefined` overrides
+// survive into the DOM.
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
@@ -94,13 +113,37 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  nativeButton,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  // Carried-over fix (Flame, 2026-11-13): Base UI's Button defaults
+  // `nativeButton` to `true`, which warns in the console whenever
+  // `render` swaps in a non-<button> element — every Button on this
+  // site renders as an `<a>`/`<Link>` (header logo/Email, mobile menu,
+  // hero CTAs, Contact's xl keycap, the 404 back link). Default it to
+  // `false` only when a `render` prop is given (an explicit
+  // `nativeButton` still wins); the default-rendered `<button>` case
+  // (none today) keeps `nativeButton={true}`.
+  //
+  // Either mode also makes Base UI's `useButton` add an attribute the
+  // already-interactive anchor doesn't want: `type="button"` in native
+  // mode on a non-<button> tag, or `role="button"` + `tabIndex` in
+  // non-native mode. Strip whichever one the resolved mode would add,
+  // but only when rendering elsewhere — a real default `<button>`
+  // keeps its normal `type="button"`.
+  const rendersElsewhere = props.render !== undefined;
+  const isNativeButton = nativeButton ?? !rendersElsewhere;
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
       {...props}
+      nativeButton={isNativeButton}
+      role={rendersElsewhere && !isNativeButton ? undefined : props.role}
+      tabIndex={
+        rendersElsewhere && !isNativeButton ? undefined : props.tabIndex
+      }
+      type={rendersElsewhere && isNativeButton ? undefined : props.type}
+      className={cn(buttonVariants({ variant, size, className }))}
     />
   );
 }

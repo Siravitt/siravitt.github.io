@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getVisibleSections } from "@/lib/sections";
+import { getTimelineScope, getVisibleSections } from "@/lib/sections";
 import { siteFixture } from "@/test/fixtures/site";
 
 describe("getVisibleSections", () => {
@@ -78,5 +78,33 @@ describe("getVisibleSections", () => {
       stack: { groups: [] },
     };
     expect(getVisibleSections(site)).toEqual(["about", "contact"]);
+  });
+});
+
+describe("getTimelineScope", () => {
+  it("names a view timeline for every visible section, in order (ticket 14)", () => {
+    expect(getTimelineScope(siteFixture)).toBe(
+      "--sec-about, --sec-stack, --sec-projects, --sec-experience, --sec-contact",
+    );
+  });
+
+  it("doesn't name the projects timeline when projects is empty", () => {
+    const site = { ...siteFixture, projects: [] };
+    const scope = getTimelineScope(site);
+    expect(scope).not.toContain("--sec-projects");
+    expect(scope).toBe(
+      "--sec-about, --sec-stack, --sec-experience, --sec-contact",
+    );
+  });
+
+  it("drops both the experience and stack timelines when both lists are empty", () => {
+    const site = {
+      ...siteFixture,
+      experience: [],
+      stack: { groups: [] },
+    };
+    expect(getTimelineScope(site)).toBe(
+      "--sec-about, --sec-projects, --sec-contact",
+    );
   });
 });

@@ -48,6 +48,25 @@ describe("ContactSection", () => {
     );
   });
 
+  it("puts the hover/focus underline on the label span only, never on the <a> itself (reviewer round 1 fix 5)", () => {
+    render(<ContactSection site={siteFixture} />);
+    const githubLink = screen.getByRole("link", {
+      name: siteFixture.contact.githubLabel,
+    });
+    // This `<a>` is `inline-flex`: a decoration class set directly on
+    // it propagates into each blockified child as its own separate
+    // short line (the bug the round 1 fix didn't actually close —
+    // `no-underline` on a descendant can't remove a propagated
+    // decoration). The `<a>` must carry no decoration/underline class
+    // at all; only the label `<span>` does.
+    expect(githubLink.className).not.toMatch(/\bunderline\b/);
+    expect(githubLink.className).not.toMatch(/\bdecoration-/);
+    const label = screen.getByText(siteFixture.contact.githubLabel);
+    expect(label.tagName).toBe("SPAN");
+    expect(label.className).toContain("group-hover:underline");
+    expect(label.className).toContain("group-focus-visible:underline");
+  });
+
   it("has a LinkedIn profile link named by the fixture's linkedinLabel, to the fixture URL, with a decorative logo", () => {
     render(<ContactSection site={siteFixture} />);
     const linkedinLink = screen.getByRole("link", {

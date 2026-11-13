@@ -261,6 +261,15 @@ describe("HomeView", () => {
     );
   });
 
+  it("the hero publishes its own view timeline, with the words column as the parallax target (ticket 14, DESIGN.md §7.1 rows 4-5)", () => {
+    const { container } = render(<HomeView site={siteFixture} />);
+    const hero = container.querySelector("[data-hero]");
+    expect(hero).not.toBeNull();
+    expect(hero?.tagName.toLowerCase()).toBe("section");
+    const text = hero?.querySelector("[data-hero-text]");
+    expect(text).not.toBeNull();
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(<HomeView site={siteFixture} />);
     expect(await axe(container)).toHaveNoViolations();

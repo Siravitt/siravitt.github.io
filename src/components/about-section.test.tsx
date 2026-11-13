@@ -12,6 +12,12 @@ describe("AboutSection", () => {
     expect(strong.closest("p")).toHaveTextContent(siteFixture.about.statement);
   });
 
+  it("marks the highlighted phrase as the colour-animation's target (ticket 14, DESIGN.md §7.1 row 10)", () => {
+    render(<AboutSection site={siteFixture} />);
+    const strong = screen.getByText("fixture highlight");
+    expect(strong).toHaveAttribute("data-about-highlight");
+  });
+
   it("renders the statement plain, with no <strong>, when the highlight isn't found in it", () => {
     const site = {
       ...siteFixture,

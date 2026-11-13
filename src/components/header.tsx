@@ -137,9 +137,30 @@ export function Header({
                 <li key={key}>
                   <a
                     href={`${anchorPrefix}#${key}`}
-                    className="flex min-h-12 items-center rounded-sm text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:min-h-0"
+                    data-nav-link={key}
+                    className="relative flex min-h-12 items-center rounded-sm text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:min-h-0"
                   >
                     {site.sections[key].title}
+                    {/* The active-section line (DESIGN.md §7.1 row 2):
+                     * decorative, aria-hidden, driven by ticket 14's
+                     * motion stylesheet via the view timeline the
+                     * matching section publishes. */}
+                    <span
+                      data-nav-spy
+                      aria-hidden="true"
+                      // Reviewer round 1 fix 1+2: Tailwind's `scale-x-0`
+                      // sets the CSS `scale` property, which multiplies
+                      // with the keyframes' `transform: scaleX()` and
+                      // pins the drawn width at 0 regardless of scroll
+                      // position. `[transform:scaleX(0)]` sets the same
+                      // property the animation animates, so the rest
+                      // state and the animated state share one axis.
+                      // `inset-x-0` (was `inset-x-3`/`lg:inset-x-2`/
+                      // `xl:inset-x-3`) makes the line span the word:
+                      // this `<a>` carries no horizontal padding, so
+                      // any inset left it short of the link's own width.
+                      className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-0.5 origin-left [transform:scaleX(0)] rounded-full bg-current"
+                    />
                   </a>
                 </li>
               ))}
@@ -155,6 +176,20 @@ export function Header({
             }
           />
         </div>
+      </div>
+
+      {/* The scroll-progress line (DESIGN.md §7.1 row 1): decorative,
+       * aria-hidden, driven by ticket 14's motion stylesheet. */}
+      <div
+        data-scroll-progress
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 overflow-hidden"
+      >
+        {/* Reviewer round 1 fix 1: see the matching comment on
+         * `[data-nav-spy]` above — `[transform:scaleX(0)]` replaces
+         * Tailwind's `scale-x-0` so the rest state and the keyframes'
+         * `transform: scaleX()` share the same CSS property. */}
+        <i className="block h-full origin-left [transform:scaleX(0)] bg-primary" />
       </div>
     </header>
   );

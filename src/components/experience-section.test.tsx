@@ -131,6 +131,15 @@ describe("ExperienceSection", () => {
     expect(dots).toHaveLength(twoEntries.length * 2);
   });
 
+  it("marks the lit dot as the light-up animation's target (ticket 14, DESIGN.md §7.1 row 9)", () => {
+    const { container } = render(
+      <ExperienceSection site={siteWithExperience(twoEntries)} />,
+    );
+    const dots = container.querySelectorAll("[data-exp-dot]");
+    expect(dots).toHaveLength(twoEntries.length);
+    dots.forEach((dot) => expect(dot).toHaveAttribute("aria-hidden", "true"));
+  });
+
   it("the period renders a placeholder start/end through the dashed tag, never as raw text", () => {
     const placeholderEntries: ExperienceEntry[] = [
       {

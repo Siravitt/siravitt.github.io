@@ -99,4 +99,20 @@ describe("HeroArt", () => {
     expect(personLine.className).toContain("whitespace-pre");
     expect(personLine.className).not.toContain("whitespace-nowrap");
   });
+
+  it("gives each line its index as --i, for the load type-in stagger (ticket 14, DESIGN.md §7.1 row 3)", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    const lines = container.querySelectorAll("[data-ln]");
+    lines.forEach((line, i) => {
+      expect((line as HTMLElement).style.getPropertyValue("--i")).toBe(
+        String(i),
+      );
+    });
+  });
+
+  it("marks the editor window and the deploy card as the two parallax depths (ticket 14, DESIGN.md §7.1 row 5)", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    expect(container.querySelectorAll("[data-hero-main]")).toHaveLength(1);
+    expect(container.querySelectorAll("[data-hero-note]")).toHaveLength(1);
+  });
 });

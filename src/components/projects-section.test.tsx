@@ -113,6 +113,32 @@ describe("ProjectsSection", () => {
     ).toHaveTextContent("Fixture Demo\u2192");
   });
 
+  it("puts the rest-state underline on the label span only, never on the <a> itself (reviewer round 1 fix 5)", () => {
+    const mixed: Project = {
+      ...threeProjects[0],
+      links: {
+        source: "https://example.com/external",
+        live: "/internal-page",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([mixed])} />);
+    const article = screen.getByRole("article");
+    const link = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    // This `<a>` is `inline-flex`: a decoration class set directly on
+    // it propagates into each blockified child as its own separate
+    // short line (the bug the round 1 fix didn't actually close). The
+    // `<a>` must carry no decoration/underline class at all; only the
+    // label `<span>` (DESIGN.md §6a: underlined at rest, not just on
+    // hover, unlike the Contact profile links) does.
+    expect(link.className).not.toMatch(/\bunderline\b/);
+    expect(link.className).not.toMatch(/\bdecoration-/);
+    const label = within(link).getByText("Fixture Source");
+    expect(label.tagName).toBe("SPAN");
+    expect(label.className).toContain("underline");
+  });
+
   it("a project with only a source link renders exactly that one link", () => {
     render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
     const article = screen.getAllByRole("article")[1];

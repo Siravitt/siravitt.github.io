@@ -128,10 +128,23 @@ function ProfileLink({
   return (
     <a
       href={href}
-      className="group inline-flex w-fit max-sm:min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium decoration-border-strong underline-offset-4 hover:underline hover:decoration-current focus-visible:underline focus-visible:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group inline-flex w-fit max-sm:min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      {icon}
-      {label}
+      {/* Reviewer round 2 (round 1 fix 5 wasn't effective): this `<a>`
+       * is `inline-flex`, so its children are blockified flex items —
+       * Chrome propagates the parent's `text-decoration` into EACH one
+       * separately (its own short underline under the icon, the label
+       * and the glyph), instead of drawing one continuous line. The
+       * `<a>` itself now carries no decoration at all; only the label
+       * `<span>` below gets `underline`, so there is nothing to
+       * propagate into the icon or the glyph. Proven with clip
+       * screenshots (hover + focus-visible, 1440/390), not computed
+       * style (`getComputedStyle` reads `none` on the glyph either
+       * way — decoration propagation isn't reflected there). */}
+      <span>{icon}</span>
+      <span className="decoration-border-strong underline-offset-4 group-hover:underline group-hover:decoration-current group-focus-visible:underline group-focus-visible:decoration-current">
+        {label}
+      </span>
       <span
         aria-hidden="true"
         className="inline-block transition-transform duration-150 group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"

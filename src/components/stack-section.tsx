@@ -40,7 +40,7 @@ export function StackSection({
     <div className="grid gap-x-6 gap-y-4 max-sm:gap-y-3 lg:grid-cols-12 lg:items-start">
       <div className="lg:col-span-5">
         <div className="mb-12 grid gap-4 max-sm:mb-8">
-          <h2 id={headingId} className={DEFAULT_HEADING_CLASSNAME}>
+          <h2 id={headingId} data-rv className={DEFAULT_HEADING_CLASSNAME}>
             {title}
             {tagline ? (
               <>
@@ -78,12 +78,14 @@ export function StackSection({
       <div
         role="img"
         aria-label="The marks of the tools in the list"
+        data-stack-board
         className="rounded-lg border border-border bg-card p-6 max-sm:border-0 max-sm:bg-transparent max-sm:p-0 lg:col-span-6 lg:col-start-7 xl:p-12"
       >
         <ul aria-hidden="true" className="grid grid-cols-2 gap-3 max-sm:gap-2">
           {items.map((item, i) => (
             <li
               key={`${item.groupName}-${item.name}`}
+              data-stack-tool
               style={
                 {
                   "--i": i,

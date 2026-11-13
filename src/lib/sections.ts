@@ -38,3 +38,19 @@ export function getVisibleSections(site: SiteContent): SectionKey[] {
     }
   });
 }
+
+/**
+ * The `timeline-scope` value published on the root element (ticket 14,
+ * "Decisions (binding)": "`timeline-scope` lists only the **visible**
+ * sections' timelines ... so a hidden section leaves no dangling
+ * timeline", DESIGN.md §7.4). Each visible section publishes a named
+ * view timeline `--sec-<key>` (DESIGN.md §7.1 row 2) that the header's
+ * nav-spy elements read even though they sit outside `<main>`; a
+ * hidden section's timeline name is left out entirely, matching
+ * `getVisibleSections` so the two never disagree.
+ */
+export function getTimelineScope(site: SiteContent): string {
+  return getVisibleSections(site)
+    .map((key) => `--sec-${key}`)
+    .join(", ");
+}

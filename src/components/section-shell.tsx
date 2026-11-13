@@ -77,6 +77,7 @@ export function SectionShell({
         {renderHeading ? (
           <h2
             id={headingId}
+            data-rv
             className={headingClassName ?? DEFAULT_HEADING_CLASSNAME}
           >
             {title}

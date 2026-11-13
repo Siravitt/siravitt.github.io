@@ -112,4 +112,10 @@ describe("SectionShell", () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("marks its own heading as a reveal target (ticket 14, DESIGN.md §7.1 row 6)", () => {
+    render(<SectionShell id="about" title="Fixture about" />);
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveAttribute("data-rv");
+  });
 });

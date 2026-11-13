@@ -136,4 +136,70 @@ describe("Header", () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("has one scroll-progress element, hidden from the accessibility tree (ticket 14, DESIGN.md §7.1 row 1)", () => {
+    const { container } = render(
+      <Header site={siteFixture} visibleSections={visibleSections} />,
+    );
+    const progress = container.querySelectorAll("[data-scroll-progress]");
+    expect(progress).toHaveLength(1);
+    expect(progress[0]).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("the progress line's rest state is a `transform`, not Tailwind's `scale` property (reviewer round 1 fix 1)", () => {
+    const { container } = render(
+      <Header site={siteFixture} visibleSections={visibleSections} />,
+    );
+    const bar = container.querySelector(
+      "[data-scroll-progress] > i",
+    ) as HTMLElement;
+    // Tailwind's `scale-x-0` sets the CSS `scale` property, which
+    // multiplies with the keyframes' `transform: scaleX()` and pins
+    // the drawn width at 0 regardless of scroll position.
+    expect(bar.className).not.toMatch(/\bscale-x-0\b/);
+    expect(bar.className).toContain("[transform:scaleX(0)]");
+  });
+
+  it("has one nav-spy span per nav link, hidden from the accessibility tree, without changing the link's accessible name (ticket 14, DESIGN.md §7.1 row 2)", () => {
+    render(<Header site={siteFixture} visibleSections={visibleSections} />);
+    const nav = screen.getByRole("navigation", {
+      name: siteFixture.labels.navLabel,
+    });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(visibleSections.length);
+    links.forEach((link, i) => {
+      const spy = link.querySelector("[data-nav-spy]");
+      expect(spy).not.toBeNull();
+      expect(spy).toHaveAttribute("aria-hidden", "true");
+      expect(link).toHaveAttribute("data-nav-link", visibleSections[i]);
+      expect(link).toHaveAccessibleName(
+        siteFixture.sections[visibleSections[i]].title,
+      );
+      // Reviewer round 1 fixes 1+2: the rest state must be a
+      // `transform` (not Tailwind's `scale` property, which multiplies
+      // with the keyframes' own `transform: scaleX()` and pins the
+      // drawn width at 0), and the line must span the whole word — this
+      // `<a>` carries no horizontal padding, so any inset left the
+      // round 1 line short of the link's own width.
+      expect(spy?.className).not.toMatch(/\bscale-x-0\b/);
+      expect(spy?.className).toContain("[transform:scaleX(0)]");
+      expect(spy?.className).toContain("inset-x-0");
+      expect(spy?.className).not.toMatch(/\binset-x-3\b/);
+      expect(spy?.className).not.toMatch(/\blg:inset-x-2\b/);
+    });
+  });
+
+  it("drops the nav-spy for a hidden section along with its link", () => {
+    render(
+      <Header site={siteFixture} visibleSections={["about", "contact"]} />,
+    );
+    const nav = screen.getByRole("navigation", {
+      name: siteFixture.labels.navLabel,
+    });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(
+      links.some((link) => link.getAttribute("data-nav-link") === "stack"),
+    ).toBe(false);
+  });
 });

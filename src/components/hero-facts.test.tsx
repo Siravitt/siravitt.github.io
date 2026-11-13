@@ -64,6 +64,26 @@ describe("HeroFacts", () => {
     expect(link).toHaveTextContent("Fixture external ↗");
   });
 
+  it("keeps the underline off the trailing glyph, only on the label (carried-over fix, Flame 2026-11-13)", () => {
+    const site = {
+      ...siteFixture,
+      hero: {
+        ...siteFixture.hero,
+        facts: [
+          {
+            label: "Fixture label",
+            value: "Fixture external",
+            href: "https://example.com/elsewhere",
+          },
+        ],
+      },
+    };
+    render(<HeroFacts site={site} />);
+    const link = screen.getByRole("link", { name: /Fixture external/ });
+    const glyph = link.querySelector('span[aria-hidden="true"]');
+    expect(glyph?.className).toContain("no-underline");
+  });
+
   it("renders → for a fact link that stays on the site", () => {
     const site = {
       ...siteFixture,
