@@ -28,7 +28,9 @@ export function AboutSection({ site }: { site: SiteContent }) {
         {marker ? <span className="ph">{marker}</span> : null}
         {before}
         {match ? (
-          <strong className="font-medium text-primary">{match}</strong>
+          <strong data-about-highlight className="font-medium text-primary">
+            {match}
+          </strong>
         ) : null}
         {after}
       </p>

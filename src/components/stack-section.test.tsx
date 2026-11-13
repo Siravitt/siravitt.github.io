@@ -142,4 +142,21 @@ describe("StackSection", () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("marks its own heading as a reveal target, since SectionShell doesn't render it here (ticket 14, DESIGN.md §7.1 row 6)", () => {
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveAttribute("data-rv");
+  });
+
+  it("marks the marks panel as the assemble animation's timeline owner, each row as its target (ticket 14, DESIGN.md §7.1 row 7)", () => {
+    render(<StackSection site={siteFixture} headingId="stack-h" />);
+    const panel = screen.getByRole("img", {
+      name: "The marks of the tools in the list",
+    });
+    expect(panel).toHaveAttribute("data-stack-board");
+    const tools = panel.querySelectorAll("[data-stack-tool]");
+    expect(tools.length).toBeGreaterThan(0);
+    expect(tools.length).toBe(panel.querySelectorAll("li").length);
+  });
 });

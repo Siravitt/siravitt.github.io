@@ -46,9 +46,10 @@ export function HomeView({ site }: { site: SiteContent }) {
       >
         <section
           aria-labelledby="hero-h"
+          data-hero
           className={`${CONTAINER_CLASSNAME} grid gap-x-12 gap-y-10 py-24 lg:grid-cols-[5fr_6fr]`}
         >
-          <div className="min-w-0 lg:flex lg:flex-col">
+          <div data-hero-text className="min-w-0 lg:flex lg:flex-col">
             <p className="mb-6 text-[14px] leading-[1.5] font-medium">
               <PlaceholderText text={site.person.role} />
             </p>

@@ -137,9 +137,19 @@ export function Header({
                 <li key={key}>
                   <a
                     href={`${anchorPrefix}#${key}`}
-                    className="flex min-h-12 items-center rounded-sm text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:min-h-0"
+                    data-nav-link={key}
+                    className="relative flex min-h-12 items-center rounded-sm text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:min-h-0"
                   >
                     {site.sections[key].title}
+                    {/* The active-section line (DESIGN.md §7.1 row 2):
+                     * decorative, aria-hidden, driven by ticket 14's
+                     * motion stylesheet via the view timeline the
+                     * matching section publishes. */}
+                    <span
+                      data-nav-spy
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-current lg:inset-x-2 xl:inset-x-3"
+                    />
                   </a>
                 </li>
               ))}
@@ -155,6 +165,16 @@ export function Header({
             }
           />
         </div>
+      </div>
+
+      {/* The scroll-progress line (DESIGN.md §7.1 row 1): decorative,
+       * aria-hidden, driven by ticket 14's motion stylesheet. */}
+      <div
+        data-scroll-progress
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 overflow-hidden"
+      >
+        <i className="block h-full origin-left scale-x-0 bg-primary" />
       </div>
     </header>
   );

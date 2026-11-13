@@ -104,6 +104,7 @@ function ExperienceItem({
       />
       <span
         aria-hidden="true"
+        data-exp-dot
         className={`absolute left-[-38px] size-3 rounded-full border-2 border-primary bg-primary shadow-[0_0_0_4px_var(--background)] max-sm:left-[-26px] ${dotTopClass}`}
       />
       <div className="flex min-h-7 min-w-0 items-center gap-3 self-start break-words lg:col-span-6">

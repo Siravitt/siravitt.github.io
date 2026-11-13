@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, DM_Mono } from "next/font/google";
 import { site } from "@/content/site";
+import { getTimelineScope } from "@/lib/sections";
 import "./globals.css";
+import "./scroll-motion.css";
 
 // DESIGN.md §3: self-hosted at build via `next/font` (no request to Google
 // at runtime — the spec's "no third-party origins" check depends on this).
@@ -75,8 +77,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Ticket 14: the root element publishes the visible sections' named
+  // view timelines (DESIGN.md §7.1 row 2, §7.4), so the header's
+  // nav-spy elements — outside <main>, a sibling of the sections —
+  // can read them. A hidden section (getVisibleSections) leaves no
+  // dangling timeline name (ticket's acceptance criterion, Seam A).
+  // `motion-safe:scroll-smooth` is DESIGN.md §7.5 part 1: in-page
+  // jumps glide only under `prefers-reduced-motion: no-preference`.
+  const timelineScope = getTimelineScope(site);
   return (
-    <html lang="en" className={`${instrumentSans.variable} ${dmMono.variable}`}>
+    <html
+      lang="en"
+      className={`${instrumentSans.variable} ${dmMono.variable} motion-safe:scroll-smooth`}
+      style={{ timelineScope } as React.CSSProperties}
+    >
       <body>{children}</body>
     </html>
   );

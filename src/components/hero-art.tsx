@@ -89,6 +89,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
     >
       <div
         aria-hidden="true"
+        data-hero-main
         className="overflow-hidden rounded-md bg-[#17191c] shadow-[0_1px_0_rgb(255_255_255/.06)]"
       >
         <div className="flex h-9 items-center gap-2 border-b border-white/10 px-3 text-[13px] text-[#9ba3ad]">
@@ -124,7 +125,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
              * carries no padding so `top: index * LINE_HEIGHT_PX` lines
              * up exactly with the rendered line.
              */}
-            <div className="relative">
+            <div className="relative isolate">
               <div
                 data-ln-highlight="true"
                 aria-hidden="true"
@@ -138,6 +139,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
                 <div
                   key={i}
                   data-ln={i}
+                  style={{ "--i": i } as React.CSSProperties}
                   className={
                     i >= 8
                       ? "relative overflow-hidden text-ellipsis whitespace-pre max-sm:hidden"
@@ -154,6 +156,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
 
       <div
         aria-hidden="true"
+        data-hero-note
         className="absolute bottom-6 left-6 w-[300px] rounded-lg bg-white p-4 text-[#1c1917] shadow-lg max-sm:hidden"
       >
         <div className="flex items-center justify-between gap-2">

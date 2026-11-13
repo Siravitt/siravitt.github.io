@@ -136,4 +136,45 @@ describe("Header", () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("has one scroll-progress element, hidden from the accessibility tree (ticket 14, DESIGN.md §7.1 row 1)", () => {
+    const { container } = render(
+      <Header site={siteFixture} visibleSections={visibleSections} />,
+    );
+    const progress = container.querySelectorAll("[data-scroll-progress]");
+    expect(progress).toHaveLength(1);
+    expect(progress[0]).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("has one nav-spy span per nav link, hidden from the accessibility tree, without changing the link's accessible name (ticket 14, DESIGN.md §7.1 row 2)", () => {
+    render(<Header site={siteFixture} visibleSections={visibleSections} />);
+    const nav = screen.getByRole("navigation", {
+      name: siteFixture.labels.navLabel,
+    });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(visibleSections.length);
+    links.forEach((link, i) => {
+      const spy = link.querySelector("[data-nav-spy]");
+      expect(spy).not.toBeNull();
+      expect(spy).toHaveAttribute("aria-hidden", "true");
+      expect(link).toHaveAttribute("data-nav-link", visibleSections[i]);
+      expect(link).toHaveAccessibleName(
+        siteFixture.sections[visibleSections[i]].title,
+      );
+    });
+  });
+
+  it("drops the nav-spy for a hidden section along with its link", () => {
+    render(
+      <Header site={siteFixture} visibleSections={["about", "contact"]} />,
+    );
+    const nav = screen.getByRole("navigation", {
+      name: siteFixture.labels.navLabel,
+    });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(
+      links.some((link) => link.getAttribute("data-nav-link") === "stack"),
+    ).toBe(false);
+  });
 });

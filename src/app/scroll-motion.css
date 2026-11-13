@@ -1,0 +1,334 @@
+/* src/app/scroll-motion.css
+   Ticket 14: the scroll-driven motion layer (DESIGN.md §7). Ported from
+   `design/prototype/scroll.css` sections "0. rest" and "1. native" —
+   the same values, ranges and easings, with selectors adapted to this
+   repo's `data-*` markup-hook convention instead of the prototype's BEM
+   classes. Imported once by the root layout (never by `globals.css`'s
+   theme block, ticket decision — keeps that file from becoming a
+   hotspot). The `@keyframes` live beside the rules that use them.
+
+   Layers, same order as DESIGN.md §7.2:
+   0. Rest — the few rules a decorative element needs regardless of
+      motion support live as Tailwind utilities on the markup itself
+      (position, size, the rest-state `scale-x-0`/`opacity`); nothing
+      here changes that picture.
+   1. Native — CSS scroll-driven animations, gated by
+      `@media (prefers-reduced-motion: no-preference) and (scripting: enabled)`
+      + `@supports (animation-timeline: view()) and (timeline-scope: --a)`.
+      Missing any one of those three signals (reduced motion, no JS, an
+      older browser) means none of this runs, and the visitor sees the
+      rest state — already the finished picture (ticket's Review Focus
+      3 / Firefox acceptance criteria). A second block mirrors the nav's
+      current-section line under reduced motion: it still marks the
+      section, but jumps instead of travelling (DESIGN.md §7.3).
+   2. Fallback (`scroll.js` → `<ScrollMotion />`) is ticket 15; the
+      project mini-UI motion (row 11) is ticket 16. Neither is ported
+      here. */
+
+@keyframes sm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sm-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes sm-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes sm-assemble {
+  from {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, 24px)) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sm-lit {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sm-hl {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--hl-to, 176px));
+  }
+}
+@keyframes sm-hero-text {
+  to {
+    opacity: 0.5;
+    transform: translateY(-24px);
+  }
+}
+@keyframes sm-hero-main {
+  to {
+    transform: translateY(-48px);
+  }
+}
+@keyframes sm-hero-note {
+  to {
+    transform: translateY(-88px);
+  }
+}
+/* DESIGN.md §7.1 row 10 / "Use rules" (§2): the About highlight's rest
+   colour is --primary (the table's older "→ --foreground" wording
+   predates that hue change — "Use rules" is the current approved
+   state, and it's what about-section.tsx already renders at rest). */
+@keyframes sm-about {
+  from {
+    color: var(--muted-foreground);
+  }
+  to {
+    color: var(--primary);
+  }
+}
+/* the nav line: grows in from the left as its section reaches the middle band, leaves to the right */
+@keyframes sm-spy {
+  entry 0% {
+    transform: translateX(-50%) scaleX(0);
+  }
+  entry 100% {
+    transform: none;
+  }
+  exit 0% {
+    transform: none;
+  }
+  exit 100% {
+    transform: translateX(50%) scaleX(0);
+  }
+}
+/* load, not scroll: the code lines arrive once, top to bottom, as the hero enters */
+@keyframes sm-type {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* DESIGN.md §7.1 row 3 / §7.2-2: the code types in on load (CSS only,
+   so it runs with no script too; 0.3s + 14 x 55ms, done by 1.4s). A
+   plain load animation, outside @supports, still inside the
+   reduced-motion guard. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-ln] {
+    animation: sm-type 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(300ms + var(--i, 0) * 55ms);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  @supports (animation-timeline: view()) and (timeline-scope: --a) {
+    /* The five sections publish their own named view timelines; the
+       root element's `timeline-scope` (set from content in
+       app/layout.tsx, src/lib/sections.ts's getTimelineScope) makes
+       the names visible to the header's nav-spy elements too, even
+       though the header sits outside <main>. The inset turns the
+       viewport into a band from 40% to 60% of its height: a section
+       is "current" while it crosses that band. */
+    #about {
+      view-timeline: --sec-about block;
+    }
+    #stack {
+      view-timeline: --sec-stack block;
+    }
+    #projects {
+      view-timeline: --sec-projects block;
+    }
+    #experience {
+      view-timeline: --sec-experience block;
+    }
+    #contact {
+      view-timeline: --sec-contact block;
+    }
+    :is(#about, #stack, #projects, #experience, #contact) {
+      view-timeline-inset: 40% 40%;
+    }
+
+    [data-nav-spy] {
+      animation: sm-spy linear both;
+      animation-range: entry 0% exit 100%;
+    }
+    a[data-nav-link="about"] [data-nav-spy] {
+      animation-timeline: --sec-about;
+    }
+    a[data-nav-link="stack"] [data-nav-spy] {
+      animation-timeline: --sec-stack;
+    }
+    a[data-nav-link="projects"] [data-nav-spy] {
+      animation-timeline: --sec-projects;
+    }
+    a[data-nav-link="experience"] [data-nav-spy] {
+      animation-timeline: --sec-experience;
+    }
+    a[data-nav-link="contact"] [data-nav-spy] {
+      animation-timeline: --sec-contact;
+    }
+
+    /* the progress line follows the whole page */
+    [data-scroll-progress] > i {
+      animation: sm-grow-x linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* reveals: each block rises 32px and fades in over its first 180px
+       in view; --i staggers a group by 48px of scroll each (rows,
+       logos, cards, entries, section heads). Scrubbed: it runs back on
+       the way up. */
+    [data-rv] {
+      animation: sm-rise cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: cover calc(var(--i, 0) * 48px) cover
+        calc(180px + var(--i, 0) * 48px);
+    }
+
+    /* hero: as it scrolls away, the words ease up and dim a little,
+       the editor and the deploy card rise at two speeds (slight
+       depth), and the highlighted code line steps down the file, line
+       by line */
+    [data-hero] {
+      view-timeline: --hero block;
+    }
+    [data-hero-text] {
+      animation: sm-hero-text linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+    [data-hero-main] {
+      animation: sm-hero-main linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+    [data-hero-note] {
+      animation: sm-hero-note linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+    [data-ln-highlight] {
+      animation: sm-hl steps(9, jump-none) both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 60%;
+    }
+
+    /* About: the highlighted phrase brightens as the statement scrolls in */
+    [data-about-highlight] {
+      animation: sm-about linear both;
+      animation-timeline: view();
+    }
+
+    /* stack: the ten tool rows assemble into the grid from small
+       offsets, in reading order */
+    [data-stack-board] {
+      view-timeline: --board block;
+    }
+    [data-stack-board] [data-stack-tool] {
+      animation: sm-assemble cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: --board;
+      animation-range: entry calc(5% + var(--i, 0) * 5%) entry
+        calc(55% + var(--i, 0) * 4%);
+    }
+
+    /* experience: the rail draws as its tip crosses the 60% line of
+       the viewport (the inset makes the viewport a line there), and
+       each dot lights as the tip reaches it */
+    [data-exp-rail] {
+      view-timeline: --exp block;
+      view-timeline-inset: 60% 40%;
+    }
+    [data-exp-rail]::after {
+      animation: sm-grow-y linear both;
+      animation-timeline: --exp;
+      animation-range: cover 0% cover 100%;
+    }
+    [data-exp-item] {
+      view-timeline: --exp-item block;
+      view-timeline-inset: 60% 40%;
+    }
+    [data-exp-item] [data-exp-dot] {
+      animation: sm-lit cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: --exp-item;
+      animation-range: cover 0px cover 40px;
+    }
+  }
+}
+
+/* DESIGN.md §7.3, Review Focus 3: reduced motion, native timelines —
+   the nav's active-section line still marks the section, but jumps
+   instead of travelling. */
+@media (prefers-reduced-motion: reduce) and (scripting: enabled) {
+  @supports (animation-timeline: view()) and (timeline-scope: --a) {
+    #about {
+      view-timeline: --sec-about block;
+    }
+    #stack {
+      view-timeline: --sec-stack block;
+    }
+    #projects {
+      view-timeline: --sec-projects block;
+    }
+    #experience {
+      view-timeline: --sec-experience block;
+    }
+    #contact {
+      view-timeline: --sec-contact block;
+    }
+    :is(#about, #stack, #projects, #experience, #contact) {
+      view-timeline-inset: 50% 49%;
+    }
+    [data-nav-spy] {
+      animation: sm-grow-x steps(1, jump-start) none;
+      animation-range: cover 0% cover 100%;
+    }
+    a[data-nav-link="about"] [data-nav-spy] {
+      animation-timeline: --sec-about;
+    }
+    a[data-nav-link="stack"] [data-nav-spy] {
+      animation-timeline: --sec-stack;
+    }
+    a[data-nav-link="projects"] [data-nav-spy] {
+      animation-timeline: --sec-projects;
+    }
+    a[data-nav-link="experience"] [data-nav-spy] {
+      animation-timeline: --sec-experience;
+    }
+    a[data-nav-link="contact"] [data-nav-spy] {
+      animation-timeline: --sec-contact;
+    }
+  }
+}
+
+/* phones: the editor shows 8 lines, so the highlight walks lines 4 to 8 */
+@media (max-width: 639px) {
+  [data-ln-highlight] {
+    --hl-to: 88px;
+    animation-timing-function: steps(5, jump-none);
+  }
+}
