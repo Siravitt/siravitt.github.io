@@ -217,7 +217,7 @@ export function splitTitle(title: string): { dir: string; leaf: string } {
 function TerminalPrompt({ title }: { title: string }) {
   const { dir, leaf } = splitTitle(title);
   return (
-    <span className="flex-none whitespace-nowrap text-muted-foreground">
+    <span className="shrink-0 whitespace-nowrap text-muted-foreground">
       ~/<span className="@max-[300px]:hidden">{dir}</span>
       {leaf} ${" "}
     </span>
@@ -282,13 +282,17 @@ function TerminalWindow({
           } as CSSProperties
         }
       >
-        <p className="flex min-w-0 items-baseline">
+        <p className="flex min-w-0 items-baseline gap-[1ch]">
           <TerminalPrompt title={visual.title} />
           {/* ticket 16: the command is already in the DOM (no CLS); the
               type-in only clips it progressively with steps(), never
-              changing its box. Truncating here (not on the row) keeps
-              develop's "prefix + …" look for a command too long to fit. */}
-          <span data-term-typed className="min-w-0 flex-1 truncate font-medium">
+              changing its box. No `flex-1`: the span's width stays its
+              own text width (so steps() lands on glyph boundaries) and
+              only shrinks below that, with `truncate`, when it doesn't
+              fit. The row's `gap-[1ch]` (not a trailing text space,
+              which a flex item's line box would trim) keeps the "$ "
+              gap. */}
+          <span data-term-typed className="min-w-0 shrink truncate font-medium">
             {visual.command}
           </span>
         </p>
