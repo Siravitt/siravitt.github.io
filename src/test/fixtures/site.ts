@@ -132,6 +132,8 @@ export const siteFixture: SiteContent = {
     legal: "Fixture legal line",
     sectionsHeading: "Fixture sections heading",
     elsewhereHeading: "Fixture elsewhere heading",
+    elsewhereGithubLabel: "Fixture elsewhere GitHub",
+    elsewhereLinkedinLabel: "Fixture elsewhere LinkedIn",
   },
   labels: {
     role: "Fixture Role",

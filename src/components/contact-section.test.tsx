@@ -38,12 +38,9 @@ describe("ContactSection", () => {
 
   it("has a GitHub profile link named by the fixture's githubLabel, to the fixture URL, with a decorative logo", () => {
     render(<ContactSection site={siteFixture} />);
-    // githubLabel also names the Elsewhere column's link to the same
-    // URL further down (both links are legitimately named the same
-    // thing), so this scopes to the one with the logo.
-    const githubLink = screen
-      .getAllByRole("link", { name: siteFixture.contact.githubLabel })
-      .find((link) => link.querySelector("svg")) as HTMLElement;
+    const githubLink = screen.getByRole("link", {
+      name: siteFixture.contact.githubLabel,
+    });
     expect(githubLink).toHaveAttribute("href", siteFixture.contact.github);
     expect(githubLink.querySelector("svg")).toHaveAttribute(
       "aria-hidden",
@@ -53,9 +50,9 @@ describe("ContactSection", () => {
 
   it("has a LinkedIn profile link named by the fixture's linkedinLabel, to the fixture URL, with a decorative logo", () => {
     render(<ContactSection site={siteFixture} />);
-    const linkedinLink = screen
-      .getAllByRole("link", { name: siteFixture.contact.linkedinLabel })
-      .find((link) => link.querySelector("svg")) as HTMLElement;
+    const linkedinLink = screen.getByRole("link", {
+      name: siteFixture.contact.linkedinLabel,
+    });
     expect(linkedinLink).toHaveAttribute("href", siteFixture.contact.linkedin);
     expect(linkedinLink.querySelector("svg")).toHaveAttribute(
       "aria-hidden",
@@ -114,14 +111,14 @@ describe("ContactSection", () => {
     ).toBeNull();
   });
 
-  it("the Elsewhere column links GitHub and LinkedIn by the fixture's labels, to the fixture URLs, headed by footer.elsewhereHeading", () => {
+  it("the Elsewhere column links GitHub and LinkedIn by footer.elsewhereGithubLabel/elsewhereLinkedinLabel, to the fixture URLs, headed by footer.elsewhereHeading", () => {
     render(<ContactSection site={siteFixture} />);
     const heading = screen.getByText(siteFixture.footer.elsewhereHeading);
     const nav = heading.closest("div") as HTMLElement;
     const links = within(nav).getAllByRole("link");
     const labels = [
-      siteFixture.contact.githubLabel,
-      siteFixture.contact.linkedinLabel,
+      siteFixture.footer.elsewhereGithubLabel,
+      siteFixture.footer.elsewhereLinkedinLabel,
     ];
     expect(links).toHaveLength(labels.length);
     links.forEach((link, i) => expect(link).toHaveAccessibleName(labels[i]));
