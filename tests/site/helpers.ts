@@ -47,3 +47,44 @@ export function listOutFiles(extensions: string[]): string[] {
     (fullPath) => relative(OUT_DIR, fullPath),
   );
 }
+
+/**
+ * Strips an absolute or site-origin URL down to a path relative to
+ * `out/` (docs/tickets/13-seo-favicon-og.md "Static export" note).
+ * Drops the origin, the leading slash, and any `?query`/`#hash` Next
+ * appends to a file-based metadata route — the built file on disk
+ * never carries either. Returns `null` for a relative/non-site URL
+ * (callers only pass in values already asserted absolute).
+ */
+export function outPathFromUrl(url: string, origin: string): string | null {
+  if (!url.startsWith(`${origin}/`)) return null;
+  const withoutOrigin = url.slice(origin.length + 1);
+  const withoutQuery = withoutOrigin.split(/[?#]/)[0];
+  return withoutQuery;
+}
+
+/**
+ * Reads a PNG file's width/height straight from its bytes (ticket 13
+ * "Must keep": no image library). A PNG starts with an 8-byte
+ * signature, then its first chunk is always `IHDR`: 4-byte length,
+ * 4-byte type (`"IHDR"`), then 13 bytes of data starting with
+ * big-endian uint32 width, then uint32 height (PNG spec §11.2.2).
+ */
+export function readPngDimensions(absolutePath: string): {
+  width: number;
+  height: number;
+} {
+  const buffer = readFileSync(absolutePath);
+  const signature = buffer.subarray(0, 8).toString("hex");
+  if (signature !== "89504e470d0a1a0a") {
+    throw new Error(`${absolutePath} is not a PNG file (bad signature)`);
+  }
+  const chunkType = buffer.subarray(12, 16).toString("ascii");
+  if (chunkType !== "IHDR") {
+    throw new Error(`${absolutePath}'s first chunk is ${chunkType}, not IHDR`);
+  }
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
