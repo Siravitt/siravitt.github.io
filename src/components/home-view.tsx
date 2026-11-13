@@ -1,4 +1,5 @@
 import { AboutSection } from "@/components/about-section";
+import { ContactSection } from "@/components/contact-section";
 import { ExperienceSection } from "@/components/experience-section";
 import { Header } from "@/components/header";
 import { HeroArt } from "@/components/hero-art";
@@ -146,6 +147,7 @@ export function HomeView({ site }: { site: SiteContent }) {
         title={site.sections.contact.title}
         as="footer"
       >
+        <ContactSection site={site} />
         <LegalRow site={site} />
       </SectionShell>
     </>

@@ -212,6 +212,55 @@ describe("HomeView", () => {
     );
   });
 
+  it("the closing footer is the page's last landmark, with GitHub/LinkedIn profile links and an Email link whose key chip is hidden from the accessibility tree", () => {
+    render(<HomeView site={siteFixture} />);
+    const landmarks = screen
+      .getAllByRole("banner")
+      .concat(screen.getAllByRole("main"), screen.getAllByRole("contentinfo"));
+    const footer = screen.getByRole("contentinfo");
+    expect(footer.tagName.toLowerCase()).toBe("footer");
+    // The footer is the last landmark in document order.
+    const all = document.querySelectorAll("*");
+    const footerPos = Array.prototype.indexOf.call(all, footer);
+    landmarks.forEach((landmark) => {
+      if (landmark === footer) return;
+      expect(Array.prototype.indexOf.call(all, landmark)).toBeLessThan(
+        footerPos,
+      );
+    });
+
+    within(footer).getAllByRole("link", {
+      name: siteFixture.contact.githubLabel,
+    });
+    within(footer).getAllByRole("link", {
+      name: siteFixture.contact.linkedinLabel,
+    });
+    const emailLink = within(footer).getByRole("link", {
+      name: siteFixture.contact.emailLabel,
+    });
+    expect(emailLink).toHaveAttribute(
+      "href",
+      `mailto:${siteFixture.contact.email}`,
+    );
+    expect(emailLink.querySelector("kbd")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+  });
+
+  it("renders the legal row after the contact columns inside the closing footer", () => {
+    const { container } = render(<HomeView site={siteFixture} />);
+    const footer = container.querySelector("#contact") as HTMLElement;
+    const sectionsHeading = within(footer).getByText(
+      siteFixture.footer.sectionsHeading,
+    );
+    const legalText = within(footer).getByText(siteFixture.footer.legal);
+    const all = footer.querySelectorAll("*");
+    expect(Array.prototype.indexOf.call(all, legalText)).toBeGreaterThan(
+      Array.prototype.indexOf.call(all, sectionsHeading),
+    );
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(<HomeView site={siteFixture} />);
     expect(await axe(container)).toHaveNoViolations();
