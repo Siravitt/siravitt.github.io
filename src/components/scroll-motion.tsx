@@ -71,14 +71,21 @@ export function ScrollMotion(): null {
     addEventListener("hashchange", handleHashChange);
 
     // Menu close (ticket decision, Q1 answer a): a tap on an in-page
-    // link inside the header's open `<details>` disclosure closes it.
+    // link closes the header's open `<details>` disclosure. The nav
+    // panel is a CSS sibling of `<details>` inside the shared
+    // `<header>` (`group-has-[details[open]]`, header.tsx), not a DOM
+    // descendant of it — so this closes the nearest open `<details>`
+    // within the same `<header>` ancestor, not `link.closest("details[open]")`.
     // Independent of the fallback below; runs in every browser.
     const handleMenuLinkClick = (event: MouseEvent) => {
       const target = event.target;
       const link =
         target instanceof Element ? target.closest('a[href^="#"]') : null;
       if (!link) return;
-      link.closest("details[open]")?.removeAttribute("open");
+      link
+        .closest("header")
+        ?.querySelector("details[open]")
+        ?.removeAttribute("open");
     };
     document.addEventListener("click", handleMenuLinkClick);
 

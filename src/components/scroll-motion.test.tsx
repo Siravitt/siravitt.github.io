@@ -250,22 +250,24 @@ describe("ScrollMotion", () => {
     rv.remove();
   });
 
-  it("tapping an in-page link inside the open menu closes the menu", () => {
+  it("tapping an in-page link closes the header's open menu (nav is a sibling of <details>, not a DOM descendant — header.tsx's group-has-[details[open]] CSS trick)", () => {
+    const header = document.createElement("header");
     const details = document.createElement("details");
     details.open = true;
+    header.appendChild(details);
     const link = document.createElement("a");
     link.href = "#about";
-    details.appendChild(link);
-    document.body.appendChild(details);
+    header.appendChild(link);
+    document.body.appendChild(header);
 
     render(<ScrollMotion />);
     fireEvent.click(link);
 
     expect(details.open).toBe(false);
-    details.remove();
+    header.remove();
   });
 
-  it("a tap on a link outside any open menu leaves other open details untouched", () => {
+  it("a tap on a link outside any header leaves an open details elsewhere untouched", () => {
     const details = document.createElement("details");
     details.open = true;
     document.body.appendChild(details);
