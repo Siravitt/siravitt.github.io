@@ -1,46 +1,47 @@
 import { describe, expect, it } from "vitest";
-import {
-  splitTitle,
-  terminalNextDelayMs,
-  terminalPassDelayMs,
-  terminalTypeMs,
-} from "@/components/project-visual";
+import { splitTitle, terminalTiming } from "@/components/project-visual";
 
-const LONG_COMMAND = "go test ./... -run TestVeryLongName -v -count=1";
+describe("terminalTiming", () => {
+  const LENGTHS = [1, 13, 20, 47, 120];
+  const RESULT_COUNTS = [1, 2, 3, 4, 5];
 
-describe("terminalTypeMs", () => {
-  it.each([
-    ["clamps a short command to the 80ms/character ceiling", "go test", 80 * 7],
-    ["paces the site's real command (13 chars) at ~0.8s", "go test ./...", 800],
-    [
-      "clamps a long command to the 50ms/character floor",
-      LONG_COMMAND,
-      50 * LONG_COMMAND.length,
-    ],
-  ])("%s", (_label, command, expected) => {
-    expect(terminalTypeMs(command)).toBe(expected);
-  });
-});
+  it.each(
+    LENGTHS.flatMap((len) => RESULT_COUNTS.map((n) => [len, n] as const)),
+  )(
+    "orders lines before PASS before the prompt within 3.2s (command %i chars, %i result(s))",
+    (commandLength, resultCount) => {
+      const { lineDelays, passMs, promptMs } = terminalTiming(
+        commandLength,
+        resultCount,
+      );
 
-describe("terminalPassDelayMs / terminalNextDelayMs", () => {
-  it.each([
-    ["the site's real command, 3 results", 800, 3],
-    ["a long command, 5 results", terminalTypeMs(LONG_COMMAND), 5],
-  ])(
-    "PASS and the fresh prompt always land after the last line (%s)",
-    (_label, typeMs, resultCount) => {
-      const lastLineEnd = 150 + typeMs + 100 + (resultCount - 1) * 260 + 180;
-      const passDelay = terminalPassDelayMs(typeMs, resultCount);
-      const nextDelay = terminalNextDelayMs(typeMs, resultCount);
-
-      expect(passDelay).toBeGreaterThan(lastLineEnd);
-      expect(nextDelay).toBeGreaterThan(passDelay + 220);
+      lineDelays.forEach((delay) => expect(delay).toBeLessThan(passMs));
+      expect(passMs).toBeLessThan(promptMs);
+      expect(promptMs + 300).toBeLessThanOrEqual(3200);
     },
   );
 
-  it("matches the kit's nominal PASS/prompt delays for the default command", () => {
-    expect(terminalPassDelayMs(800, 3)).toBe(2450);
-    expect(terminalNextDelayMs(800, 3)).toBe(2800);
+  it("matches the site's real command (13 chars, 3 results) at today's pacing", () => {
+    const timing = terminalTiming(13, 3);
+
+    expect(timing.typeMs).toBe(800);
+    expect(timing.passMs).toBe(2450);
+    expect(timing.promptMs).toBe(2800);
+  });
+
+  it("derives PASS's delay from the type-in and result count, not a fixed value", () => {
+    expect(terminalTiming(1, 1).passMs).toBeLessThan(
+      terminalTiming(13, 3).passMs,
+    );
+  });
+
+  it("clamps a short command's type-in to the 80ms/character ceiling", () => {
+    expect(terminalTiming(7, 1).typeMs).toBe(80 * 7);
+  });
+
+  it("caps a long command's type-in at the kit's nominal 0.8s", () => {
+    expect(terminalTiming(47, 1).typeMs).toBe(800);
+    expect(terminalTiming(120, 5).typeMs).toBe(800);
   });
 });
 

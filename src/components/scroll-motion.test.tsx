@@ -412,17 +412,23 @@ describe("ScrollMotion", () => {
     });
 
     it.each([
-      ["intersecting from below", true, { top: 50, bottom: 302 }, true, false],
-      [
-        "already fully above the viewport (bottom<=0)",
-        false,
-        { top: -300, bottom: -48 },
-        true,
-        true,
-      ],
+      {
+        label: "intersecting from below",
+        isIntersecting: true,
+        rect: { top: 50, bottom: 302 },
+        wantIn: true,
+        wantSkip: false,
+      },
+      {
+        label: "already fully above the viewport (bottom<=0)",
+        isIntersecting: false,
+        rect: { top: -300, bottom: -48 },
+        wantIn: true,
+        wantSkip: true,
+      },
     ])(
-      "an observer entry %s unobserves and sets is-in %s / is-skip %s",
-      (_label, isIntersecting, rect, wantIn, wantSkip) => {
+      "an observer entry $label unobserves and sets is-in=$wantIn is-skip=$wantSkip",
+      ({ isIntersecting, rect, wantIn, wantSkip }) => {
         stubMiniUiEligible();
         const panel = mountPanel();
         render(<ScrollMotion />);
@@ -470,15 +476,19 @@ describe("ScrollMotion", () => {
     );
 
     it.each([
-      ["fully past (bottom<=0)", { top: -300, bottom: -48 }, true],
-      [
-        "still mostly visible (top<0, bottom>0)",
-        { top: -20, bottom: 232 },
-        false,
-      ],
+      {
+        label: "fully past (bottom<=0)",
+        rect: { top: -300, bottom: -48 },
+        wantSkip: true,
+      },
+      {
+        label: "still mostly visible (top<0, bottom>0)",
+        rect: { top: -20, bottom: 232 },
+        wantSkip: false,
+      },
     ])(
-      "a panel already playing only snaps to is-skip once it's %s",
-      (_label, rect, wantSkip) => {
+      "a panel already playing sets is-skip=$wantSkip when it is $label",
+      ({ rect, wantSkip }) => {
         stubMiniUiEligible();
         stubRequestAnimationFrame();
         const panel = mountPanel();

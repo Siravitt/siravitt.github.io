@@ -149,34 +149,54 @@ function Window({
  * 50-80ms/character range (`terminal-run/fragment.js`), so a short
  * command still reads at a natural pace and a long one doesn't crawl.
  */
-function terminalPerCharMs(command: string): number {
-  return Math.max(50, Math.min(80, 800 / command.length));
+function terminalPerCharMs(commandLength: number): number {
+  return Math.max(50, Math.min(80, 800 / commandLength));
 }
 
-/** Type-in duration (ms): one step per character, so `steps(command.length)`
- * never reveals a glyph half drawn on a variable-length command. */
-export function terminalTypeMs(command: string): number {
-  return Math.round(terminalPerCharMs(command) * command.length);
+// The kit's nominal pacing for its 13-char command, 3 results
+// (terminal-run/fragment.js). Capping type-in at this value, and the
+// line span at its 2-gap width, keeps PASS/prompt inside the ticket's
+// ≤3.2s budget for any command length and 1-5 results.
+const TERMINAL_TYPE_MS_CAP = 800;
+const TERMINAL_LINE_GAP_MS = 260;
+const TERMINAL_LINE_SPAN_CAP_MS = 520;
+
+export interface TerminalTiming {
+  typeMs: number;
+  lineGapMs: number;
+  lineDelays: number[];
+  passMs: number;
+  promptMs: number;
 }
 
-/** PASS's delay (ms), derived from the type-in's duration and the result
- * count so a longer command or more lines can never land after it. */
-export function terminalPassDelayMs(
-  typeMs: number,
+/** The terminal run's full schedule: the type-in, each result line's
+ * delay, PASS's delay and the fresh prompt's delay, all derived from
+ * the command's length and the result count so PASS and the prompt
+ * can never land before the last line - or past the budget above. */
+export function terminalTiming(
+  commandLength: number,
   resultCount: number,
-): number {
-  // 150/100/260/180 mirror sm-term-type's own delay and the per-line
-  // stagger/duration in scroll-motion.css; 700 is the gap before PASS.
-  const lastLineEnd = 150 + typeMs + 100 + (resultCount - 1) * 260 + 180;
-  return lastLineEnd + 700;
-}
-
-/** The fresh prompt's delay (ms): always after PASS's own run finishes. */
-export function terminalNextDelayMs(
-  typeMs: number,
-  resultCount: number,
-): number {
-  return terminalPassDelayMs(typeMs, resultCount) + 220 + 130;
+): TerminalTiming {
+  const typeMs = Math.min(
+    TERMINAL_TYPE_MS_CAP,
+    Math.round(terminalPerCharMs(commandLength) * commandLength),
+  );
+  const span =
+    resultCount > 1
+      ? Math.min(
+          TERMINAL_LINE_GAP_MS * (resultCount - 1),
+          TERMINAL_LINE_SPAN_CAP_MS,
+        )
+      : 0;
+  const lineGapMs = resultCount > 1 ? span / (resultCount - 1) : 0;
+  const lineBase = 250 + typeMs; // mirrors sm-term-type's 150ms delay + 100ms pad
+  const lineDelays = Array.from(
+    { length: resultCount },
+    (_, i) => lineBase + i * lineGapMs,
+  );
+  const passMs = lineBase + span + 180 + 700; // +180 is the last line's own reveal, +700 the gap before PASS
+  const promptMs = passMs + 350; // PASS's 220ms run + a 130ms gap before the fresh prompt
+  return { typeMs, lineGapMs, lineDelays, passMs, promptMs };
 }
 
 /**
@@ -231,8 +251,8 @@ function TerminalWindow({
 }: {
   visual: Extract<ProjectVisualData, { kind: "terminal" }>;
 }) {
-  const typeMs = terminalTypeMs(visual.command);
   const resultCount = visual.results.length;
+  const timing = terminalTiming(visual.command.length, resultCount);
   return (
     <Window maxWidthClassName="max-w-[440px]">
       <div className="flex h-10 items-center gap-2.5 border-b border-window-border bg-foreground/[0.03] px-3.5">
@@ -248,17 +268,18 @@ function TerminalWindow({
           {visual.branch}
         </span>
       </div>
-      {/* --cmd-len/--type-ms size the type-in; --pass-ms/--next-ms
-          derive PASS's and the fresh prompt's delays from it, so a
-          longer command or more result lines can't land after PASS. */}
+      {/* --cmd-len/--type-ms size the type-in; --line-gap-ms paces the
+          result lines; --pass-ms/--next-ms place PASS and the fresh
+          prompt, all from terminalTiming so they can't land out of order. */}
       <div
         className="px-4 py-3 font-mono @max-[300px]:px-3"
         style={
           {
             "--cmd-len": visual.command.length,
-            "--type-ms": `${typeMs}ms`,
-            "--pass-ms": `${terminalPassDelayMs(typeMs, resultCount)}ms`,
-            "--next-ms": `${terminalNextDelayMs(typeMs, resultCount)}ms`,
+            "--type-ms": `${timing.typeMs}ms`,
+            "--line-gap-ms": `${timing.lineGapMs}ms`,
+            "--pass-ms": `${timing.passMs}ms`,
+            "--next-ms": `${timing.promptMs}ms`,
           } as CSSProperties
         }
       >
