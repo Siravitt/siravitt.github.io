@@ -38,12 +38,9 @@ describe("ContactSection", () => {
 
   it("has a GitHub profile link named by the fixture's githubLabel, to the fixture URL, with a decorative logo", () => {
     render(<ContactSection site={siteFixture} />);
-    // githubLabel also names the Elsewhere column's link to the same
-    // URL further down (both links are legitimately named the same
-    // thing), so this scopes to the one with the logo.
-    const githubLink = screen
-      .getAllByRole("link", { name: siteFixture.contact.githubLabel })
-      .find((link) => link.querySelector("svg")) as HTMLElement;
+    const githubLink = screen.getByRole("link", {
+      name: siteFixture.contact.githubLabel,
+    });
     expect(githubLink).toHaveAttribute("href", siteFixture.contact.github);
     expect(githubLink.querySelector("svg")).toHaveAttribute(
       "aria-hidden",
@@ -53,9 +50,9 @@ describe("ContactSection", () => {
 
   it("has a LinkedIn profile link named by the fixture's linkedinLabel, to the fixture URL, with a decorative logo", () => {
     render(<ContactSection site={siteFixture} />);
-    const linkedinLink = screen
-      .getAllByRole("link", { name: siteFixture.contact.linkedinLabel })
-      .find((link) => link.querySelector("svg")) as HTMLElement;
+    const linkedinLink = screen.getByRole("link", {
+      name: siteFixture.contact.linkedinLabel,
+    });
     expect(linkedinLink).toHaveAttribute("href", siteFixture.contact.linkedin);
     expect(linkedinLink.querySelector("svg")).toHaveAttribute(
       "aria-hidden",
@@ -114,14 +111,14 @@ describe("ContactSection", () => {
     ).toBeNull();
   });
 
-  it("the Elsewhere column links GitHub and LinkedIn by the fixture's labels, to the fixture URLs, headed by footer.elsewhereHeading", () => {
+  it("the Elsewhere column links GitHub and LinkedIn by footer.elsewhereGithubLabel/elsewhereLinkedinLabel, to the fixture URLs, headed by footer.elsewhereHeading", () => {
     render(<ContactSection site={siteFixture} />);
     const heading = screen.getByText(siteFixture.footer.elsewhereHeading);
     const nav = heading.closest("div") as HTMLElement;
     const links = within(nav).getAllByRole("link");
     const labels = [
-      siteFixture.contact.githubLabel,
-      siteFixture.contact.linkedinLabel,
+      siteFixture.footer.elsewhereGithubLabel,
+      siteFixture.footer.elsewhereLinkedinLabel,
     ];
     expect(links).toHaveLength(labels.length);
     links.forEach((link, i) => expect(link).toHaveAccessibleName(labels[i]));
@@ -129,6 +126,31 @@ describe("ContactSection", () => {
       siteFixture.contact.github,
       siteFixture.contact.linkedin,
     ]);
+  });
+
+  // Reviewer round 2 fix 2: the prototype's shared text-link style
+  // draws the underline on `:hover` *and* `:focus-visible`
+  // (`motion.css:97`); `hover:underline` alone left keyboard focus
+  // with no visible line. Covers both the Sections and Elsewhere
+  // columns, which share `FooterColumnLink`.
+  it("Sections and Elsewhere column links show the underline on focus-visible, not only hover (polish item 1)", () => {
+    render(<ContactSection site={siteFixture} />);
+    const sectionsHeading = screen.getByText(
+      siteFixture.footer.sectionsHeading,
+    );
+    const elsewhereHeading = screen.getByText(
+      siteFixture.footer.elsewhereHeading,
+    );
+    const sectionsLink = within(
+      sectionsHeading.closest("div") as HTMLElement,
+    ).getAllByRole("link")[0];
+    const elsewhereLink = within(
+      elsewhereHeading.closest("div") as HTMLElement,
+    ).getAllByRole("link")[0];
+    for (const link of [sectionsLink, elsewhereLink]) {
+      expect(link.className).toMatch(/\bfocus-visible:underline\b/);
+      expect(link.className).toMatch(/\bfocus-visible:decoration-current\b/);
+    }
   });
 
   it("has no axe violations", async () => {

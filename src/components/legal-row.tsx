@@ -40,7 +40,10 @@ export function LegalRow({
     <div
       className={cn(
         "flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 text-sm text-muted-foreground",
-        variant === "bordered" && "mt-8 border-t border-border pt-5",
+        // Carried-over polish (Flame 2026-11-13): top padding measured
+        // 24px in the prototype's `.footer__legal` (`pt-6`, was `pt-5` =
+        // 20px). Text/rule untouched (Review Focus 2).
+        variant === "bordered" && "mt-8 border-t border-border pt-6",
         className,
       )}
     >

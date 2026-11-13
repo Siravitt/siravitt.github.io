@@ -21,11 +21,13 @@ import { getVisibleSections, type SectionKey } from "@/lib/sections";
  * (`<Kbd aria-hidden>`) stays out of the accessibility tree the same
  * way the header's and hero's Email buttons already do.
  *
- * The Elsewhere column reuses `contact.githubLabel`/`linkedinLabel` —
- * not the prototype's bare "GitHub"/"LinkedIn" words — because every
- * visitor-facing string must come from `site.ts` (card's "Must keep");
- * the prototype's own markup is static sample text throughout, not
- * bound to the content file.
+ * The Elsewhere column uses its own `footer.elsewhereGithubLabel`/
+ * `elsewhereLinkedinLabel` — not `contact.githubLabel`/`linkedinLabel`,
+ * which name the Contact row's logo+label links a few lines above —
+ * because the prototype's two rows carry different text ("GitHub
+ * profile" vs. bare "GitHub"; carried-over polish, Flame 2026-11-13).
+ * Every visitor-facing string still comes from `site.ts`, never
+ * hard-coded copy.
  */
 export function ContactSection({ site }: { site: SiteContent }) {
   const { contact, footer, sections } = site;
@@ -46,14 +48,14 @@ export function ContactSection({ site }: { site: SiteContent }) {
           <ProfileLink
             href={contact.github}
             label={contact.githubLabel}
-            icon={<GitHubIcon className="size-5" />}
+            icon={<GitHubIcon className="size-6" />}
           />
         </li>
         <li>
           <ProfileLink
             href={contact.linkedin}
             label={contact.linkedinLabel}
-            icon={<LinkedInIcon className="size-5" />}
+            icon={<LinkedInIcon className="size-6" />}
           />
         </li>
       </ul>
@@ -90,12 +92,12 @@ export function ContactSection({ site }: { site: SiteContent }) {
           <FooterColumn heading={footer.elsewhereHeading}>
             <li>
               <FooterColumnLink href={contact.github}>
-                {contact.githubLabel}
+                {footer.elsewhereGithubLabel}
               </FooterColumnLink>
             </li>
             <li>
               <FooterColumnLink href={contact.linkedin}>
-                {contact.linkedinLabel}
+                {footer.elsewhereLinkedinLabel}
               </FooterColumnLink>
             </li>
           </FooterColumn>
@@ -105,7 +107,15 @@ export function ContactSection({ site }: { site: SiteContent }) {
   );
 }
 
-/** A GitHub/LinkedIn profile link: logo + label, trailing ↗ (it always leaves the site), DESIGN.md §6a "Text links". */
+/** A GitHub/LinkedIn profile link: logo + label, trailing ↗ (it always leaves the site), DESIGN.md §6a "Text links".
+ * Carried-over polish (Flame 2026-11-13): this link sits inside the
+ * `<footer>`, where the prototype's shared text-link style (CDP-measured
+ * `background-size`/`background-image`, motion.css) shows the underline
+ * only on hover/focus, not at rest — unlike the (non-footer) Projects
+ * card links, whose rest-state underline already matched the build and
+ * needed no change. `hover:underline`/`focus-visible:underline` (no
+ * base `underline`) reproduces that: no line at rest, one on
+ * hover/keyboard focus. */
 function ProfileLink({
   href,
   label,
@@ -118,7 +128,7 @@ function ProfileLink({
   return (
     <a
       href={href}
-      className="group inline-flex w-fit max-sm:min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium underline decoration-border-strong underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group inline-flex w-fit max-sm:min-h-11 items-center gap-2 rounded-sm text-[14px] font-medium decoration-border-strong underline-offset-4 hover:underline hover:decoration-current focus-visible:underline focus-visible:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {icon}
       {label}
@@ -151,7 +161,11 @@ function FooterColumn({
   );
 }
 
-/** A Sections/Elsewhere column link: plain text, no arrow glyph (DESIGN.md §6a "footer" row; reviewer round 1 fix 5). */
+/** A Sections/Elsewhere column link: plain text, no arrow glyph (DESIGN.md §6a "footer" row; reviewer round 1 fix 5).
+ * Reviewer round 2 fix 2: the prototype draws the underline on
+ * `:hover` *and* `:focus-visible` (`motion.css:97`, `.footer ul
+ * a:is(:hover, :focus-visible)`), matching `ProfileLink` above —
+ * `hover:underline` alone left keyboard focus with no visible line. */
 function FooterColumnLink({
   href,
   children,
@@ -162,7 +176,7 @@ function FooterColumnLink({
   return (
     <a
       href={href}
-      className="inline-flex items-center rounded-sm font-normal text-foreground hover:underline max-sm:min-h-11 max-sm:min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="inline-flex items-center rounded-sm font-normal text-foreground decoration-current hover:underline focus-visible:underline focus-visible:decoration-current max-sm:min-h-11 max-sm:min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {children}
     </a>

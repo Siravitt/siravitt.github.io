@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, DM_Mono } from "next/font/google";
 import { site } from "@/content/site";
 import "./globals.css";
@@ -23,15 +23,51 @@ const dmMono = DM_Mono({
   display: "swap",
 });
 
+// DESIGN.md §9 / docs/tickets/13-seo-favicon-og.md: home metadata reads
+// from `site.meta` (title, description — falling back to `person.pitch`
+// when empty, spec "Modules") so Flame's copy edits flow straight
+// through without a code change, and Seam B's content comparisons read
+// the same `site` import rather than a copied literal. `metadataBase`
+// (ticket 01) makes every relative URL below absolute. The favicon,
+// icon, apple icon, Open Graph image and Twitter image are NOT set
+// here: they come from the App Router's file-based conventions
+// (favicon.ico, icon.png, apple-icon.png, opengraph-image.png,
+// twitter-image.png — binary copies of design/prototype/brand/, no
+// build-time image generation) and are inherited by every nested
+// route, including /privacy.html.
+const title = site.meta.title;
+const description = site.meta.description ?? site.person.pitch;
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://siravitt.github.io"),
-  title: site.meta.title,
-  // Minimal, not content-driven yet: ticket 13 adds the full SEO set
-  // (canonical, Open Graph/Twitter, share image) read from `site.ts`.
-  // Spec (docs/spec.md §Modules): meta.description falls back to the
-  // pitch when empty — both come from site.ts, so ticket 05's release
-  // guard still catches it while the pitch stays a `[Placeholder]`.
-  description: site.meta.description ?? site.person.pitch,
+  title,
+  description,
+  // No `alternates.canonical` or `openGraph.url` here: Next's URL
+  // resolver (resolve-url.js) special-cases a resolved pathname of
+  // exactly "/" and returns the bare origin, dropping the trailing
+  // slash, whenever `trailingSlash` (next.config.ts) is false — which
+  // it must stay, for /privacy.html (ticket 04). DESIGN.md §9's
+  // canonical is `https://siravitt.github.io/`, with the slash, so
+  // `page.tsx` (the home route only) renders its own literal
+  // `<link>`/`<meta property="og:url">` instead of going through that
+  // resolver. Every nested route (e.g. /privacy.html) has a non-"/"
+  // pathname and isn't affected — its own `alternates.canonical`
+  // resolves correctly as-is (ticket 04).
+  openGraph: {
+    title,
+    description,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+};
+
+// themeColor/colorScheme live on the dedicated viewport export (Next
+// 14+), not on `metadata` (DESIGN.md §9 `theme-color: #0a0c0f`).
+export const viewport: Viewport = {
+  themeColor: "#0a0c0f",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

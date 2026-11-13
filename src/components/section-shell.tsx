@@ -66,7 +66,10 @@ export function SectionShell({
       aria-labelledby={headingId}
       tabIndex={-1}
       className={cn(
-        "scroll-mt-18 pt-24 pb-12 outline-none max-sm:scroll-mt-14 sm:pt-30 sm:pb-24 focus-visible:shadow-[inset_2px_0_0_var(--ring)]",
+        // Carried-over polish (Flame 2026-11-13): desktop bottom padding
+        // measured 72px in the prototype (`sm:pb-18`, was `sm:pb-24` =
+        // 96px). Phone (`pb-12` = 48px) already matched, unchanged.
+        "scroll-mt-18 pt-24 pb-12 outline-none max-sm:scroll-mt-14 sm:pt-30 sm:pb-18 focus-visible:shadow-[inset_2px_0_0_var(--ring)]",
         className,
       )}
     >

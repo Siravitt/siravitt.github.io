@@ -303,6 +303,15 @@ export interface SiteFooter {
   legal: string;
   sectionsHeading: string;
   elsewhereHeading: string;
+  /**
+   * The Elsewhere column's own link text (DESIGN.md §6 footer row;
+   * carried-over polish, Flame 2026-11-13: the prototype's Elsewhere
+   * column reads the bare "GitHub"/"LinkedIn", not the Contact row's
+   * "GitHub profile"/"LinkedIn profile" — two different strings for
+   * two different rows, both from `site.ts`, never hard-coded copy).
+   */
+  elsewhereGithubLabel: string;
+  elsewhereLinkedinLabel: string;
 }
 
 /** Short UI words visitors read, not tied to one section. */
@@ -594,6 +603,8 @@ export const site = {
     legal: "© 2026 Siravit Tanratanavijit",
     sectionsHeading: "Sections",
     elsewhereHeading: "Elsewhere",
+    elsewhereGithubLabel: "GitHub",
+    elsewhereLinkedinLabel: "LinkedIn",
   },
   labels: {
     role: "Role",

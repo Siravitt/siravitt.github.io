@@ -176,7 +176,8 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
   from 1024px up → `mx-auto max-w-[1440px] px-6 sm:px-12 lg:px-20` (1280 + 2×80 = 1440, so the
   container stops growing once the side padding reaches 80px; content x = 80/1360 at 1440px).
 - 12-column grid with a 24px gutter (12px on phones). Copy blocks span 5–6 columns, max 62ch.
-- Section padding: 120px top / 96px bottom on desktop (`pt-30 pb-24`), 96/48 on phones.
+- Section padding: 120px top / 72px bottom on desktop (`pt-30 pb-18`; corrected 2026-11-13, matches
+  prototype; Flame — was 96px/`pb-24`), 96/48 on phones.
 - Nav height 72px desktop, 56px phone; sticky, `--background` at 90% with `backdrop-blur-sm` and a bottom `--border`.
 - Breakpoints (Tailwind defaults): `sm 640`, `lg 1024`, `xl 1280`. Layout changes:
   - `< 1280`: the nav shows the mark + **"Siravit"** only (surname hidden; the link's accessible name stays the full name).
@@ -197,7 +198,7 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
 | Badge, placeholder tag, mark tile in nav | 4px | `rounded-sm` (`calc(var(--radius) - 2px)`) |
 | Stack tool rows (v3), editor window, code panels | 6px | `rounded-md` (`var(--radius)`) |
 | Lit frames, project panels, Card, Stack panel (v3) | 8px | `rounded-lg` (`calc(var(--radius) + 2px)`) |
-| Buttons (v2) | 6px, a keycap, not a pill | `rounded-md` |
+| Buttons (v2) | 4px, a keycap, not a pill (corrected 2026-11-13, matches prototype; Flame — was 6px/`rounded-md`) | `rounded-sm` |
 | Key chip inside the primary Button | 4px | `rounded-sm` |
 
 ---
@@ -211,7 +212,7 @@ The site has no light theme and no toggle. Put these values in `:root` in `globa
 | Skip link | plain `<a>` `sr-only focus:not-sr-only` | "Skip to content" → `#top`. |
 | Primary CTA "Email Siravit" (v2) | **Button** `default` (the keycap, §6a) | `mailto:` link via `asChild`, label + `<kbd>↵</kbd>` key chip. Nav: `h-11`; hero/404: `h-11 px-6`; Contact close: `size="xl"` (§6a). |
 | Secondary "See projects" (v2) | **Button** `variant="secondary"` (the active line, §6a) | Label + ↓ glyph (it scrolls down to Projects). Only one secondary per screen. Phone: becomes an underlined text link (no marker). |
-| Text links (project links, contact, back link) | `<a>` styled as Tailwind `underline underline-offset-4 decoration-[--border-strong] hover:decoration-current` | 14px/500 `--foreground`; trailing **↗** for links that leave the site (GitHub, LinkedIn, Source code) and **→** for in-site links (Live demo, back link); the glyph moves 2px up-right (↗) or 3px right (→) on hover; min tap height 44px. |
+| Text links (project links, contact, back link) | `<a>` styled as Tailwind `underline underline-offset-4 decoration-[--border-strong] hover:decoration-current` (corrected 2026-11-13, matches prototype; Flame: CDP-measured `background-size`/`background-image`, motion.css — a link inside the page's `<footer>` (Contact profile links, the Elsewhere column) shows the line on hover/focus only, no base `underline`; every other text link (project card links, the privacy "back" link) keeps the rest-visible line as below) | 14px/500 `--foreground`; trailing **↗** for links that leave the site (GitHub, LinkedIn, Source code) and **→** for in-site links (Live demo, back link); the glyph moves 2px up-right (↗) or 3px right (→) on hover; min tap height 44px. |
 | Hero facts (`dl.hero-facts`) | plain `<dl>` 3-column grid + **Separator** above it | Desktop only; sits on the editor frame's bottom line. |
 | Hero editor (`.ed`) | plain markup, `aria-hidden` inside a `role="img"` frame | Decorative drawing of `site.ts`; no real editor component. |
 | About statement | `<h2>` label "About" (muted, 14px) + statement paragraph | The word-highlight: bolded phrase goes from `--muted-foreground` to `--foreground` as it scrolls in (CSS `animation-timeline: view()`, fallback: static foreground). |
@@ -236,7 +237,7 @@ shadcn's `Kbd` if the installed version has it) draws the key chip.
 | Variant | Rest | Hover / focus-visible | Press (`:active`) | Tailwind (approx.) |
 |---|---|---|---|---|
 | **default** = keycap | `--primary` fill, `--primary-foreground` text 15–16px/500, `rounded-md` (6px), `h-11 px-6`; inner edges: `inset 0 1px 0 rgb(255 255 255/.28)` (light top) + `inset 0 -2px 0 rgb(10 12 15/.24)` (dark bottom). After the label a **key chip** `↵`: DM Mono 13px/500, `h-[22px] min-w-6 px-1.5 rounded-sm`, `bg-[rgb(10_12_15/.10)]`, ring `inset 0 0 0 1px rgb(10 12 15/.30)` + bottom edge `inset 0 -2px 0 rgb(10 12 15/.26)` | fill mixes 16% toward the ground; the button steps up 1px; **the key chip sinks 1px and loses its bottom edge** (it is pressed first) | the cap sinks: `translate-y-px scale-[.985]`, bottom edge gone, `inset 0 2px 3px rgb(10 12 15/.26)` at the top; fill 74% | `shadow-[inset_0_1px_0_rgb(255_255_255/.28),inset_0_-2px_0_rgb(10_12_15/.24)] hover:-translate-y-px active:translate-y-px active:scale-[.985] active:shadow-[inset_0_2px_3px_rgb(10_12_15/.26)]`; chip: `group-hover:translate-y-px group-hover:shadow-[inset_0_0_0_1px_rgb(10_12_15/.34)]` |
-| **default, size xl** (Contact) | as above, `h-16 xl:h-[72px]`, display face 20–26px, `justify-between pl-8 pr-6`, key chip 30px tall / 16px | same | same | `w-full sm:w-1/2` |
+| **default, size xl** (Contact) | as above, `min-h-[clamp(64px,1.4vw+48px,72px)]` (corrected 2026-11-13, matches prototype's `system.css:1061` continuous rule verbatim; Flame — was `h-16 xl:h-[72px]`, a two-step jump that measured 72px at 1440 against the prototype's 68.16px); phone (<640, corrected 2026-11-13, matches prototype; Flame — was `h-16`/64px): fixed `48px` (`max-sm:min-h-12`, no vertical padding — the prototype's `@media (max-width:639px) { .btn--xl { height:48px } }`), display face 20–26px, `justify-between pl-8 pr-6`, key chip 30px tall / 16px | same | same | `w-full sm:w-1/2` |
 | **secondary** = the active line | `--card` fill (#13161b), 1px `--border-strong` border, `--foreground` text, `rounded-md`, `h-11 px-6`, a ↓ glyph 14px `--muted-foreground` after the label | fill `#1a1e24`, border `--foreground` 34%; **a 2px `--primary` line draws down the left edge** (`scale-y-0 → 1`, origin top, 180ms) — the same mark as the hero's highlighted code line; the glyph turns `--foreground` and moves 2px down | `translate-y-px scale-[.985]`, fill one step darker | `relative overflow-hidden before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-primary before:scale-y-0 hover:before:scale-y-100 focus-visible:before:scale-y-100 before:transition-transform` |
 | **link** (text CTA) | underline `--border-strong`, `underline-offset-4`, 14px/500; ↗ (leaves the site) or → (in site) | underline draws to `currentColor`; ↗ moves `translate(2px,-2px)`, → moves 3px right | — | `group-hover:translate-x-0.5 group-hover:-translate-y-0.5` on the ↗ |
 
@@ -256,7 +257,8 @@ Icons: GitHub and the small Go mark in the review-bot picture are logos from **g
 is a one-tone black mark shown white on the dark footer (`ic-ink`, inverted by the kit). **LinkedIn (v4, Flame: make
 it one-colour like GitHub)** is now the one-colour mark from **Simple Icons 10.4.0** (CC0-1.0,
 https://github.com/simple-icons/simple-icons; current Simple Icons releases no longer ship LinkedIn, 10.4.0 does),
-drawn the same way as GitHub: a black SVG shown white (`ic-ink`), 20px, beside its label. In the build use
+drawn the same way as GitHub: a black SVG shown white (`ic-ink`), 24px (corrected 2026-11-13, matches prototype;
+Flame — was 20px), beside its label. In the build use
 `fill="currentColor"` on both inline SVGs with `text-foreground`, so they follow the link colour. All trademarks stay
 their owners' and are used only to name the profiles and tools. The **Stack marks (v3)** are
 one-colour SVGs from **Simple Icons 15.22.0** (`simple-icons`, CC0-1.0, https://github.com/simple-icons/simple-icons;
