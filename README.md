@@ -81,9 +81,55 @@ Self-hosted at build via `next/font` (no request to Google at runtime):
 - [DM Mono](https://fonts.google.com/specimen/DM+Mono) — Colophon Foundry,
   [SIL Open Font License 1.1](https://openfontlicense.org/).
 
-## Deploy and release
+## Deploy
 
-_Added in ticket 17._
+The `Deploy` workflow (`.github/workflows/deploy.yml`) publishes the site to
+GitHub Pages. It triggers on every `push` to `main` and on manual
+`workflow_dispatch`; both its jobs carry `if: github.ref ==
+'refs/heads/main'`, so a manual dispatch from any other branch (including
+`develop`) does nothing. It re-builds the static export, re-runs the
+built-site checks and the release guard (`pnpm test:site` and
+`pnpm check:release`, a second line of defence after the PR guard), then
+uploads and deploys it with the official Pages actions. A single
+`pages` concurrency group with `cancel-in-progress: false` means a deploy in
+progress always finishes before the next one starts.
+
+**`develop` is never deployed.** To preview the production build locally,
+run `pnpm build && pnpm preview` and open `http://localhost:4173`.
+
+The workflow is ready as soon as it lands on `develop`; its first real run
+is the release itself, triggered by merging the release PR into `main` (see
+the checklist below).
+
+## Release checklist
+
+Flame's steps, at release time, in order. The first four happen once; steps
+2 and 3 are things only he can change (repo settings), so agents never
+touch them.
+
+1. Real content is in place in `src/content/site.ts`, and `release-guard`
+   (the CI job that runs only on PRs into `main`) is green on the
+   `develop` → `main` release PR.
+2. Settings → Pages → Source → **GitHub Actions**, right before merging.
+   Never merge while Pages still deploys `main` from a branch: Pages would
+   then publish the Next.js source tree instead of the built site, and
+   `/privacy.html` would 404.
+3. Check that the `github-pages` environment allows `main`. The repo's
+   default branch is `develop`, so the environment's branch rule may only
+   allow `develop` — update it to also allow (or allow only) `main`, or the
+   deploy job's environment gate will block the run.
+4. Merge the release PR with a **merge commit** (per the Coding Standards,
+   so `main` and `develop` stay in sync) and watch the `Deploy` workflow
+   run.
+5. Live checks right after deploy: `/` loads; `/privacy.html` shows the
+   exact policy text; the footer Privacy link works; the Open Graph preview
+   renders (for example by pasting the URL into Discord).
+6. **Rollback** if the deploy fails or `/privacy.html` breaks: revert the
+   release merge commit on `main` (restoring the legacy `index.html` /
+   `privacy.html` that were serving before), and switch Pages back to
+   "Deploy from a branch: `main` / root".
+7. After the first CI run on a PR, add `verify` and `release-guard` as
+   required status checks in the `main`/`develop` branch rulesets.
 
 ## Credits
 
