@@ -1,4 +1,5 @@
 import { AboutSection } from "@/components/about-section";
+import { ContactSection } from "@/components/contact-section";
 import { ExperienceSection } from "@/components/experience-section";
 import { Header } from "@/components/header";
 import { HeroArt } from "@/components/hero-art";
@@ -145,8 +146,10 @@ export function HomeView({ site }: { site: SiteContent }) {
         id="contact"
         title={site.sections.contact.title}
         as="footer"
+        className="border-t border-border bg-[color-mix(in_oklab,var(--background)_72%,#000)]"
       >
-        <LegalRow site={site} />
+        <ContactSection site={site} />
+        <LegalRow site={site} className="mt-6 sm:mt-12" />
       </SectionShell>
     </>
   );

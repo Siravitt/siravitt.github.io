@@ -12,6 +12,14 @@ interface LegalRowProps {
    * content (docs/tickets/04-footer-privacy-404.md, "Decisions").
    */
   variant?: "bordered" | "flush";
+  /**
+   * Extra classes merged last (tailwind-merge via `cn`), so a caller can
+   * override the "bordered" variant's own spacing (e.g. the contact
+   * footer's columns→legal gap, DESIGN.md §6 "footer":
+   * 48px ≥640 / 24px below) without touching the legal text, the rule,
+   * or 04/05's Review Focus 2 tests.
+   */
+  className?: string;
 }
 
 /**
@@ -26,12 +34,14 @@ export function LegalRow({
   site,
   current = false,
   variant = "bordered",
+  className,
 }: LegalRowProps) {
   return (
     <div
       className={cn(
         "flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 text-sm text-muted-foreground",
         variant === "bordered" && "mt-8 border-t border-border pt-5",
+        className,
       )}
     >
       <span>{site.footer.legal}</span>

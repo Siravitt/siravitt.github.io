@@ -99,6 +99,15 @@ SVG from [gilbarbara/logos](https://github.com/gilbarbara/logos) (CC0-1.0),
 copied unchanged to `public/icons/go.svg`. The mark stays Go's trademark;
 it's used only to name the tool in the mock project's drawing.
 
+The GitHub mark in the Contact footer (DESIGN.md §6 "Contact / footer") is a
+one-colour SVG from [gilbarbara/logos](https://github.com/gilbarbara/logos)
+(CC0-1.0), inlined unchanged (path data) in `src/components/icons/github-icon.tsx`
+with `fill="currentColor"`. The LinkedIn mark beside it is a one-colour SVG
+from [Simple Icons](https://github.com/simple-icons/simple-icons) 10.4.0
+(CC0-1.0; current Simple Icons releases no longer ship LinkedIn, 10.4.0 does),
+inlined unchanged in `src/components/icons/linkedin-icon.tsx`. Both marks
+stay their owners' trademarks; they're used only to name the profile links.
+
 ## Legacy root files
 
 `index.html` and `privacy.html` at the repo root were the pre-Next.js site.
