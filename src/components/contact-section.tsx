@@ -4,9 +4,7 @@ import { PlaceholderText } from "@/components/placeholder-text";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import type { SiteContent } from "@/content/site";
-import { isExternalHref } from "@/lib/links";
 import { getVisibleSections, type SectionKey } from "@/lib/sections";
-import { cn } from "cn";
 
 /**
  * The Contact footer's body: the lead line, the GitHub/LinkedIn profile
@@ -43,7 +41,7 @@ export function ContactSection({ site }: { site: SiteContent }) {
         </p>
       ) : null}
 
-      <ul className="mt-6 grid gap-4">
+      <ul className="mt-4 grid gap-4 max-sm:gap-0">
         <li>
           <ProfileLink
             href={contact.github}
@@ -62,48 +60,46 @@ export function ContactSection({ site }: { site: SiteContent }) {
 
       <Button
         size="xl"
-        className="mt-10 w-full sm:w-1/2"
+        className="mt-8 w-full lg:mt-9 sm:w-1/2"
         render={
           <a href={`mailto:${contact.email}`}>
-            {contact.emailLabel}
-            <Kbd size="xl" aria-hidden="true">
+            <span className="min-w-0 flex-1 text-left whitespace-normal">
+              {contact.emailLabel}
+            </span>
+            <Kbd size="xl" aria-hidden="true" className="-mr-1 shrink-0">
               &#8629;
             </Kbd>
           </a>
         }
       />
 
-      <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-border pt-10 sm:grid-cols-12">
-        <p className="col-span-2 max-w-[30ch] text-[18px] leading-[1.6] sm:col-span-6">
+      <div className="mt-12 grid gap-y-6 sm:gap-y-12 lg:grid-cols-12 lg:gap-x-6">
+        <p className="max-w-[30ch] text-[18px] leading-[1.25] font-medium tracking-[-0.028em] lg:col-span-6 lg:text-[20px]">
           <PlaceholderText text={footer.lede} />
         </p>
-        <FooterColumn
-          heading={footer.sectionsHeading}
-          className="sm:col-span-3 sm:col-start-7"
-        >
-          {sectionLinks.map((key) => (
-            <li key={key}>
-              <FooterColumnLink href={`#${key}`}>
-                {sections[key].title}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:col-span-6 lg:col-start-7">
+          <FooterColumn heading={footer.sectionsHeading}>
+            {sectionLinks.map((key) => (
+              <li key={key}>
+                <FooterColumnLink href={`#${key}`}>
+                  {sections[key].title}
+                </FooterColumnLink>
+              </li>
+            ))}
+          </FooterColumn>
+          <FooterColumn heading={footer.elsewhereHeading}>
+            <li>
+              <FooterColumnLink href={contact.github}>
+                {contact.githubLabel}
               </FooterColumnLink>
             </li>
-          ))}
-        </FooterColumn>
-        <FooterColumn
-          heading={footer.elsewhereHeading}
-          className="sm:col-span-3"
-        >
-          <li>
-            <FooterColumnLink href={contact.github}>
-              {contact.githubLabel}
-            </FooterColumnLink>
-          </li>
-          <li>
-            <FooterColumnLink href={contact.linkedin}>
-              {contact.linkedinLabel}
-            </FooterColumnLink>
-          </li>
-        </FooterColumn>
+            <li>
+              <FooterColumnLink href={contact.linkedin}>
+                {contact.linkedinLabel}
+              </FooterColumnLink>
+            </li>
+          </FooterColumn>
+        </div>
       </div>
     </>
   );
@@ -138,24 +134,22 @@ function ProfileLink({
 
 function FooterColumn({
   heading,
-  className,
   children,
 }: {
   heading: string;
-  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("min-w-0", className)}>
-      <h3 className="mb-4 text-[13px] font-medium text-muted-foreground">
+    <div className="min-w-0">
+      <h3 className="mb-4 text-[14px] leading-[1.4] font-medium text-muted-foreground [font-stretch:100%]">
         {heading}
       </h3>
-      <ul className="grid gap-3 text-[14px]">{children}</ul>
+      <ul className="grid gap-3 text-[14px] max-sm:gap-0">{children}</ul>
     </div>
   );
 }
 
-/** A Sections/Elsewhere column link: plain text link, ↗ when it leaves the site, → when it stays (DESIGN.md §6a "Text links"). */
+/** A Sections/Elsewhere column link: plain text, no arrow glyph (DESIGN.md §6a "footer" row; reviewer round 1 fix 5). */
 function FooterColumnLink({
   href,
   children,
@@ -163,24 +157,12 @@ function FooterColumnLink({
   href: string;
   children: React.ReactNode;
 }) {
-  const external = isExternalHref(href);
   return (
     <a
       href={href}
-      className="group inline-flex min-h-11 items-center gap-1 rounded-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="inline-flex items-center rounded-sm font-normal text-foreground hover:underline max-sm:min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {children}
-      <span
-        aria-hidden="true"
-        className={cn(
-          "inline-block transition-transform duration-150",
-          external
-            ? "group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
-            : "group-hover:translate-x-[3px]",
-        )}
-      >
-        {external ? "\u2197" : "\u2192"}
-      </span>
     </a>
   );
 }

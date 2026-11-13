@@ -146,6 +146,7 @@ export function HomeView({ site }: { site: SiteContent }) {
         id="contact"
         title={site.sections.contact.title}
         as="footer"
+        className="border-t border-border bg-[color-mix(in_oklab,var(--background)_72%,#000)]"
       >
         <ContactSection site={site} />
         <LegalRow site={site} />
