@@ -389,7 +389,7 @@ export const site = {
       "He builds APIs and internal tools in Go and Next.js that stay fast under real daily traffic.",
   },
   meta: {
-    title: "Siravit Tanratanavijit: software developer portfolio",
+    title: "Siravit Tanratanavijit: software engineer portfolio",
     description:
       "Projects, stack and experience of Siravit Tanratanavijit, a Bangkok software engineer who builds Go APIs and Next.js tools.",
   },
@@ -486,19 +486,34 @@ export const site = {
       outcome: "Load-tested and cached for 4,000–5,000 daily users",
       tags: ["Go", "Redis", "Kafka", "Kubernetes"],
       // No links: this is the current employer's code (company not named).
+      // The diff visual sits here (ticket 19 review round 2, Daedalus)
+      // so its window's hard-coded Go mark (project-visual.tsx) names a
+      // real Go file, not the TypeScript content file below.
       visual: {
-        kind: "terminal",
+        kind: "diff",
         label:
-          "A terminal running the loan workflow API's test suite, finishing with a pass",
-        title: "loan/workflow-api",
-        branch: "main",
-        command: "go test ./...",
-        results: [
-          { path: "internal/workflow", time: "0.38s" },
-          { path: "internal/cache", time: "0.22s" },
-          { path: "internal/store", time: "0.86s" },
+          "A pull request review comment on workflow-api's internal/loan/service.go: a cached lookup replaces a direct store call",
+        repo: "workflow-api",
+        dir: "internal/loan/",
+        file: "service.go",
+        hunk: "@@ -12,6 +12,6 @@",
+        signature:
+          "func (s *Service) Get(ctx context.Context, id string) (*Loan, error) {",
+        before: "    return s.store.Get(ctx, id)",
+        after: "    return s.cache.GetOrLoad(ctx, id, s.store.Get)",
+        marked: {
+          before: "s.store.Get(ctx, id)",
+          after: "s.cache.GetOrLoad(ctx, id, s.store.Get)",
+        },
+        author: "Siravit",
+        authorInitials: "ST",
+        time: "now",
+        comment: "Read through the cache so repeat lookups skip the database.",
+        context: [
+          "}",
+          "",
+          "func (s *Service) List(ctx context.Context) ([]*Loan, error) {",
         ],
-        summary: "in 1.46s",
       },
     },
     {
@@ -513,7 +528,7 @@ export const site = {
       visual: {
         kind: "checklist",
         label:
-          "A checklist of per-app volume settings: Discord, Spotify and Zoom set, following AirPods, Chrome muted",
+          "A checklist of per-app volume settings: Discord, Spotify and Zoom set, following AirPods, muting Chrome still open",
         title: "Per-app volume",
         items: [
           { text: "Discord at 30%", done: true },
@@ -556,31 +571,23 @@ export const site = {
       outcome: "Live at siravitt.github.io",
       tags: ["Next.js", "TypeScript", "Tailwind CSS", "GitHub Actions"],
       links: { source: "https://github.com/Siravitt/siravitt.github.io" },
-      // Re-points the former review-bot mini-UI at this repo's own
-      // content change (ticket 19 decision): a literal placeholder
-      // marker would trip the release guard if it sat inside this
-      // drawing's `before` text, so the drawn "before" line reads
-      // "(draft)" instead of the real marker.
+      // Terminal visual (ticket 19 review round 2, Daedalus): the diff
+      // window's hard-coded Go mark now sits only beside a real Go file
+      // (the Loan workflow APIs card, above), so this card gets the
+      // terminal mini-UI instead, running this repo's own test suite.
       visual: {
-        kind: "diff",
+        kind: "terminal",
         label:
-          "A pull request review comment on siravitt.github.io's src/content/site.ts: the real role replaces a draft placeholder",
-        repo: "siravitt.github.io",
-        dir: "src/content/",
-        file: "site.ts",
-        hunk: "@@ -374,7 +374,7 @@",
-        signature: "person: {",
-        before: '  role: "Software developer (draft)",',
-        after: '  role: "Software Engineer",',
-        marked: {
-          before: '"Software developer (draft)"',
-          after: '"Software Engineer"',
-        },
-        author: "Siravit",
-        authorInitials: "ST",
-        time: "now",
-        comment: "Real content in, placeholders out.",
-        context: ["  pitch:", '    "He builds APIs and internal tools...",'],
+          "A terminal running this portfolio's test suite across content, components and lib, finishing with a pass",
+        title: "siravitt.github.io",
+        branch: "develop",
+        command: "pnpm test",
+        results: [
+          { path: "src/content", time: "0.42s" },
+          { path: "src/components", time: "2.61s" },
+          { path: "src/lib", time: "0.79s" },
+        ],
+        summary: "in 3.82s",
       },
     },
   ],
@@ -604,6 +611,7 @@ export const site = {
         "Built map features for GIS web apps with Angular and ArcGIS.",
         "His first job in software, shipping features to client projects.",
       ],
+      tags: ["Angular", "ArcGIS"],
     },
     {
       role: "Student",
