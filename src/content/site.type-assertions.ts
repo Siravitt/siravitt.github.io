@@ -41,10 +41,10 @@ export const rejectsFiveHighlights: ExperienceEntry = {
   highlights: ["One", "Two", "Three", "Four", "Five"],
 };
 
-// The compiler rejects a stack icon slug outside the ten approved ones.
+// The compiler rejects a stack icon slug outside the approved list.
 export const rejectsUnknownStackIcon: StackItem = {
   name: "Rust",
-  // @ts-expect-error icon must be one of the ten approved Simple Icons slugs
+  // @ts-expect-error icon must be one of the approved Simple Icons slugs
   icon: "rust",
 };
 

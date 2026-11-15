@@ -30,6 +30,7 @@ One ticket = one engineer card = one PR into `develop` (squash), branch `enginee
 | 15 | [ScrollMotion: focus after jumps and the fallback](15-scroll-motion-component.md) | 14 | The one client component: focus follows in-page jumps (every browser), IntersectionObserver/rAF fallback for browsers without scroll timelines, closes the mobile menu on a link tap |
 | 16 | [Project mini-UI motion (play once)](16-project-demo-motion.md) | 10, 15 | The three mini-UIs play their run once when their card scrolls in (pending Q2) |
 | 17 | [Deploy workflow and release checklist](17-deploy-workflow-release-checklist.md) | 05 | GitHub Actions deploy to Pages from `main` only (guard re-checked before upload); README release checklist + rollback |
+| 19 | [Real content: replace every placeholder and mock in site.ts](19-real-content.md) | 02, 09, 10 | Flame's real copy throughout `site.ts`; `check:release` green for the first time |
 
 Parallel lanes after 03: {04 → 05 → 13, 17}, {04 → 12}, {06}, {07}, {08 → 09 → 10}, {11}. Then 14 → 15 → 16.
 
@@ -72,6 +73,7 @@ Parallel lanes after 03: {04 → 05 → 13, 17}, {04 → 12}, {06}, {07}, {08 �
 
 ## Changes
 - 2026-11-12: first breakdown (17 tickets).
+- 2026-11-16: added ticket 19 (real content), after Flame's facts Q&A with Daedalus.
 
 ## Approval
 - **Approved by Flame 2026-11-12.** Q1 mobile menu → **(a)** no-JS `<details>` menu styled as the design's top sheet (no shadcn Sheet). Q2 project mini-UIs → **(a)** play once (~3 s) when the card scrolls in, no loop, no pause button.

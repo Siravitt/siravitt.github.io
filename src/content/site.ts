@@ -7,14 +7,14 @@
  * below is fixed for every later ticket. Field names may follow TS
  * naming; the meaning and optionality of each field may not change.
  *
- * Every visitor-facing string that isn't real yet starts with the
- * `[Placeholder]` marker (see `src/lib/placeholder.ts`), which the
- * release guard (ticket 05) scans for before anything ships to `main`.
- * Per docs/tickets/README.md decision 1, *every* not-yet-real string is
- * marked this way — including each mock project's text fields and each
- * experience highlight — which puts more tags on the page than the
- * approved prototype shows (it marks one string per block). None of it
- * ships; Flame replaces every marker with real copy before release.
+ * Any visitor-facing string that isn't real yet starts with the
+ * placeholder marker (`PLACEHOLDER_MARKER` in `src/lib/placeholder.ts`);
+ * the release guard (ticket 05, `src/lib/release-guard.ts`) scans the
+ * built site for that marker and a short list of other draft-content
+ * tells before anything ships to `main`. Ticket 19 replaced every
+ * marker and mock project with Flame's real copy from his 2026-11-16
+ * Q&A with Daedalus; the mechanism above stays in place for any future
+ * draft content.
  */
 
 /** The person the site is about. */
@@ -85,16 +85,25 @@ export interface SiteAbout {
   paragraphs: string[];
 }
 
-/** The ten Simple Icons slugs DESIGN.md §6b draws as stack marks. */
+/**
+ * The Simple Icons slugs DESIGN.md §6b draws as stack marks. Ticket 19
+ * adds `apachekafka`, `kubernetes` and `swagger` for the real stack;
+ * AWS has no slug here (simple-icons removed its glyph for a trademark
+ * request), so an AWS `StackItem` omits `icon` and falls back to the
+ * existing name-only row instead.
+ */
 export type StackIconSlug =
   | "go"
   | "typescript"
   | "postgresql"
   | "redis"
+  | "apachekafka"
+  | "swagger"
   | "nextdotjs"
   | "react"
   | "tailwindcss"
   | "docker"
+  | "kubernetes"
   | "githubactions"
   | "git";
 
@@ -263,7 +272,9 @@ export interface Project {
   outcome: string;
   /** Stack tags, joined with " · " when rendered. May be empty. */
   tags: string[];
-  /** e.g. "Mock project" — also a release-guard marker (docs/tickets/README.md decision 2). */
+  /** A short status tag shown above the title, e.g. for a mock or
+   * in-progress project (also a release-guard marker,
+   * docs/tickets/README.md decision 2); unused once content is real. */
   badge?: string;
   links?: ProjectLinks;
   visual?: ProjectVisual;
@@ -370,28 +381,27 @@ export interface SiteContent {
 
 export const site = {
   person: {
-    // Real: Flame's name and GitHub handle are the only non-placeholder
-    // content allowed in v1 (spec, Solution section).
+    // Real: Flame's facts from the 2026-11-16 Q&A with Daedalus.
     name: "Siravit Tanratanavijit",
     shortName: "Siravit",
-    role: "[Placeholder] Software developer, Go and Next.js",
+    role: "Software Engineer",
     pitch:
-      "[Placeholder] One-line pitch in about 20 words: what he builds, who it is for and the result it brings.",
+      "He builds APIs and internal tools in Go and Next.js that stay fast under real daily traffic.",
   },
   meta: {
     title: "Siravit Tanratanavijit: software developer portfolio",
     description:
-      "[Placeholder] Projects, stack and experience of Siravit Tanratanavijit, a software developer who builds Go backends and Next.js frontends.",
+      "Projects, stack and experience of Siravit Tanratanavijit, a Bangkok software engineer who builds Go APIs and Next.js tools.",
   },
   hero: {
     facts: [
-      { label: "Works in", value: "[Placeholder] Go and Next.js" },
+      { label: "Works in", value: "Go and Next.js" },
       {
         label: "Code",
         value: "Siravitt on GitHub",
         href: "https://github.com/Siravitt",
       },
-      { label: "Based in", value: "[Placeholder] City" },
+      { label: "Based in", value: "Bangkok, Thailand" },
     ],
     artLabel:
       "This site's content file open in an editor, beside a finished deploy to GitHub Pages",
@@ -401,28 +411,27 @@ export const site = {
     about: { title: "About" },
     stack: {
       title: "Stack",
-      tagline: "[Placeholder] The languages and tools behind his software.",
-      intro:
-        "[Placeholder] Go and Next.js are his; the other tools stand in until he lists his own.",
+      tagline: "The languages and tools he ships with.",
+      intro: "Go and TypeScript in production, running on AWS and Kubernetes.",
     },
     projects: {
       title: "Projects",
-      tagline: "[Placeholder] Four mock cards stand in for his software work.",
+      tagline:
+        "Fintech APIs, an open-source Mac app and his own AI agent team.",
     },
     experience: {
       title: "Experience",
-      intro:
-        "[Placeholder] Three entries to replace; no employer or date on this page is real.",
+      intro: "From a full-stack bootcamp to fintech APIs.",
     },
     contact: { title: "Contact" },
   },
   about: {
     statement:
-      "[Placeholder] A short paragraph about Siravit: how he came to build software, the kind of problems he likes to own from start to finish, and the team he wants to join next.",
-    highlight: "own from start to finish",
+      "Siravit came to software through Software Park Thailand's Code Camp in 2022 and now builds API workflows for a loan product at a fintech company in Bangkok. He likes to own APIs and internal tools from start to finish.",
+    highlight: "own APIs and internal tools from start to finish",
     paragraphs: [
-      "[Placeholder] A second, shorter paragraph: how he works with a team, from the first spec to the release.",
-      "[Placeholder] An optional third paragraph: what he does outside work that shapes how he builds.",
+      "He starts by grooming the business need with the team, then splits the work into small tasks that ship one at a time.",
+      "Outside work he runs his own team of AI agents that research, plan, schedule and even make short videos, coordinated on a kanban board.",
     ],
   },
   stack: {
@@ -439,6 +448,8 @@ export const site = {
         items: [
           { name: "PostgreSQL", icon: "postgresql" },
           { name: "Redis", icon: "redis" },
+          { name: "Kafka", icon: "apachekafka" },
+          { name: "Swagger", icon: "swagger" },
         ],
       },
       {
@@ -452,6 +463,12 @@ export const site = {
       {
         name: "Infra and tools",
         items: [
+          // AWS has no icon here: simple-icons removed its glyph in a
+          // recent version (trademark request), and the ticket's
+          // direction is to use the existing no-icon text fallback
+          // rather than add a new dependency.
+          { name: "AWS" },
+          { name: "Kubernetes", icon: "kubernetes" },
           { name: "Docker", icon: "docker" },
           { name: "GitHub Actions", icon: "githubactions" },
           { name: "Git", icon: "git" },
@@ -461,145 +478,163 @@ export const site = {
   },
   projects: [
     {
-      title: "[Placeholder] Booking API in Go",
-      summary: "[Placeholder] A REST service for booking shared rooms",
+      title: "Loan workflow APIs",
+      summary: "API workflows for a fintech loan product",
       description:
-        "[Placeholder] Teams double-booked rooms over chat. He built an API that checks for clashes and emails both sides.",
-      role: "[Placeholder] Sole backend developer",
-      outcome: "[Placeholder] No double bookings",
-      tags: ["Go", "PostgreSQL", "Docker"],
-      badge: "Mock project",
-      links: {
-        source: "https://github.com/Siravitt",
-        live: "#projects",
-      },
-      // Mini-UI text is real demo content, not placeholder copy (ticket
-      // 09 decision: it carries no [Placeholder] tag, the title and
-      // badge already mark the project as a mock).
+        "A loan product used by 4,000–5,000 people a day needed its workflow APIs to stay fast under load. He load-tested the service, then added an in-memory Go cache and Redis.",
+      role: "Software Engineer",
+      outcome: "Load-tested and cached for 4,000–5,000 daily users",
+      tags: ["Go", "Redis", "Kafka", "Kubernetes"],
+      // No links: this is the current employer's code (company not named).
       visual: {
         kind: "terminal",
         label:
-          "A terminal running the booking API's test suite, finishing with a pass",
-        title: "booking/api",
+          "A terminal running the loan workflow API's test suite, finishing with a pass",
+        title: "loan/workflow-api",
         branch: "main",
         command: "go test ./...",
         results: [
-          { path: "internal/booking", time: "0.41s" },
-          { path: "internal/notify", time: "0.27s" },
-          { path: "internal/store", time: "0.93s" },
+          { path: "internal/workflow", time: "0.38s" },
+          { path: "internal/cache", time: "0.22s" },
+          { path: "internal/store", time: "0.86s" },
         ],
-        summary: "in 1.61s",
+        summary: "in 1.46s",
       },
     },
     {
-      title: "[Placeholder] Team dashboard in Next.js",
-      summary: "[Placeholder] One page for a small team's open work",
+      title: "Volume Customizer",
+      summary: "Per-app volume control in the macOS menu bar",
       description:
-        "[Placeholder] Tasks lived in three tools. He built a server-rendered page that pulls them together and flags what is due.",
-      role: "[Placeholder] Frontend lead",
-      outcome: "[Placeholder] One page instead of three tools",
-      tags: ["Next.js", "TypeScript", "Tailwind CSS"],
-      badge: "Mock project",
-      links: { source: "https://github.com/Siravitt" },
+        "macOS has one volume slider for everything. He built a free, open-source menu bar app that sets and remembers each app's volume, even when you switch to headphones.",
+      role: "Author and maintainer",
+      outcome: "Open source, installs with Homebrew",
+      tags: ["Swift", "macOS"],
+      links: { source: "https://github.com/Siravitt/Volume-Customizer" },
       visual: {
         kind: "checklist",
-        label: "A checklist of 5 tasks due this week, 3 of them done",
-        title: "Due this week",
+        label:
+          "A checklist of per-app volume settings: Discord, Spotify and Zoom set, following AirPods, Chrome muted",
+        title: "Per-app volume",
         items: [
-          { text: "Ship the task filters", done: true },
-          { text: "Review the sign-in flow", done: true },
-          { text: "Fix the date picker", done: true },
-          { text: "Write the release notes", done: false },
-          { text: "Demo to the team", done: false },
+          { text: "Discord at 30%", done: true },
+          { text: "Spotify at 60%", done: true },
+          { text: "Zoom at 100%", done: true },
+          { text: "Follows AirPods", done: true },
+          { text: "Mute Chrome", done: false },
         ],
       },
     },
     {
-      title: "[Placeholder] Pull request review bot",
-      summary: "[Placeholder] Review comments before a person looks",
+      title: "Personal AI agent team",
+      summary: "AI agents that share one kanban board",
       description:
-        "[Placeholder] Reviews kept catching the same slips. He wrote a bot that reads each pull request and suggests the fix inline.",
-      role: "[Placeholder] Author and maintainer",
-      outcome: "[Placeholder] Fewer review rounds",
-      tags: ["Go", "GitHub Actions"],
-      badge: "Mock project",
-      links: { source: "https://github.com/Siravitt" },
-      // Mini-UI text is real demo content, not placeholder copy (ticket
-      // 09 decision, carried to ticket 10): the prototype's own text.
+        "Research, reminders, plans and content work kept piling up. He set up AI agents with clear roles that pick up cards, hand work to each other and report back.",
+      role: "Designer and operator",
+      outcome: "Research, reminders and short videos handled by agents",
+      tags: ["Python", "AI agents"],
+      // No links: Flame wants this project described in text only.
+      visual: {
+        kind: "checklist",
+        label:
+          "A checklist of today's kanban board: research, a script and a voice quote done, a video render and a reminder still open",
+        title: "Today on the board",
+        items: [
+          { text: "Research: laptop stand specs", done: true },
+          { text: "Script: Reel #5", done: true },
+          { text: "Voice: price quote", done: true },
+          { text: "Render video", done: false },
+          { text: "Reminder at 19:15", done: false },
+        ],
+      },
+    },
+    {
+      title: "This portfolio",
+      summary: "A static Next.js site deployed by GitHub Actions",
+      description:
+        "He wanted one fast page for his work. All the text lives in one typed file, and every push is linted, tested and deployed to GitHub Pages.",
+      role: "Author",
+      outcome: "Live at siravitt.github.io",
+      tags: ["Next.js", "TypeScript", "Tailwind CSS", "GitHub Actions"],
+      links: { source: "https://github.com/Siravitt/siravitt.github.io" },
+      // Re-points the former review-bot mini-UI at this repo's own
+      // content change (ticket 19 decision): a literal placeholder
+      // marker would trip the release guard if it sat inside this
+      // drawing's `before` text, so the drawn "before" line reads
+      // "(draft)" instead of the real marker.
       visual: {
         kind: "diff",
         label:
-          "A pull request review comment on reviewbot's internal/retry.go: the bot's ctx fix is applied",
-        repo: "reviewbot",
-        dir: "internal/",
-        file: "retry.go",
-        hunk: "@@ -12,6 +12,6 @@",
-        signature: "func Do(ctx context.Context) error {",
-        before: "    err := call(context.Background())",
-        after: "    err := call(ctx)",
-        marked: { before: "context.Background()", after: "ctx" },
-        author: "reviewbot",
-        authorInitials: "RB",
+          "A pull request review comment on siravitt.github.io's src/content/site.ts: the real role replaces a draft placeholder",
+        repo: "siravitt.github.io",
+        dir: "src/content/",
+        file: "site.ts",
+        hunk: "@@ -374,7 +374,7 @@",
+        signature: "person: {",
+        before: '  role: "Software developer (draft)",',
+        after: '  role: "Software Engineer",',
+        marked: {
+          before: '"Software developer (draft)"',
+          after: '"Software Engineer"',
+        },
+        author: "Siravit",
+        authorInitials: "ST",
         time: "now",
-        comment: "Pass `ctx` so a cancel stops the retry.",
-        context: ["    if err == nil {", "      return nil", "    }"],
+        comment: "Real content in, placeholders out.",
+        context: ["  pitch:", '    "He builds APIs and internal tools...",'],
       },
-    },
-    {
-      title: "[Placeholder] Command-line deploy tool",
-      summary: "[Placeholder] Build, check and ship a service in one command",
-      description:
-        "[Placeholder] Deploys were a page of manual steps. He wrote a small CLI that runs them in order and stops at the first failure.",
-      role: "[Placeholder] Personal project",
-      outcome: "[Placeholder] Deploys in one command",
-      tags: ["Go", "Docker"],
-      badge: "Mock project",
     },
   ],
   experience: [
     {
-      role: "[Placeholder] Role title",
-      organisation: "[Placeholder] Organisation",
-      start: "[Placeholder] Month Year",
+      role: "Software Engineer",
+      organisation: "Fintech company, Bangkok",
+      start: "Dec 2023",
       highlights: [
-        "[Placeholder] One line on what he owns in this role.",
-        "[Placeholder] One line on a result he delivered, with a number.",
+        "Builds API workflows for a loan product used by 4,000–5,000 people a day.",
+        "Load-tested the service and added a Go in-memory cache and Redis to keep it fast.",
       ],
-      tags: ["Go", "Next.js"],
+      tags: ["Go", "Kafka", "AWS", "Kubernetes"],
     },
     {
-      role: "[Placeholder] Role title",
-      organisation: "[Placeholder] Organisation",
-      start: "[Placeholder] Month Year",
-      end: "[Placeholder] Month Year",
+      role: "Frontend Developer",
+      organisation: "Geotalent Co., Ltd.",
+      start: "May 2023",
+      end: "Nov 2023",
       highlights: [
-        "[Placeholder] One line on the team and the product.",
-        "[Placeholder] One line on what changed because of his work.",
+        "Built map features for GIS web apps with Angular and ArcGIS.",
+        "His first job in software, shipping features to client projects.",
       ],
     },
     {
-      role: "[Placeholder] Role title",
-      organisation: "[Placeholder] Organisation",
-      start: "[Placeholder] Month Year",
-      end: "[Placeholder] Month Year",
+      role: "Student",
+      organisation: "Software Park Thailand Code Camp",
+      // Same-year start/end (ticket 19 decision): the component joins
+      // start/end as "<start> to <end>" with no other same-year
+      // format, so this renders "2022 to 2022" — read literally, not
+      // as a typo, since the full-stack bootcamp ran and ended inside
+      // 2022. Flame approved this literal pair; the component is
+      // unchanged.
+      start: "2022",
+      end: "2022",
       highlights: [
-        "[Placeholder] One line on his first job in software.",
-        "[Placeholder] One line on what he learned there.",
+        "Full-stack JavaScript bootcamp: front end, back end and databases.",
+        "Built an Instagram clone on his own and a Shopee clone with a team.",
       ],
+      tags: ["JavaScript", "React", "Node.js"],
     },
   ],
   contact: {
     intro:
-      "[Placeholder] One line on the roles and projects he wants to hear about.",
-    email: "placeholder@example.com",
+      "Open to full-time, freelance and remote roles in API and internal-tool work.",
+    email: "siravitt.tan@gmail.com",
     emailLabel: "Email Siravit",
     github: "https://github.com/Siravitt",
     githubLabel: "GitHub profile",
-    linkedin: "https://www.linkedin.com/in/placeholder-profile",
+    linkedin: "https://www.linkedin.com/in/siravit-tanratanavijit-137b15244/",
     linkedinLabel: "LinkedIn profile",
   },
   footer: {
-    lede: "[Placeholder] Siravit Tanratanavijit. Projects, stack and experience on one page.",
+    lede: "Siravit Tanratanavijit, software engineer in Bangkok. Projects, stack and experience on one page.",
     legal: "© 2026 Siravit Tanratanavijit",
     sectionsHeading: "Sections",
     elsewhereHeading: "Elsewhere",
