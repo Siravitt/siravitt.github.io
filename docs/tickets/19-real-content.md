@@ -28,18 +28,18 @@ logic changed.
   existing name-only row.
 - None of the four projects carries a `badge` (the ticket's copy has no
   mock projects left).
-- **Review round 2 (Daedalus), the diff/terminal visuals swap:** the
-  diff window's file-header chrome always draws a hard-coded Go mark
-  (`project-visual.tsx`), so the diff visual now sits on **Loan
+- **Visual mapping (diff/terminal swap):** the diff window's
+  file-header chrome always draws a hard-coded Go mark
+  (`project-visual.tsx`), so the diff visual sits on **Loan
   workflow APIs** (a real Go file, `internal/loan/service.go`, no
   company or product named) instead of on this repo's own `site.ts`.
   **This portfolio** gets the terminal visual instead (`pnpm test`
   against this repo). The diff's hunk header (`@@ -12,6 +12,6 @@`)
   matches the component's fixed drawn line numbers 13–16, the same
   pairing the pre-ticket-19 content used.
-- **Review round 2, `meta.title`:** Daedalus's call — `meta.title`
-  changes to `"Siravit Tanratanavijit: software engineer portfolio"`
-  to match the approved `person.role` ("Software Engineer"). The two
+- **`meta.title`:** changes to
+  `"Siravit Tanratanavijit: software engineer portfolio"` to match
+  the approved `person.role` ("Software Engineer"). The two
   `*.alt.txt` files (`src/app/opengraph-image.alt.txt`,
   `twitter-image.alt.txt`) are updated with it — `tests/site/meta.test.ts`
   guards that the built OG/Twitter alt text equals `site.meta.title`.
