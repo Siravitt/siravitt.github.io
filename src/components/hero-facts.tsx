@@ -20,6 +20,28 @@ export function HeroFacts({ site }: { site: SiteContent }) {
 
   return (
     <div className="mt-auto hidden border-t border-border pt-5 lg:block">
+      {/*
+       * Ticket 21 ("Hero fact never wraps at 1440"). Measured with
+       * `Range.getClientRects` (same font, 15px/500 Instrument Sans):
+       * "Go and Next.js" is ~100px wide, one line. This grid's equal
+       * thirds already match DESIGN.md's `dl.hero-facts` spec
+       * (`assets/system.css`: `grid-template-columns: repeat(3,
+       * minmax(0, 1fr))`, i.e. Tailwind's `grid-cols-3`), which gives
+       * this fact a ~168px column at 1440 (~68px of slack) and a
+       * ~105px column at 1024 (~5px of slack) — one line at both
+       * widths with today's copy, confirmed by measurement rather
+       * than changed in code. Keeping the design's own equal-thirds
+       * grid (instead of swapping to `minmax(max-content, auto)`
+       * tracks) also keeps the `dl` itself from ever overflowing: an
+       * `auto`/`max-content` lower bound can't shrink below a long
+       * fact's own text width, so if the three facts' combined
+       * max-content ever exceeds the row's width, that lower bound
+       * forces the grid past its container. `minmax(0, 1fr)` has no
+       * such floor, so a fact that doesn't fit wraps inside its own
+       * column (no `white-space: nowrap`) instead of pushing the row
+       * wider than the hero frame — matching "at narrow widths it may
+       * wrap naturally" and "nothing may overflow".
+       */}
       <dl className="grid grid-cols-3 gap-x-6 gap-y-4">
         {facts.map((fact) => (
           <div key={fact.label}>

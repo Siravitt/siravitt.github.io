@@ -107,4 +107,11 @@ describe("HeroFacts", () => {
     const { container } = render(<HeroFacts site={siteFixture} />);
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("keeps the facts row on DESIGN.md's equal-thirds grid (ticket 21: measured to keep 'Go and Next.js' on one line at 1024 and 1440 without an overflow-prone max-content floor)", () => {
+    const { container } = render(<HeroFacts site={siteFixture} />);
+    const dl = container.querySelector("dl") as HTMLElement;
+    expect(dl.className).toContain("grid-cols-3");
+    expect(dl.className).not.toMatch(/minmax\(max-content/);
+  });
 });

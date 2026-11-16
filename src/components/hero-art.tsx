@@ -65,6 +65,41 @@ const HIGHLIGHT_LINE_INDEX = 3;
 const LINE_HEIGHT_PX = 22;
 
 /**
+ * File-tree entry icon (ticket 21, "File-tree labels"): a small
+ * decorative glyph before each entry's lowercase monospace label.
+ * This is the design's own icon, pixel for pixel —
+ * `design/prototype/assets/layout/demo.css:20`, `.d-side > span i`:
+ * a 14×14 square, 4px corner radius, `background: currentColor`,
+ * `opacity: .3`. That rule draws the *same* shape for every row; the
+ * design does not actually distinguish folders from files, so a
+ * separate folder/file glyph would be inventing a look the design
+ * doesn't have. A plain `<span>` with no markup beyond its className
+ * is also the lightest possible choice: this component sits inside a
+ * static export where every byte of markup here renders twice (once
+ * in the visible DOM, once in Next's RSC hydration payload), so a
+ * filled `<svg>` glyph (one `<path>` per entry kind) or an icon
+ * library's stroke icons measurably cost Lighthouse mobile's
+ * performance score — see the PR for the measured scores. Always
+ * `aria-hidden` and `data-tree-icon` for the tests; the whole tree
+ * already sits inside the picture's `aria-hidden` subtree, so
+ * nothing here changes what a screen reader hears — the labels stay
+ * the file/folder names a sighted visitor sees.
+ */
+const TREE_ICON_CLASSNAME =
+  "size-3.5 shrink-0 rounded-[4px] bg-current opacity-30";
+
+/** The design's own file-tree icon glyph (`demo.css:20`): a 14px rounded square, not a folder/file pictogram. */
+function TreeIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      data-tree-icon="true"
+      className={TREE_ICON_CLASSNAME}
+    />
+  );
+}
+
+/**
  * The hero's drawn code editor + "Deploy to GitHub Pages" card
  * (docs/tickets/06-hero-editor-facts-ctas.md, "Decisions (binding)";
  * DESIGN.md §6 "Hero editor", §2b "Hero frame"). One `role="img"`
@@ -85,12 +120,45 @@ export function HeroArt({ site }: { site: SiteContent }) {
     <div
       role="img"
       aria-label={site.hero.artLabel}
-      className="relative h-full min-h-[360px] rounded-lg bg-frame p-6 max-sm:min-h-[280px] max-sm:p-4 sm:p-8"
+      className="relative h-full min-h-[360px] overflow-hidden rounded-lg bg-frame max-sm:min-h-[280px] sm:min-h-[716px]"
     >
+      {/*
+       * DESIGN.md §2b/§6 "Hero editor", matching the prototype's
+       * `.hero__art > .ly-piece--main` (ticket 21): inset 64px from the
+       * frame's top/left at ≥1024 (`--s-8`), 32px from 640–1023
+       * (`--s-6`), 16px below 640 (`--s-4`), as margin (not absolute
+       * positioning) so this window still drives the frame's own
+       * height the way it did before this ticket — the frame
+       * (`overflow-hidden`, no padding of its own) is a new block
+       * formatting context, so the margin doesn't collapse through it
+       * and the frame's auto height grows to contain it. The right
+       * edge bleeds 28px past the frame's own right edge (`--ly-cut`,
+       * negative margin); a plain block's `width: auto` already fills
+       * what's left after both margins, so no explicit width is
+       * needed. The frame above clips the bleed (`overflow-hidden`),
+       * so it never causes horizontal scroll.
+       *
+       * At ≥640px the frame also carries a `min-h-[716px]` (below
+       * `min-h-[360px]`/`max-sm:min-h-[280px]`) matching the design's
+       * ~716px content box (DESIGN.md item 1; prototype
+       * `layout.css:30` `--ly-hero-h` = `100svh - 72 (nav) - 48 (hgap)
+       * - 64 (hpadb)` = 716 at 900svh): without it the frame's own
+       * auto height (inset + window content only, ~570px) falls short
+       * of the design, so the window ends flush with the frame's
+       * bottom and the last code line sits under the Deploy card
+       * instead of clear of it. The window's own content height is
+       * unchanged, so the floor just makes the frame taller than its
+       * content, leaving sand below the window and matching the
+       * prototype's right-edge-only bleed. Applied from `sm:` (640px,
+       * the same breakpoint the inset/note card already switch on),
+       * not only `lg:` (1024px): the same flush-bottom/under-the-card
+       * overlap measures the same way at 768px, and staying clear at
+       * 640–1023 keeps one rule instead of two.
+       */}
       <div
         aria-hidden="true"
         data-hero-main
-        className="overflow-hidden rounded-md bg-[#17191c] shadow-[0_1px_0_rgb(255_255_255/.06)]"
+        className="mt-4 -mr-7 ml-4 overflow-hidden rounded-md bg-[#17191c] shadow-[0_1px_0_rgb(255_255_255/.06)] sm:mt-8 sm:ml-8 lg:mt-16 lg:ml-16"
       >
         <div className="flex h-9 items-center gap-2 border-b border-white/10 px-3 text-[13px] text-[#9ba3ad]">
           <span className="flex gap-1.5" aria-hidden="true">
@@ -101,19 +169,38 @@ export function HeroArt({ site }: { site: SiteContent }) {
           <span>siravitt.github.io</span>
         </div>
         <div className="flex min-h-[470px] max-sm:min-h-0">
-          <div className="hidden w-32 shrink-0 flex-col gap-1.5 border-r border-white/10 px-3 py-3 text-[13px] text-[#9ba3ad] sm:flex">
-            <span className="text-[11px] tracking-wide text-[#7d8590] uppercase">
+          <div className="hidden w-32 shrink-0 flex-col gap-1.5 border-r border-white/10 px-3 py-3 font-mono text-[13px] text-[#9ba3ad] sm:flex">
+            <span
+              data-tree-group
+              className="text-[11px] tracking-wide text-[#7d8590]"
+            >
               src
             </span>
-            <span>app</span>
-            <span>components</span>
-            <span className="rounded-sm bg-white/10 px-1 text-[#e9ecef]">
+            <span data-tree-item className="flex items-center gap-1.5">
+              <TreeIcon />
+              app
+            </span>
+            <span data-tree-item className="flex items-center gap-1.5">
+              <TreeIcon />
+              components
+            </span>
+            <span
+              data-tree-item
+              className="flex items-center gap-1.5 rounded-sm bg-white/10 px-1 text-[#e9ecef]"
+            >
+              <TreeIcon />
               site.ts
             </span>
-            <span className="mt-1 text-[11px] tracking-wide text-[#7d8590] uppercase">
+            <span
+              data-tree-group
+              className="mt-1 text-[11px] tracking-wide text-[#7d8590]"
+            >
               public
             </span>
-            <span>og.png</span>
+            <span data-tree-item className="flex items-center gap-1.5">
+              <TreeIcon />
+              og.png
+            </span>
           </div>
           <div className="min-w-0 flex-1 px-4 py-3 font-mono text-[13px] leading-[22px] text-[#c9d1d9]">
             {/*
