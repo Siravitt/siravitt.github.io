@@ -174,6 +174,28 @@ describe("ProjectsSection", () => {
     expect(within(article).queryAllByRole("link")).toHaveLength(0);
   });
 
+  it("renders a project's link(s) inside the title row, as the title's next sibling (ticket 20)", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[0];
+    const h3 = within(article).getByRole("heading", { level: 3 });
+    const source = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    const linkContainer = source.closest("span");
+    expect(linkContainer).not.toBeNull();
+    // Same row as the title: one shared parent, link span right after it.
+    expect(linkContainer!.parentElement).toBe(h3.parentElement);
+    expect(h3.nextElementSibling).toBe(linkContainer);
+  });
+
+  it("a project with no links renders the title alone in its row, with no link row at all (ticket 20)", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[2];
+    const h3 = within(article).getByRole("heading", { level: 3 });
+    expect(h3.nextElementSibling).toBeNull();
+    expect(within(article).queryAllByRole("link")).toHaveLength(0);
+  });
+
   it("a project with neither a badge nor links renders no empty top row before its title", () => {
     const bare: Project = {
       ...threeProjects[2],

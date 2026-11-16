@@ -13,17 +13,24 @@ import { cn } from "cn";
  * on phones (docs/tickets/08-projects-cards.md, "Decisions (binding)";
  * DESIGN.md §4, §6 "Project card" / "Project card (bare)", §6a `link`
  * variant). Rendered inside the `<SectionShell id="projects">` ticket
- * 03 already owns; this component is its children only. Ticket 09
- * adds the optional picture panel under a card — nothing here reads
- * `project.visual` yet, on purpose.
+ * 03 already owns; this component is its children only.
  *
  * A project's missing optional fields draw nothing for them (DESIGN.md
- * §8, "Project card (bare)"): no `badge` and no `links` together drop
- * the whole top row (not an empty one); no `links` on its own drops
- * the link row with no empty container; `tags: []` drops the tag line.
+ * §8, "Project card (bare)"): no `badge` drops its own line above the
+ * title; no `links` drops the link span from the title row with no
+ * empty container; `tags: []` drops the tag line.
+ *
+ * Ticket 20: the link(s) sit on the title row itself (title left,
+ * links right-aligned, baseline-aligned, wrapping under the title when
+ * there's no room) instead of a row above it, so a card's title sits at
+ * the same height whether or not it has links. The grid already
+ * stretches both cards of a row to equal height; the visual panel is
+ * pinned to the card's bottom by a flex-grow spacer above it so panels
+ * also line up top and bottom across a row, even when one card's text
+ * runs longer.
+ *
  * Each card carries its position within its row of two (`--i`, 0 or 1)
  * as a ticket-14 scroll-stagger hook only — nothing reads it yet.
- * Ticket 09 adds the optional picture panel under a card's tags.
  */
 export function ProjectsSection({ site }: { site: SiteContent }) {
   const { projects, labels } = site;
@@ -51,7 +58,6 @@ function ProjectCard({
   rowIndex: number;
 }) {
   const hasLinks = Boolean(project.links?.source || project.links?.live);
-  const hasTopRow = Boolean(project.badge) || hasLinks;
 
   return (
     <Card
@@ -60,44 +66,50 @@ function ProjectCard({
       style={{ "--i": rowIndex } as CSSProperties}
       className="min-w-0 gap-0 overflow-visible rounded-none bg-transparent p-0 text-base ring-0"
     >
-      {hasTopRow ? (
-        <div className="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-4">
-          {project.badge ? (
-            <Badge
-              variant="outline"
-              className="h-6 rounded-sm border-border px-3 font-mono text-[13px] text-muted-foreground"
-            >
-              {project.badge}
-            </Badge>
-          ) : (
-            <span />
-          )}
-          {hasLinks ? (
-            <span className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              {project.links?.source ? (
-                <ProjectLink
-                  href={project.links.source}
-                  label={labels.sourceCode}
-                  relation="for"
-                  title={project.title}
-                />
-              ) : null}
-              {project.links?.live ? (
-                <ProjectLink
-                  href={project.links.live}
-                  label={labels.liveDemo}
-                  relation="of"
-                  title={project.title}
-                />
-              ) : null}
-            </span>
-          ) : null}
+      {project.badge ? (
+        <div className="mb-4">
+          <Badge
+            variant="outline"
+            className="h-6 rounded-sm border-border px-3 font-mono text-[13px] text-muted-foreground"
+          >
+            {project.badge}
+          </Badge>
         </div>
       ) : null}
 
-      <h3 className="text-[18px] leading-[1.4] font-medium [font-stretch:100%] lg:text-[20px]">
-        <PlaceholderText text={project.title} />
-      </h3>
+      {/* Ticket 20: the link(s) live on the title row (title left,
+          links right-aligned, `items-baseline` so the link text's
+          baseline meets the title's), not a row above it — the title
+          sits at the same height whether or not a card has links.
+          `flex-wrap` moves the link span under the title when the
+          title is long or the viewport is narrow, instead of
+          overflowing or truncating either one. */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <h3 className="text-[18px] leading-[1.4] font-medium [font-stretch:100%] lg:text-[20px]">
+          <PlaceholderText text={project.title} />
+        </h3>
+        {hasLinks ? (
+          <span className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2">
+            {project.links?.source ? (
+              <ProjectLink
+                href={project.links.source}
+                label={labels.sourceCode}
+                relation="for"
+                title={project.title}
+              />
+            ) : null}
+            {project.links?.live ? (
+              <ProjectLink
+                href={project.links.live}
+                label={labels.liveDemo}
+                relation="of"
+                title={project.title}
+              />
+            ) : null}
+          </span>
+        ) : null}
+      </div>
+
       <p className="mt-2 font-medium">
         <PlaceholderText text={project.summary} />
       </p>
@@ -127,7 +139,22 @@ function ProjectCard({
           {project.tags.join(" \u00b7 ")}
         </p>
       ) : null}
-      {project.visual ? <ProjectVisual visual={project.visual} /> : null}
+      {project.visual ? (
+        <>
+          {/* Equal cards (ticket 20): the grid already stretches both
+              cards of a row to the same height; this spacer absorbs
+              whatever is left over above the fixed-height panel so
+              the panel is flush with the card's bottom in every card
+              — which, since every panel in a row now shares the same
+              bottom and the same fixed height, also makes their tops
+              line up. A plain `mt-auto` on the panel itself would do
+              the same but without a guaranteed minimum gap above it;
+              `min-h-6` keeps the ticket 09 24px breathing room even
+              for the row's tallest card. */}
+          <div aria-hidden="true" className="min-h-6 grow" />
+          <ProjectVisual visual={project.visual} />
+        </>
+      ) : null}
     </Card>
   );
 }
