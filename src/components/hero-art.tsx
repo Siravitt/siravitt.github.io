@@ -73,15 +73,15 @@ const LINE_HEIGHT_PX = 22;
  * `opacity: .3`. That rule draws the *same* shape for every row; the
  * design does not actually distinguish folders from files, so a
  * separate folder/file glyph would be inventing a look the design
- * doesn't have. (An earlier pass here drew two filled 16×16 `<svg>`
- * glyphs instead, one per entry kind; those — and `lucide-react`'s
- * 24×24 stroke icons before them — each render twice in the static
- * export, once in the visible DOM and once in Next's RSC hydration
- * payload, and measurably cost Lighthouse mobile's performance score:
- * see the PR for the measured scores. This plain `<span>`, with no
- * markup beyond its className, measures back at develop's floor.)
- * Always `aria-hidden` and `data-tree-icon` for the tests; the whole
- * tree already sits inside the picture's `aria-hidden` subtree, so
+ * doesn't have. A plain `<span>` with no markup beyond its className
+ * is also the lightest possible choice: this component sits inside a
+ * static export where every byte of markup here renders twice (once
+ * in the visible DOM, once in Next's RSC hydration payload), so a
+ * filled `<svg>` glyph (one `<path>` per entry kind) or an icon
+ * library's stroke icons measurably cost Lighthouse mobile's
+ * performance score — see the PR for the measured scores. Always
+ * `aria-hidden` and `data-tree-icon` for the tests; the whole tree
+ * already sits inside the picture's `aria-hidden` subtree, so
  * nothing here changes what a screen reader hears — the labels stay
  * the file/folder names a sighted visitor sees.
  */
