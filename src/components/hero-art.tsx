@@ -65,53 +65,37 @@ const HIGHLIGHT_LINE_INDEX = 3;
 const LINE_HEIGHT_PX = 22;
 
 /**
- * File-tree entry icons (ticket 21, "File-tree labels"): a small folder
- * or file glyph before each entry's lowercase monospace label. A
- * minimal inline `<svg>` (ticket 21 allows this when "the repo has no
- * fitting icon"), not `lucide-react`: that package's icons are stroke
- * paths with a 24×24 viewBox, several stroke attributes and (for
- * "file") two separate `<path>`s, which made Lighthouse mobile's
- * performance score drop from develop's 98 to 97 — every byte of
- * markup here is rendered twice in the static HTML (once in the
- * visible DOM, once in Next's RSC payload for hydration), so a bigger
- * icon has an outsized effect on page weight. These two are a single
- * filled `<path>` each on a 16×16 viewBox, with no stroke attributes
- * and no explicit width/height (sizing comes from the shared
- * className below), recovering that score (see the PR for the
- * measured before/after). Always `aria-hidden` and `data-tree-icon`
- * for the tests; the whole tree already sits inside the picture's
- * `aria-hidden` subtree, so nothing here changes what a screen reader
- * hears — the labels stay the file/folder names a sighted visitor sees.
+ * File-tree entry icon (ticket 21, "File-tree labels"): a small
+ * decorative glyph before each entry's lowercase monospace label.
+ * This is the design's own icon, pixel for pixel —
+ * `design/prototype/assets/layout/demo.css:20`, `.d-side > span i`:
+ * a 14×14 square, 4px corner radius, `background: currentColor`,
+ * `opacity: .3`. That rule draws the *same* shape for every row; the
+ * design does not actually distinguish folders from files, so a
+ * separate folder/file glyph would be inventing a look the design
+ * doesn't have. (An earlier pass here drew two filled 16×16 `<svg>`
+ * glyphs instead, one per entry kind; those — and `lucide-react`'s
+ * 24×24 stroke icons before them — each render twice in the static
+ * export, once in the visible DOM and once in Next's RSC hydration
+ * payload, and measurably cost Lighthouse mobile's performance score:
+ * see the PR for the measured scores. This plain `<span>`, with no
+ * markup beyond its className, measures back at develop's floor.)
+ * Always `aria-hidden` and `data-tree-icon` for the tests; the whole
+ * tree already sits inside the picture's `aria-hidden` subtree, so
+ * nothing here changes what a screen reader hears — the labels stay
+ * the file/folder names a sighted visitor sees.
  */
-const TREE_ICON_CLASSNAME = "size-3.5 shrink-0 opacity-40";
+const TREE_ICON_CLASSNAME =
+  "size-3.5 shrink-0 rounded-[4px] bg-current opacity-30";
 
-/** A small filled folder glyph (a box with a tab), 16×16 viewBox. */
-function TreeFolderIcon() {
+/** The design's own file-tree icon glyph (`demo.css:20`): a 14px rounded square, not a folder/file pictogram. */
+function TreeIcon() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="currentColor"
+    <span
       aria-hidden="true"
       data-tree-icon="true"
       className={TREE_ICON_CLASSNAME}
-    >
-      <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.26c.4 0 .78.16 1.06.44L7.94 3.5H13.5A1.5 1.5 0 0 1 15 5v7.5A1.5 1.5 0 0 1 13.5 14h-11A1.5 1.5 0 0 1 1 12.5Z" />
-    </svg>
-  );
-}
-
-/** A small filled file glyph (a page with a folded top-right corner), 16×16 viewBox. */
-function TreeFileIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      aria-hidden="true"
-      data-tree-icon="true"
-      className={TREE_ICON_CLASSNAME}
-    >
-      <path d="M3.5 1A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V5.5L9 1Z" />
-    </svg>
+    />
   );
 }
 
@@ -193,18 +177,18 @@ export function HeroArt({ site }: { site: SiteContent }) {
               src
             </span>
             <span data-tree-item className="flex items-center gap-1.5">
-              <TreeFolderIcon />
+              <TreeIcon />
               app
             </span>
             <span data-tree-item className="flex items-center gap-1.5">
-              <TreeFolderIcon />
+              <TreeIcon />
               components
             </span>
             <span
               data-tree-item
               className="flex items-center gap-1.5 rounded-sm bg-white/10 px-1 text-[#e9ecef]"
             >
-              <TreeFileIcon />
+              <TreeIcon />
               site.ts
             </span>
             <span
@@ -214,7 +198,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
               public
             </span>
             <span data-tree-item className="flex items-center gap-1.5">
-              <TreeFileIcon />
+              <TreeIcon />
               og.png
             </span>
           </div>

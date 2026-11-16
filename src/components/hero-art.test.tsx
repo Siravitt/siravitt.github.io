@@ -156,18 +156,18 @@ describe("HeroArt", () => {
     });
   });
 
-  it("keeps every file-tree icon a minimal inline svg (one filled path, 16x16 viewBox, no stroke attributes) rather than a heavier icon library (ticket 21: avoids the Lighthouse mobile regression a bigger icon causes)", () => {
+  it("draws every file-tree icon as the design's own 14px rounded-square glyph, not a folder/file svg or an icon library (ticket 21, demo.css:20; keeps Lighthouse mobile performance at develop's floor)", () => {
     const { container } = render(<HeroArt site={siteFixture} />);
     const icons = container.querySelectorAll("[data-tree-icon]");
     expect(icons).toHaveLength(4);
     icons.forEach((icon) => {
-      expect(icon.tagName).toBe("svg");
-      expect(icon).toHaveAttribute("viewBox", "0 0 16 16");
-      expect(icon).toHaveAttribute("fill", "currentColor");
-      expect(icon).not.toHaveAttribute("stroke");
-      expect(icon).not.toHaveAttribute("width");
-      expect(icon).not.toHaveAttribute("height");
-      expect(icon.querySelectorAll("path")).toHaveLength(1);
+      expect(icon.tagName).toBe("SPAN");
+      expect(icon.className).toContain("size-3.5");
+      expect(icon.className).toContain("rounded-[4px]");
+      expect(icon.className).toContain("bg-current");
+      expect(icon.className).toContain("opacity-30");
+      // No svg/path markup at all (the design's icon is a plain square).
+      expect(icon.querySelectorAll("svg, path")).toHaveLength(0);
     });
   });
 
