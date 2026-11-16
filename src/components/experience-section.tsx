@@ -57,10 +57,9 @@ export function ExperienceSection({ site }: { site: SiteContent }) {
       >
         {experience.map((entry, index) => (
           <ExperienceItem
-            // The three shipped entries share a role and organisation
-            // (all still `[Placeholder]`); the list is static and
-            // ordered, so the index is a stable key (review round 1
-            // fix — a role+organisation key collided across entries).
+            // The list is static and ordered, so the index is a stable
+            // key (review round 1 fix — a role+organisation key
+            // collided across entries).
             key={index}
             entry={entry}
             labels={labels}
