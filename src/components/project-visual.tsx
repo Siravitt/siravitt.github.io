@@ -17,11 +17,13 @@ import { cn } from "cn";
  * accessible name instead: the `img` element already carries that
  * role, so the panel doesn't duplicate it.
  *
- * The panel stretches to fill its card (ticket 10 carried-over fix 2,
- * `min-height` + `flex: 1 0 auto`, matching the approved prototype's
- * `assets/ui/cards.css` `.panel` rule and `site.css`'s `#projects .panel`
- * override: 228px desktop, 200px phone), so every panel in a row of
- * cards bottoms out together even when one card's text runs longer.
+ * The panel is a fixed height (`min-height` with nothing to grow it,
+ * matching the approved prototype's `assets/ui/cards.css` `.panel`
+ * rule and `site.css`'s `#projects .panel` override: 228px desktop,
+ * 200px phone). `projects-section.tsx` pins it to the bottom of its
+ * card with a flex-grow spacer above it (ticket 20), so every panel in
+ * a row of cards tops and bottoms out together even when one card's
+ * text runs longer.
  */
 export function ProjectVisual({ visual }: { visual: ProjectVisualData }) {
   if (visual.kind === "image") {
@@ -94,7 +96,7 @@ function Panel({
       role={role}
       aria-label={ariaLabel}
       data-mini-ui={motion ? "" : undefined}
-      className="frame-mesh relative mt-6 min-h-[228px] grow shrink-0 overflow-hidden rounded-lg max-sm:min-h-[200px]"
+      className="frame-mesh relative min-h-[228px] shrink-0 overflow-hidden rounded-lg max-sm:min-h-[200px]"
     >
       {children}
     </div>
