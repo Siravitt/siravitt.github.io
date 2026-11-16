@@ -97,7 +97,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
     <div
       role="img"
       aria-label={site.hero.artLabel}
-      className="relative h-full min-h-[360px] overflow-hidden rounded-lg bg-frame max-sm:min-h-[280px]"
+      className="relative h-full min-h-[360px] overflow-hidden rounded-lg bg-frame max-sm:min-h-[280px] sm:min-h-[716px]"
     >
       {/*
        * DESIGN.md §2b/§6 "Hero editor", matching the prototype's
@@ -114,6 +114,25 @@ export function HeroArt({ site }: { site: SiteContent }) {
        * what's left after both margins, so no explicit width is
        * needed. The frame above clips the bleed (`overflow-hidden`),
        * so it never causes horizontal scroll.
+       *
+       * Review round 2: at ≥1024 the frame's own auto height (inset +
+       * window content, ~570px) fell well short of the design's ~716px
+       * (DESIGN.md item 1; prototype `layout.css:30` `--ly-hero-h` =
+       * `100svh - 72 (nav) - 48 (hgap) - 64 (hpadb)` = 716 at 900svh),
+       * so the window ended flush with the frame's bottom and the last
+       * code line sat under the Deploy card. Fixed with an equivalent
+       * `min-h-[716px]` on the frame (below `min-h-[360px]`/
+       * `max-sm:min-h-[280px]`) instead of reproducing the full `svh`
+       * formula: the window's own content height is unchanged, so the
+       * frame is now taller than its content and the window ends with
+       * sand below it, matching the prototype's right-edge-only bleed.
+       * Applied from `sm:` (640px, the same breakpoint the inset/note
+       * card already switch on), not only `lg:` (1024px): the same
+       * flush-bottom/under-the-card overlap measured the same way at
+       * 768px (card item 1 allows either staying clear at 640–1023 or
+       * explaining a cut there citing the prototype; staying clear is
+       * simpler and consistent with ≥1024, so this keeps one rule
+       * instead of two).
        */}
       <div
         aria-hidden="true"

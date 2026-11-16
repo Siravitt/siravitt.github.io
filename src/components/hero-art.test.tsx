@@ -172,4 +172,14 @@ describe("HeroArt", () => {
     expect(main.className).toContain("-mr-7");
     expect(main.className).not.toMatch(/\babsolute\b/);
   });
+
+  it("gives the frame a ≥640px min-height matching the design's ~716px content box, so the window ends with sand below it instead of flush with the frame's bottom (ticket 21 review round 2)", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    const art = screen.getByRole("img", { name: siteFixture.hero.artLabel });
+    // DESIGN.md item 1 / prototype `layout.css:30`'s `--ly-hero-h`:
+    // `100svh - 72 (nav) - 48 (hgap) - 64 (hpadb)` = 716 at 900svh.
+    expect(art.className).toContain("sm:min-h-[716px]");
+    expect(art.className).toContain("min-h-[360px]");
+    expect(container.querySelector("[data-hero-main]")).not.toBeNull();
+  });
 });

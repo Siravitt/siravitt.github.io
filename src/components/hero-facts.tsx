@@ -21,17 +21,39 @@ export function HeroFacts({ site }: { site: SiteContent }) {
   return (
     <div className="mt-auto hidden border-t border-border pt-5 lg:block">
       {/*
-       * Ticket 21 ("Hero fact never wraps at 1440"): three equal
-       * (`grid-cols-3`) thirds sized a real value ("Go and Next.js")
-       * exactly as wide as its column, with zero margin — any
-       * sub-pixel difference in font metrics wrapped it. Auto columns
-       * size each one to its own content instead, so a short value
-       * never gets force-wrapped by an arbitrary equal share; a value
-       * that's genuinely too long for the row can still wrap (no
-       * `white-space: nowrap` here), matching "at narrow widths it
-       * may wrap naturally".
+       * Ticket 21 ("Hero fact never wraps at 1440"), round 2.
+       * Measured with `Range.getClientRects` / Canvas text metrics
+       * (same font, 15px/500 Instrument Sans): "Go and Next.js" is
+       * ~100px wide, one line. Develop's equal `grid-cols-3` thirds
+       * gave this fact ~168px at 1440 — ~68px of real slack, not the
+       * "zero margin" this comment wrongly claimed in round 1 (that
+       * number was actually the *other* candidate's own shrunk column
+       * width, not the text). So develop was never truly at risk at
+       * 1440 with today's copy; round 1's `grid-cols-[repeat(3,auto)]`
+       * swap was unnecessary there and, by letting the grid's
+       * "Maximize Tracks" step hand each column's *max* track equal
+       * leftover space while its *min* track stayed the implicit
+       * `auto` (= min-content), it let columns shrink **below** their
+       * own text's max-content under negative free space — exactly
+       * what happened at 1024 (this fact's column landed at 98.77px,
+       * under the text's 100.09px, forcing a 2-line wrap that develop
+       * (105.36px, 1 line) didn't have.
+       *
+       * Fix: `minmax(max-content,auto)` keeps the same flexible `auto`
+       * upper bound (so a short value still doesn't get force-wrapped
+       * by a fixed equal share) but raises the *lower* bound to each
+       * column's own max-content, so no column can ever shrink enough
+       * to wrap a fact that fits on one line unwrapped. Verified: 1
+       * line at 390/768(hidden)/1024/1280/1440/1920 and
+       * `scrollWidth === clientWidth` throughout — when the three
+       * facts' combined max-content would exceed the row's own width,
+       * the grid (and the `dl`) shrink to fit instead of overflowing
+       * the page, so nothing triggers horizontal scroll; a fact value
+       * long enough to not fit at all still wraps inside its own
+       * column (no `white-space: nowrap`), matching "at narrow widths
+       * it may wrap naturally".
        */}
-      <dl className="grid grid-cols-[repeat(3,auto)] gap-x-6 gap-y-4">
+      <dl className="grid grid-cols-[repeat(3,minmax(max-content,auto))] gap-x-6 gap-y-4">
         {facts.map((fact) => (
           <div key={fact.label}>
             <dt className="text-[13px] font-medium text-muted-foreground">
