@@ -1,3 +1,4 @@
+import { File, Folder } from "lucide-react";
 import type { SiteContent } from "@/content/site";
 
 /**
@@ -65,6 +66,17 @@ const HIGHLIGHT_LINE_INDEX = 3;
 const LINE_HEIGHT_PX = 22;
 
 /**
+ * File-tree entry icons (ticket 21, "File-tree labels"): a small folder
+ * or file glyph before each entry's lowercase monospace label. Reuses
+ * `lucide-react` (already a dependency, unused elsewhere) rather than
+ * adding a new icon source. Always `aria-hidden` and `data-tree-icon`
+ * for the tests; the whole tree already sits inside the picture's
+ * `aria-hidden` subtree, so nothing here changes what a screen reader
+ * hears — the labels stay the file/folder names a sighted visitor sees.
+ */
+const TREE_ICON_CLASSNAME = "size-3.5 shrink-0 opacity-40";
+
+/**
  * The hero's drawn code editor + "Deploy to GitHub Pages" card
  * (docs/tickets/06-hero-editor-facts-ctas.md, "Decisions (binding)";
  * DESIGN.md §6 "Hero editor", §2b "Hero frame"). One `role="img"`
@@ -85,12 +97,28 @@ export function HeroArt({ site }: { site: SiteContent }) {
     <div
       role="img"
       aria-label={site.hero.artLabel}
-      className="relative h-full min-h-[360px] rounded-lg bg-frame p-6 max-sm:min-h-[280px] max-sm:p-4 sm:p-8"
+      className="relative h-full min-h-[360px] overflow-hidden rounded-lg bg-frame max-sm:min-h-[280px]"
     >
+      {/*
+       * DESIGN.md §2b/§6 "Hero editor", matching the prototype's
+       * `.hero__art > .ly-piece--main` (ticket 21): inset 64px from the
+       * frame's top/left at ≥1024 (`--s-8`), 32px from 640–1023
+       * (`--s-6`), 16px below 640 (`--s-4`), as margin (not absolute
+       * positioning) so this window still drives the frame's own
+       * height the way it did before this ticket — the frame
+       * (`overflow-hidden`, no padding of its own) is a new block
+       * formatting context, so the margin doesn't collapse through it
+       * and the frame's auto height grows to contain it. The right
+       * edge bleeds 28px past the frame's own right edge (`--ly-cut`,
+       * negative margin); a plain block's `width: auto` already fills
+       * what's left after both margins, so no explicit width is
+       * needed. The frame above clips the bleed (`overflow-hidden`),
+       * so it never causes horizontal scroll.
+       */}
       <div
         aria-hidden="true"
         data-hero-main
-        className="overflow-hidden rounded-md bg-[#17191c] shadow-[0_1px_0_rgb(255_255_255/.06)]"
+        className="mt-4 -mr-7 ml-4 overflow-hidden rounded-md bg-[#17191c] shadow-[0_1px_0_rgb(255_255_255/.06)] sm:mt-8 sm:ml-8 lg:mt-16 lg:ml-16"
       >
         <div className="flex h-9 items-center gap-2 border-b border-white/10 px-3 text-[13px] text-[#9ba3ad]">
           <span className="flex gap-1.5" aria-hidden="true">
@@ -101,19 +129,54 @@ export function HeroArt({ site }: { site: SiteContent }) {
           <span>siravitt.github.io</span>
         </div>
         <div className="flex min-h-[470px] max-sm:min-h-0">
-          <div className="hidden w-32 shrink-0 flex-col gap-1.5 border-r border-white/10 px-3 py-3 text-[13px] text-[#9ba3ad] sm:flex">
-            <span className="text-[11px] tracking-wide text-[#7d8590] uppercase">
+          <div className="hidden w-32 shrink-0 flex-col gap-1.5 border-r border-white/10 px-3 py-3 font-mono text-[13px] text-[#9ba3ad] sm:flex">
+            <span
+              data-tree-group
+              className="text-[11px] tracking-wide text-[#7d8590]"
+            >
               src
             </span>
-            <span>app</span>
-            <span>components</span>
-            <span className="rounded-sm bg-white/10 px-1 text-[#e9ecef]">
+            <span data-tree-item className="flex items-center gap-1.5">
+              <Folder
+                aria-hidden="true"
+                data-tree-icon
+                className={TREE_ICON_CLASSNAME}
+              />
+              app
+            </span>
+            <span data-tree-item className="flex items-center gap-1.5">
+              <Folder
+                aria-hidden="true"
+                data-tree-icon
+                className={TREE_ICON_CLASSNAME}
+              />
+              components
+            </span>
+            <span
+              data-tree-item
+              className="flex items-center gap-1.5 rounded-sm bg-white/10 px-1 text-[#e9ecef]"
+            >
+              <File
+                aria-hidden="true"
+                data-tree-icon
+                className={TREE_ICON_CLASSNAME}
+              />
               site.ts
             </span>
-            <span className="mt-1 text-[11px] tracking-wide text-[#7d8590] uppercase">
+            <span
+              data-tree-group
+              className="mt-1 text-[11px] tracking-wide text-[#7d8590]"
+            >
               public
             </span>
-            <span>og.png</span>
+            <span data-tree-item className="flex items-center gap-1.5">
+              <File
+                aria-hidden="true"
+                data-tree-icon
+                className={TREE_ICON_CLASSNAME}
+              />
+              og.png
+            </span>
           </div>
           <div className="min-w-0 flex-1 px-4 py-3 font-mono text-[13px] leading-[22px] text-[#c9d1d9]">
             {/*

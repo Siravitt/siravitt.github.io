@@ -115,4 +115,61 @@ describe("HeroArt", () => {
     expect(container.querySelectorAll("[data-hero-main]")).toHaveLength(1);
     expect(container.querySelectorAll("[data-hero-note]")).toHaveLength(1);
   });
+
+  it("renders the file-tree's two group labels and four entries lowercase, in monospace (ticket 21, DESIGN.md §6 'Hero editor')", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    const tree = container.querySelector(
+      "[data-hero-main] .font-mono",
+    ) as HTMLElement;
+    expect(tree).not.toBeNull();
+
+    const groups = Array.from(tree.querySelectorAll("[data-tree-group]")).map(
+      (el) => el.textContent,
+    );
+    expect(groups).toEqual(["src", "public"]);
+
+    const items = Array.from(tree.querySelectorAll("[data-tree-item]")).map(
+      (el) => el.textContent?.trim(),
+    );
+    expect(items).toEqual(["app", "components", "site.ts", "og.png"]);
+
+    // No group or entry label is upper-cased by a text-transform class.
+    [...tree.querySelectorAll("[data-tree-group], [data-tree-item]")].forEach(
+      (el) => {
+        expect(el.className).not.toMatch(/\buppercase\b/);
+      },
+    );
+  });
+
+  it("gives every file-tree entry a decorative, aria-hidden icon (ticket 21)", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    const items = container.querySelectorAll("[data-tree-item]");
+    expect(items).toHaveLength(4);
+    items.forEach((item) => {
+      const icons = item.querySelectorAll("[data-tree-icon]");
+      expect(icons).toHaveLength(1);
+      expect(icons[0]).toHaveAttribute("aria-hidden", "true");
+    });
+    // The group labels (not individual entries) carry no icon.
+    container.querySelectorAll("[data-tree-group]").forEach((group) => {
+      expect(group.querySelectorAll("[data-tree-icon]")).toHaveLength(0);
+    });
+  });
+
+  it("insets the editor window from the frame by margin (so the frame's own auto height still grows to contain it) and bleeds its right edge, clipped by the frame's overflow-hidden (ticket 21)", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    const art = screen.getByRole("img", { name: siteFixture.hero.artLabel });
+    expect(art.className).toMatch(/\boverflow-hidden\b/);
+    const main = container.querySelector("[data-hero-main]") as HTMLElement;
+    // Literal inset/bleed values from DESIGN.md's prototype tokens
+    // (`--s-4` 16px, `--s-6` 32px, `--s-8` 64px, `--ly-cut` 28px).
+    expect(main.className).toContain("mt-4");
+    expect(main.className).toContain("ml-4");
+    expect(main.className).toContain("sm:mt-8");
+    expect(main.className).toContain("sm:ml-8");
+    expect(main.className).toContain("lg:mt-16");
+    expect(main.className).toContain("lg:ml-16");
+    expect(main.className).toContain("-mr-7");
+    expect(main.className).not.toMatch(/\babsolute\b/);
+  });
 });

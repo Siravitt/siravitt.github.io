@@ -107,4 +107,11 @@ describe("HeroFacts", () => {
     const { container } = render(<HeroFacts site={siteFixture} />);
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("sizes the facts row's columns to each fact's own content, not a fixed equal third (ticket 21: 'Go and Next.js' must not wrap at 1440)", () => {
+    const { container } = render(<HeroFacts site={siteFixture} />);
+    const dl = container.querySelector("dl") as HTMLElement;
+    expect(dl.className).toContain("grid-cols-[repeat(3,auto)]");
+    expect(dl.className).not.toContain("grid-cols-3");
+  });
 });

@@ -20,7 +20,18 @@ export function HeroFacts({ site }: { site: SiteContent }) {
 
   return (
     <div className="mt-auto hidden border-t border-border pt-5 lg:block">
-      <dl className="grid grid-cols-3 gap-x-6 gap-y-4">
+      {/*
+       * Ticket 21 ("Hero fact never wraps at 1440"): three equal
+       * (`grid-cols-3`) thirds sized a real value ("Go and Next.js")
+       * exactly as wide as its column, with zero margin — any
+       * sub-pixel difference in font metrics wrapped it. Auto columns
+       * size each one to its own content instead, so a short value
+       * never gets force-wrapped by an arbitrary equal share; a value
+       * that's genuinely too long for the row can still wrap (no
+       * `white-space: nowrap` here), matching "at narrow widths it
+       * may wrap naturally".
+       */}
+      <dl className="grid grid-cols-[repeat(3,auto)] gap-x-6 gap-y-4">
         {facts.map((fact) => (
           <div key={fact.label}>
             <dt className="text-[13px] font-medium text-muted-foreground">
