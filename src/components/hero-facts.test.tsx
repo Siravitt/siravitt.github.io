@@ -108,12 +108,10 @@ describe("HeroFacts", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("sizes the facts row's columns so none can shrink below its own content's max-content (ticket 21: 'Go and Next.js' must not wrap at 1440, and must not regress to a 2-line wrap at 1024 either)", () => {
+  it("keeps the facts row on DESIGN.md's equal-thirds grid (ticket 21: measured to keep 'Go and Next.js' on one line at 1024 and 1440 without an overflow-prone max-content floor)", () => {
     const { container } = render(<HeroFacts site={siteFixture} />);
     const dl = container.querySelector("dl") as HTMLElement;
-    expect(dl.className).toContain(
-      "grid-cols-[repeat(3,minmax(max-content,auto))]",
-    );
-    expect(dl.className).not.toContain("grid-cols-3");
+    expect(dl.className).toContain("grid-cols-3");
+    expect(dl.className).not.toMatch(/minmax\(max-content/);
   });
 });

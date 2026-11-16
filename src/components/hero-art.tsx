@@ -1,4 +1,3 @@
-import { File, Folder } from "lucide-react";
 import type { SiteContent } from "@/content/site";
 
 /**
@@ -67,14 +66,54 @@ const LINE_HEIGHT_PX = 22;
 
 /**
  * File-tree entry icons (ticket 21, "File-tree labels"): a small folder
- * or file glyph before each entry's lowercase monospace label. Reuses
- * `lucide-react` (already a dependency, unused elsewhere) rather than
- * adding a new icon source. Always `aria-hidden` and `data-tree-icon`
+ * or file glyph before each entry's lowercase monospace label. A
+ * minimal inline `<svg>` (ticket 21 allows this when "the repo has no
+ * fitting icon"), not `lucide-react`: that package's icons are stroke
+ * paths with a 24×24 viewBox, several stroke attributes and (for
+ * "file") two separate `<path>`s, which made Lighthouse mobile's
+ * performance score drop from develop's 98 to 97 — every byte of
+ * markup here is rendered twice in the static HTML (once in the
+ * visible DOM, once in Next's RSC payload for hydration), so a bigger
+ * icon has an outsized effect on page weight. These two are a single
+ * filled `<path>` each on a 16×16 viewBox, with no stroke attributes
+ * and no explicit width/height (sizing comes from the shared
+ * className below), recovering that score (see the PR for the
+ * measured before/after). Always `aria-hidden` and `data-tree-icon`
  * for the tests; the whole tree already sits inside the picture's
  * `aria-hidden` subtree, so nothing here changes what a screen reader
  * hears — the labels stay the file/folder names a sighted visitor sees.
  */
 const TREE_ICON_CLASSNAME = "size-3.5 shrink-0 opacity-40";
+
+/** A small filled folder glyph (a box with a tab), 16×16 viewBox. */
+function TreeFolderIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+      data-tree-icon="true"
+      className={TREE_ICON_CLASSNAME}
+    >
+      <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.26c.4 0 .78.16 1.06.44L7.94 3.5H13.5A1.5 1.5 0 0 1 15 5v7.5A1.5 1.5 0 0 1 13.5 14h-11A1.5 1.5 0 0 1 1 12.5Z" />
+    </svg>
+  );
+}
+
+/** A small filled file glyph (a page with a folded top-right corner), 16×16 viewBox. */
+function TreeFileIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+      data-tree-icon="true"
+      className={TREE_ICON_CLASSNAME}
+    >
+      <path d="M3.5 1A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V5.5L9 1Z" />
+    </svg>
+  );
+}
 
 /**
  * The hero's drawn code editor + "Deploy to GitHub Pages" card
@@ -115,24 +154,22 @@ export function HeroArt({ site }: { site: SiteContent }) {
        * needed. The frame above clips the bleed (`overflow-hidden`),
        * so it never causes horizontal scroll.
        *
-       * Review round 2: at ≥1024 the frame's own auto height (inset +
-       * window content, ~570px) fell well short of the design's ~716px
-       * (DESIGN.md item 1; prototype `layout.css:30` `--ly-hero-h` =
-       * `100svh - 72 (nav) - 48 (hgap) - 64 (hpadb)` = 716 at 900svh),
-       * so the window ended flush with the frame's bottom and the last
-       * code line sat under the Deploy card. Fixed with an equivalent
-       * `min-h-[716px]` on the frame (below `min-h-[360px]`/
-       * `max-sm:min-h-[280px]`) instead of reproducing the full `svh`
-       * formula: the window's own content height is unchanged, so the
-       * frame is now taller than its content and the window ends with
-       * sand below it, matching the prototype's right-edge-only bleed.
-       * Applied from `sm:` (640px, the same breakpoint the inset/note
-       * card already switch on), not only `lg:` (1024px): the same
-       * flush-bottom/under-the-card overlap measured the same way at
-       * 768px (card item 1 allows either staying clear at 640–1023 or
-       * explaining a cut there citing the prototype; staying clear is
-       * simpler and consistent with ≥1024, so this keeps one rule
-       * instead of two).
+       * At ≥640px the frame also carries a `min-h-[716px]` (below
+       * `min-h-[360px]`/`max-sm:min-h-[280px]`) matching the design's
+       * ~716px content box (DESIGN.md item 1; prototype
+       * `layout.css:30` `--ly-hero-h` = `100svh - 72 (nav) - 48 (hgap)
+       * - 64 (hpadb)` = 716 at 900svh): without it the frame's own
+       * auto height (inset + window content only, ~570px) falls short
+       * of the design, so the window ends flush with the frame's
+       * bottom and the last code line sits under the Deploy card
+       * instead of clear of it. The window's own content height is
+       * unchanged, so the floor just makes the frame taller than its
+       * content, leaving sand below the window and matching the
+       * prototype's right-edge-only bleed. Applied from `sm:` (640px,
+       * the same breakpoint the inset/note card already switch on),
+       * not only `lg:` (1024px): the same flush-bottom/under-the-card
+       * overlap measures the same way at 768px, and staying clear at
+       * 640–1023 keeps one rule instead of two.
        */}
       <div
         aria-hidden="true"
@@ -156,30 +193,18 @@ export function HeroArt({ site }: { site: SiteContent }) {
               src
             </span>
             <span data-tree-item className="flex items-center gap-1.5">
-              <Folder
-                aria-hidden="true"
-                data-tree-icon
-                className={TREE_ICON_CLASSNAME}
-              />
+              <TreeFolderIcon />
               app
             </span>
             <span data-tree-item className="flex items-center gap-1.5">
-              <Folder
-                aria-hidden="true"
-                data-tree-icon
-                className={TREE_ICON_CLASSNAME}
-              />
+              <TreeFolderIcon />
               components
             </span>
             <span
               data-tree-item
               className="flex items-center gap-1.5 rounded-sm bg-white/10 px-1 text-[#e9ecef]"
             >
-              <File
-                aria-hidden="true"
-                data-tree-icon
-                className={TREE_ICON_CLASSNAME}
-              />
+              <TreeFileIcon />
               site.ts
             </span>
             <span
@@ -189,11 +214,7 @@ export function HeroArt({ site }: { site: SiteContent }) {
               public
             </span>
             <span data-tree-item className="flex items-center gap-1.5">
-              <File
-                aria-hidden="true"
-                data-tree-icon
-                className={TREE_ICON_CLASSNAME}
-              />
+              <TreeFileIcon />
               og.png
             </span>
           </div>

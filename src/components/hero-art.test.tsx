@@ -156,6 +156,21 @@ describe("HeroArt", () => {
     });
   });
 
+  it("keeps every file-tree icon a minimal inline svg (one filled path, 16x16 viewBox, no stroke attributes) rather than a heavier icon library (ticket 21: avoids the Lighthouse mobile regression a bigger icon causes)", () => {
+    const { container } = render(<HeroArt site={siteFixture} />);
+    const icons = container.querySelectorAll("[data-tree-icon]");
+    expect(icons).toHaveLength(4);
+    icons.forEach((icon) => {
+      expect(icon.tagName).toBe("svg");
+      expect(icon).toHaveAttribute("viewBox", "0 0 16 16");
+      expect(icon).toHaveAttribute("fill", "currentColor");
+      expect(icon).not.toHaveAttribute("stroke");
+      expect(icon).not.toHaveAttribute("width");
+      expect(icon).not.toHaveAttribute("height");
+      expect(icon.querySelectorAll("path")).toHaveLength(1);
+    });
+  });
+
   it("insets the editor window from the frame by margin (so the frame's own auto height still grows to contain it) and bleeds its right edge, clipped by the frame's overflow-hidden (ticket 21)", () => {
     const { container } = render(<HeroArt site={siteFixture} />);
     const art = screen.getByRole("img", { name: siteFixture.hero.artLabel });
@@ -173,7 +188,7 @@ describe("HeroArt", () => {
     expect(main.className).not.toMatch(/\babsolute\b/);
   });
 
-  it("gives the frame a ≥640px min-height matching the design's ~716px content box, so the window ends with sand below it instead of flush with the frame's bottom (ticket 21 review round 2)", () => {
+  it("gives the frame a ≥640px min-height matching the design's ~716px content box, so the window ends with sand below it instead of flush with the frame's bottom (ticket 21)", () => {
     const { container } = render(<HeroArt site={siteFixture} />);
     const art = screen.getByRole("img", { name: siteFixture.hero.artLabel });
     // DESIGN.md item 1 / prototype `layout.css:30`'s `--ly-hero-h`:
