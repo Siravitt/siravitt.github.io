@@ -85,7 +85,13 @@ function ProjectCard({
           title is long or the viewport is narrow, instead of
           overflowing or truncating either one. */}
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <h3 className="text-[18px] leading-[1.4] font-medium [font-stretch:100%] lg:text-[20px]">
+        {/* A flex item's default `min-width` is its min-content width,
+            not 0 — a single unbroken word in the title would otherwise
+            refuse to shrink below that width and push the row (and the
+            page) wider than the viewport, even with `break-words`
+            elsewhere. `min-w-0` lets the title shrink and wrap/break
+            normally inside the flex row. */}
+        <h3 className="min-w-0 text-[18px] leading-[1.4] font-medium [font-stretch:100%] lg:text-[20px]">
           <PlaceholderText text={project.title} />
         </h3>
         {hasLinks ? (
