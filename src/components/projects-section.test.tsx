@@ -1,0 +1,675 @@
+import { describe, expect, it } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import { axe } from "vitest-axe";
+import type { Project, SiteContent } from "@/content/site";
+import { ProjectsSection } from "@/components/projects-section";
+import { siteFixture } from "@/test/fixtures/site";
+
+/**
+ * Three projects covering the link-count matrix the ticket's acceptance
+ * criteria ask for (docs/tickets/08-projects-cards.md): two links, one
+ * link, no links. Independent of `siteFixture.projects` (which is tuned
+ * for other tickets) so this file owns its own fixture, per the repo's
+ * "spread/override, never mutate the shared fixture" convention.
+ */
+const threeProjects: Project[] = [
+  {
+    title: "Fixture project one",
+    summary: "Fixture summary one",
+    description: "Fixture description one",
+    role: "Fixture role one",
+    outcome: "Fixture outcome one",
+    tags: ["Tag one", "Tag two"],
+    badge: "Mock project",
+    links: {
+      source: "https://example.com/source-one",
+      live: "https://example.com/live-one",
+    },
+  },
+  {
+    title: "Fixture project two",
+    summary: "Fixture summary two",
+    description: "Fixture description two",
+    role: "Fixture role two",
+    outcome: "Fixture outcome two",
+    tags: ["Tag three"],
+    links: { source: "https://example.com/source-two" },
+  },
+  {
+    title: "Fixture project three",
+    summary: "Fixture summary three",
+    description: "Fixture description three",
+    role: "Fixture role three",
+    outcome: "Fixture outcome three",
+    tags: ["Tag four"],
+    badge: "Mock project",
+  },
+];
+
+function siteWithProjects(projects: Project[]): SiteContent {
+  return { ...siteFixture, projects };
+}
+
+describe("ProjectsSection", () => {
+  it("renders one article per project, in content order, each with its title/summary/description/role/outcome/tags", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const articles = screen.getAllByRole("article");
+    expect(articles).toHaveLength(3);
+
+    articles.forEach((article, i) => {
+      const project = threeProjects[i];
+      const scoped = within(article);
+      expect(scoped.getByRole("heading", { level: 3 })).toHaveTextContent(
+        project.title,
+      );
+      expect(scoped.getByText(project.summary)).toBeInTheDocument();
+      expect(scoped.getByText(project.description)).toBeInTheDocument();
+      expect(
+        scoped.getByText(siteFixture.labels.role).closest("dt"),
+      ).toHaveTextContent(siteFixture.labels.role);
+      expect(scoped.getByText(project.role)).toBeInTheDocument();
+      expect(scoped.getByText(project.outcome)).toBeInTheDocument();
+      expect(
+        scoped.getByText(project.tags.join(" \u00b7 ")),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("a project with both links has two links named 'Source code for <title>' and 'Live demo of <title>'", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[0];
+    const source = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    const live = within(article).getByRole("link", {
+      name: "Fixture Demo of Fixture project one",
+    });
+    expect(source).toHaveAttribute("href", "https://example.com/source-one");
+    expect(source).toHaveTextContent("Fixture Source");
+    expect(live).toHaveAttribute("href", "https://example.com/live-one");
+    expect(live).toHaveTextContent("Fixture Demo");
+    expect(within(article).getAllByRole("link")).toHaveLength(2);
+  });
+
+  it("shows ↗ on a link that leaves the site and → on one that stays on it", () => {
+    const mixed: Project = {
+      ...threeProjects[0],
+      links: {
+        source: "https://example.com/external",
+        live: "/internal-page",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([mixed])} />);
+    const article = screen.getByRole("article");
+    expect(
+      within(article).getByRole("link", {
+        name: "Fixture Source for Fixture project one",
+      }),
+    ).toHaveTextContent("Fixture Source\u2197");
+    expect(
+      within(article).getByRole("link", {
+        name: "Fixture Demo of Fixture project one",
+      }),
+    ).toHaveTextContent("Fixture Demo\u2192");
+  });
+
+  it("puts the rest-state underline on the label span only, never on the <a> itself (reviewer round 1 fix 5)", () => {
+    const mixed: Project = {
+      ...threeProjects[0],
+      links: {
+        source: "https://example.com/external",
+        live: "/internal-page",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([mixed])} />);
+    const article = screen.getByRole("article");
+    const link = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    // This `<a>` is `inline-flex`: a decoration class set directly on
+    // it propagates into each blockified child as its own separate
+    // short line (the bug the round 1 fix didn't actually close). The
+    // `<a>` must carry no decoration/underline class at all; only the
+    // label `<span>` (DESIGN.md §6a: underlined at rest, not just on
+    // hover, unlike the Contact profile links) does.
+    expect(link.className).not.toMatch(/\bunderline\b/);
+    expect(link.className).not.toMatch(/\bdecoration-/);
+    const label = within(link).getByText("Fixture Source");
+    expect(label.tagName).toBe("SPAN");
+    expect(label.className).toContain("underline");
+  });
+
+  it("the label's faint rest-state underline sweeps to currentColor on :focus-visible, the same as on hover (carried-over fix, ticket 14 review)", () => {
+    const mixed: Project = {
+      ...threeProjects[0],
+      links: {
+        source: "https://example.com/external",
+        live: "/internal-page",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([mixed])} />);
+    const article = screen.getByRole("article");
+    const link = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    const label = within(link).getByText("Fixture Source");
+    expect(label.className).toContain("group-hover:decoration-current");
+    expect(label.className).toContain("group-focus-visible:decoration-current");
+  });
+
+  it("a project with only a source link renders exactly that one link", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[1];
+    expect(within(article).getAllByRole("link")).toHaveLength(1);
+    expect(
+      within(article).getByRole("link", {
+        name: "Fixture Source for Fixture project two",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("a project with no links renders no link and no empty link container", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[2];
+    expect(within(article).queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("renders a project's link(s) inside the title row, as the title's next sibling (ticket 20)", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[0];
+    const h3 = within(article).getByRole("heading", { level: 3 });
+    const source = within(article).getByRole("link", {
+      name: "Fixture Source for Fixture project one",
+    });
+    const linkContainer = source.closest("span");
+    expect(linkContainer).not.toBeNull();
+    // Same row as the title: one shared parent, link span right after it.
+    expect(linkContainer!.parentElement).toBe(h3.parentElement);
+    expect(h3.nextElementSibling).toBe(linkContainer);
+  });
+
+  it("a project with no links renders the title alone in its row, with no link row at all (ticket 20)", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[2];
+    const h3 = within(article).getByRole("heading", { level: 3 });
+    expect(h3.nextElementSibling).toBeNull();
+    expect(within(article).queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("a project with neither a badge nor links renders no empty top row before its title", () => {
+    const bare: Project = {
+      ...threeProjects[2],
+      badge: undefined,
+    };
+    render(<ProjectsSection site={siteWithProjects([bare])} />);
+    const article = screen.getByRole("article");
+    const h3 = within(article).getByRole("heading", { level: 3 });
+    expect(h3.previousElementSibling).toBeNull();
+  });
+
+  it("a project without a badge shows no badge", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const withBadge = screen.getAllByRole("article")[0];
+    const withoutBadge = screen.getAllByRole("article")[1];
+    expect(within(withBadge).getByText("Mock project")).toBeInTheDocument();
+    expect(within(withoutBadge).queryByText("Mock project")).toBeNull();
+  });
+
+  it("a project with tags: [] shows no tag line", () => {
+    const noTags: Project = { ...threeProjects[0], tags: [] };
+    render(<ProjectsSection site={siteWithProjects([noTags])} />);
+    const article = screen.getByRole("article");
+    const dl = article.querySelector("dl");
+    expect(dl).not.toBeNull();
+    expect(article.lastElementChild).toBe(dl);
+  });
+
+  it("a project with an image visual renders an img with the fixture's src, alt, width and height, inside the panel", () => {
+    const withImage: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "image",
+        src: "/fixtures/project.png",
+        alt: "Fixture alt",
+        width: 10,
+        height: 10,
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withImage])} />);
+    const article = screen.getByRole("article");
+    const img = within(article).getByRole("img", { name: "Fixture alt" });
+    expect(img).toHaveAttribute("src", "/fixtures/project.png");
+    expect(img).toHaveAttribute("width", "10");
+    expect(img).toHaveAttribute("height", "10");
+    expect(img).toHaveAttribute("loading", "lazy");
+    // ticket 16: an image visual has no drawn run, so its panel (the
+    // `<img>` itself, here) carries no motion hook.
+    expect(img).not.toHaveAttribute("data-mini-ui");
+  });
+
+  it("a project with an image but no links renders the panel and no link row", () => {
+    const imageNoLinks: Project = {
+      ...threeProjects[2],
+      visual: {
+        kind: "image",
+        src: "/fixtures/project.png",
+        alt: "Fixture alt",
+        width: 10,
+        height: 10,
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([imageNoLinks])} />);
+    const article = screen.getByRole("article");
+    expect(
+      within(article).getByRole("img", { name: "Fixture alt" }),
+    ).toBeInTheDocument();
+    expect(within(article).queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("a project with no visual still ends on its tags (Review Focus 4)", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const article = screen.getAllByRole("article")[2];
+    const tags = within(article).getByText("Tag four");
+    expect(article.lastElementChild).toBe(tags.closest("p"));
+  });
+
+  it("a project with a terminal visual renders one role=img element named by its label, holding no focusable elements, whose hidden drawing has the command and every result path", () => {
+    const withTerminal: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "terminal",
+        label: "Fixture terminal label",
+        title: "fixture/repo",
+        branch: "main",
+        command: "go test ./...",
+        results: [
+          { path: "internal/one", time: "0.10s" },
+          { path: "internal/two", time: "0.20s" },
+        ],
+        summary: "in 0.30s",
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withTerminal])} />);
+    const article = screen.getByRole("article");
+    const panels = within(article).getAllByRole("img", {
+      name: "Fixture terminal label",
+    });
+    expect(panels).toHaveLength(1);
+    const panel = panels[0];
+    expect(panel).toHaveTextContent("go test ./...");
+    expect(panel).toHaveTextContent("internal/one");
+    expect(panel).toHaveTextContent("internal/two");
+    // ticket 16: the panel itself is the motion hook `<ScrollMotion />`
+    // observes; the command and each result line carry their own
+    // (`data-term-typed`, `data-line-index`) for the run's stagger.
+    expect(panel).toHaveAttribute("data-mini-ui");
+    expect(panel.querySelector("[data-term-typed]")).toHaveTextContent(
+      "go test ./...",
+    );
+    const lines = panel.querySelectorAll("[data-line-index]");
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toHaveAttribute("data-line-index", "0");
+    expect(lines[0].getAttribute("style")).toContain("--i: 0");
+    expect(lines[1]).toHaveAttribute("data-line-index", "1");
+    expect(lines[1].getAttribute("style")).toContain("--i: 1");
+    expect(panel.querySelector("[data-term-pass]")).toHaveTextContent("PASS");
+    expect(within(panel).queryAllByRole("link", { hidden: true })).toHaveLength(
+      0,
+    );
+    expect(
+      within(panel).queryAllByRole("button", { hidden: true }),
+    ).toHaveLength(0);
+    expect(panel.querySelector("[tabindex]")).toBeNull();
+  });
+
+  it(
+    "a terminal visual's drawing sits inside the panel's aria-hidden " +
+      "wrapper (ticket decision: aria-hidden inside role=img; review round 1 " +
+      "finding 6 — this regresses silently without the assertion)",
+    () => {
+      const withTerminal: Project = {
+        ...threeProjects[0],
+        visual: {
+          kind: "terminal",
+          label: "Fixture terminal label",
+          title: "fixture/repo",
+          branch: "main",
+          command: "go test ./...",
+          results: [{ path: "internal/one", time: "0.10s" }],
+          summary: "in 0.10s",
+        },
+      };
+      render(<ProjectsSection site={siteWithProjects([withTerminal])} />);
+      const panel = screen.getByRole("img", { name: "Fixture terminal label" });
+      const hidden = panel.querySelector('[aria-hidden="true"]');
+      expect(hidden).not.toBeNull();
+      expect(hidden).toHaveTextContent("go test ./...");
+    },
+  );
+
+  it("a project with a diff visual renders one role=img element named by its label, holding no focusable elements, whose hidden drawing has the repo, file, both code lines and the comment (with the backticked span as <code>)", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: ["return nil"],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const article = screen.getByRole("article");
+    const panels = within(article).getAllByRole("img", {
+      name: "Fixture diff label",
+    });
+    expect(panels).toHaveLength(1);
+    const panel = panels[0];
+    expect(panel).toHaveTextContent("fixturebot");
+    expect(panel).toHaveTextContent("fixture.go");
+    expect(panel).toHaveTextContent("call(context.Background())");
+    expect(panel).toHaveTextContent("call(ctx)");
+    expect(panel).toHaveTextContent("return nil");
+    // ticket 16: the before/after lines, the thread and the one
+    // context line each carry their own motion hook.
+    expect(panel).toHaveAttribute("data-mini-ui");
+    expect(panel.querySelector('[data-diff-line="before"]')).toHaveTextContent(
+      "call(context.Background())",
+    );
+    expect(panel.querySelector('[data-diff-line="after"]')).toHaveTextContent(
+      "call(ctx)",
+    );
+    expect(panel.querySelector("[data-diff-thread]")).not.toBeNull();
+    expect(panel.querySelector("[data-diff-chip]")).toHaveTextContent(
+      "Applied",
+    );
+    expect(panel.querySelector('[data-diff-line="context"]')).toHaveTextContent(
+      "return nil",
+    );
+    expect(
+      within(panel).getByText("ctx", { selector: "code" }),
+    ).toBeInTheDocument();
+    expect(within(panel).queryAllByRole("link", { hidden: true })).toHaveLength(
+      0,
+    );
+    expect(
+      within(panel).queryAllByRole("button", { hidden: true }),
+    ).toHaveLength(0);
+    expect(panel.querySelector("[tabindex]")).toBeNull();
+  });
+
+  it("the diff's marked substrings render inside their own <mark>, tinted by kind (del/add) — Standards round 1 finding 2: an index=-1 mutation in renderDiffCode must turn this red", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: ["return nil"],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    const marks = panel.querySelectorAll("mark");
+    expect(marks).toHaveLength(2);
+    expect(marks[0]).toHaveTextContent("context.Background()");
+    expect(marks[1]).toHaveTextContent("ctx");
+    expect(marks[0].className).toContain("var(--diff-del)");
+    expect(marks[1].className).toContain("var(--diff-add)");
+  });
+
+  it("a diff visual's drawing sits inside the panel's aria-hidden wrapper (ticket 10 decision, same as terminal/checklist)", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(context.Background())",
+        after: "call(ctx)",
+        marked: { before: "context.Background()", after: "ctx" },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: [],
+      },
+    };
+    render(<ProjectsSection site={siteWithProjects([withDiff])} />);
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    const hidden = panel.querySelector('[aria-hidden="true"]');
+    expect(hidden).not.toBeNull();
+    expect(hidden).toHaveTextContent("fixturebot");
+  });
+
+  it("when marked.before isn't found in before, the line renders in full with no highlight and no crash (ticket 10 Seam A)", () => {
+    const withDiff: Project = {
+      ...threeProjects[0],
+      visual: {
+        kind: "diff",
+        label: "Fixture diff label",
+        repo: "fixturebot",
+        dir: "internal/",
+        file: "fixture.go",
+        hunk: "@@ -1,1 +1,1 @@",
+        signature: "func Fixture(ctx context.Context) error {",
+        before: "call(something.Else())",
+        after: "call(ctx)",
+        marked: {
+          before: "context.Background()",
+          after: "something-else-not-present",
+        },
+        author: "fixturebot",
+        authorInitials: "FB",
+        time: "now",
+        comment: "Pass `ctx` so a cancel stops the retry.",
+        context: [],
+      },
+    };
+    expect(() =>
+      render(<ProjectsSection site={siteWithProjects([withDiff])} />),
+    ).not.toThrow();
+    const panel = screen.getByRole("img", { name: "Fixture diff label" });
+    expect(panel).toHaveTextContent("call(something.Else())");
+    expect(panel.querySelector("mark")).toBeNull();
+  });
+
+  it.each([
+    { done: 0, expected: "0 of 5" },
+    { done: 3, expected: "3 of 5" },
+    { done: 5, expected: "5 of 5" },
+  ])(
+    "a checklist with 5 items, $done done, shows '$expected'",
+    ({ done, expected }) => {
+      const items = [
+        "Item one",
+        "Item two",
+        "Item three",
+        "Item four",
+        "Item five",
+      ].map((text, index) => ({ text, done: index < done })) as [
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+        { text: string; done: boolean },
+      ];
+      const withChecklist: Project = {
+        ...threeProjects[1],
+        visual: {
+          kind: "checklist",
+          label: "Fixture checklist label",
+          title: "Due this week",
+          items,
+        },
+      };
+      render(<ProjectsSection site={siteWithProjects([withChecklist])} />);
+      const article = screen.getByRole("article");
+      const panel = within(article).getByRole("img", {
+        name: "Fixture checklist label",
+      });
+      expect(panel).toHaveTextContent(expected);
+      // ticket 16: a done item carries the motion hook, an open one
+      // doesn't (nothing to tick).
+      expect(panel.querySelectorAll("[data-tick-done]")).toHaveLength(done);
+      expect(panel).toHaveAttribute("data-mini-ui");
+    },
+  );
+
+  it(
+    "a checklist visual's drawing sits inside the panel's aria-hidden " +
+      "wrapper and holds no focusable elements (review round 1 finding 6)",
+    () => {
+      const withChecklist: Project = {
+        ...threeProjects[1],
+        visual: {
+          kind: "checklist",
+          label: "Fixture checklist label",
+          title: "Due this week",
+          items: [{ text: "Item one", done: true }],
+        },
+      };
+      render(<ProjectsSection site={siteWithProjects([withChecklist])} />);
+      const panel = screen.getByRole("img", {
+        name: "Fixture checklist label",
+      });
+      const hidden = panel.querySelector('[aria-hidden="true"]');
+      expect(hidden).not.toBeNull();
+      expect(hidden).toHaveTextContent("Item one");
+      expect(
+        within(panel).queryAllByRole("link", { hidden: true }),
+      ).toHaveLength(0);
+      expect(
+        within(panel).queryAllByRole("button", { hidden: true }),
+      ).toHaveLength(0);
+      expect(panel.querySelector("[tabindex]")).toBeNull();
+    },
+  );
+
+  it("renders one card for a single project, and all six in order for six projects", () => {
+    const one = [threeProjects[0]];
+    const { rerender } = render(
+      <ProjectsSection site={siteWithProjects(one)} />,
+    );
+    expect(screen.getAllByRole("article")).toHaveLength(1);
+
+    const six: Project[] = [
+      ...threeProjects,
+      { ...threeProjects[0], title: "Fixture project four" },
+      { ...threeProjects[1], title: "Fixture project five" },
+      { ...threeProjects[2], title: "Fixture project six" },
+    ];
+    rerender(<ProjectsSection site={siteWithProjects(six)} />);
+    const articles = screen.getAllByRole("article");
+    expect(articles).toHaveLength(6);
+    expect(articles.map((a) => a.querySelector("h3")?.textContent)).toEqual([
+      "Fixture project one",
+      "Fixture project two",
+      "Fixture project three",
+      "Fixture project four",
+      "Fixture project five",
+      "Fixture project six",
+    ]);
+  });
+
+  it("carries a 0/1 row-stagger index hook per card, for ticket 14", () => {
+    render(<ProjectsSection site={siteWithProjects(threeProjects)} />);
+    const articles = screen.getAllByRole("article");
+    expect(articles[0].style.getPropertyValue("--i")).toBe("0");
+    expect(articles[1].style.getPropertyValue("--i")).toBe("1");
+    expect(articles[2].style.getPropertyValue("--i")).toBe("0");
+  });
+
+  it("has no axe violations", async () => {
+    const { container } = render(
+      <ProjectsSection site={siteWithProjects(threeProjects)} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("has no axe violations with image, terminal, checklist and diff visuals", async () => {
+    const withVisuals: Project[] = [
+      {
+        ...threeProjects[0],
+        visual: {
+          kind: "image",
+          src: "/fixtures/project.png",
+          alt: "Fixture alt",
+          width: 10,
+          height: 10,
+        },
+      },
+      {
+        ...threeProjects[1],
+        visual: {
+          kind: "terminal",
+          label: "Fixture terminal label",
+          title: "fixture/repo",
+          branch: "main",
+          command: "go test ./...",
+          results: [{ path: "internal/one", time: "0.10s" }],
+          summary: "in 0.10s",
+        },
+      },
+      {
+        ...threeProjects[2],
+        visual: {
+          kind: "checklist",
+          label: "Fixture checklist label",
+          title: "Due this week",
+          items: [{ text: "Item one", done: true }],
+        },
+      },
+      {
+        ...threeProjects[0],
+        title: "Fixture project with a diff visual",
+        visual: {
+          kind: "diff",
+          label: "Fixture diff label",
+          repo: "fixturebot",
+          dir: "internal/",
+          file: "fixture.go",
+          hunk: "@@ -1,1 +1,1 @@",
+          signature: "func Fixture(ctx context.Context) error {",
+          before: "call(context.Background())",
+          after: "call(ctx)",
+          marked: { before: "context.Background()", after: "ctx" },
+          author: "fixturebot",
+          authorInitials: "FB",
+          time: "now",
+          comment: "Pass `ctx` so a cancel stops the retry.",
+          context: ["return nil"],
+        },
+      },
+    ];
+    const { container } = render(
+      <ProjectsSection site={siteWithProjects(withVisuals)} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});

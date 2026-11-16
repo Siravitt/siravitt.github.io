@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+pnpm-lock.yaml
+design
+docs
+
+# Legacy files this ticket must leave alone; ticket 04 removes them.
+index.html
+privacy.html

@@ -1,0 +1,182 @@
+/* site.css: the page's own parts the kit has no class for, on the kit's tokens only.
+   The build rebuilds each one from shadcn/ui + Tailwind (see ../DESIGN.md). */
+
+/* the placeholder tag: every "[Placeholder]" string Flame replaces in src/content/site.ts.
+   v4: neutral, no longer amber (the accent is amber-yellow now, and a tag in the accent would read as part of the
+   design). The dashed hairline and the mono "[Placeholder]" carry it: "to fill", never design, never an error. */
+.ph { display: inline-block; margin-right: .35em; padding: 0 .4em; border: 1px dashed color-mix(in oklab, var(--ink) 48%, transparent); border-radius: 4px;
+      font: 500 13px/1.6 var(--font-mono); letter-spacing: 0; color: var(--ink); background: color-mix(in oklab, var(--ink) 7%, transparent);
+      vertical-align: .18em; white-space: nowrap; }
+.ph[data-placeholder] { outline: none; }   /* the kit's red guard outline: these tags are the brief's own markers */
+:is(h1, h2, h3, .mo-wh__text) .ph { vertical-align: .32em; }
+
+/* nav: below 1280 the bar shows the mark and the first name (the full name wraps beside five words and the button;
+   the kit asks a name over 17 characters to shorten); the logo's accessible name stays the full name */
+@media (max-width: 1279px) { .nav__surname { display: none; } }
+
+/* hero: the role line above the name (the one quieter level of small text) */
+.hero__role { margin: 0 0 var(--s-5); font-size: var(--t-small); font-weight: 500; color: var(--ink); }
+/* three facts at the foot of the words, on the art frame's bottom line (desktop; system.css hides them under 1024) */
+@media (min-width: 1024px) {
+  .hero--collage .hero__text { align-self: stretch; display: flex; flex-direction: column; }
+  .hero--collage .hero-facts { margin-top: auto; padding-top: var(--s-5); border-top: 1px solid var(--line); }
+}
+.hero-facts dd .ph { vertical-align: .1em; }
+
+/* ---------------------------------------------------------------- buttons (v2: "the button look too simple")
+   The editor direction, three ideas only: a key, the active line, a link that says where it goes.
+   - Primary = a keycap: amber-yellow fill (v4; cyan in v1-v3), a 1px light inner top edge and a 2px darker inner bottom edge (no gradient,
+     no glow), with a small Enter key (↵) after the label. Hover: the key chip sinks 1px and loses its
+     bottom edge (it is "pressed" first), the button steps up 1px. Press: the whole cap sinks, its bottom edge
+     goes, a 2px inner shadow at the top shows it is down.
+   - Secondary = the editor's active line: dark surface, 1px strong border; hover draws the 2px accent line
+     marker down its left edge (the same mark as the hero's highlighted code line) and the ↓ glyph nudges down.
+   - Text links = underline that draws (kit), with ↗ for links that leave the site and → for the rest. */
+html { --r-btn: 6px; }
+.btn--primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / .28), inset 0 -2px 0 rgb(10 12 15 / .24); }
+.btn--primary:active { box-shadow: inset 0 2px 3px rgb(10 12 15 / .26), inset 0 0 0 rgb(10 12 15 / 0); }
+.btn__key { display: inline-grid; place-items: center; min-width: 24px; height: 22px; margin-right: -6px; padding: 0 6px; border-radius: 4px;
+            font: 500 13px/1 var(--font-mono); color: var(--p-accent-ink); background: rgb(10 12 15 / .10);
+            box-shadow: inset 0 0 0 1px rgb(10 12 15 / .30), inset 0 -2px 0 rgb(10 12 15 / .26);
+            transition: transform 150ms var(--ease), box-shadow 150ms var(--ease); }
+.btn--primary:is(:hover, :focus-visible) .btn__key { transform: translateY(1px); box-shadow: inset 0 0 0 1px rgb(10 12 15 / .34), inset 0 0 0 rgb(10 12 15 / 0); }
+.btn--xl .btn__key { min-width: 32px; height: 30px; font-size: 16px; margin-right: -4px; }
+/* the close's big key: the label on the left, the Enter key on the right edge, like a wide keycap */
+.btn--close { justify-content: space-between; padding-inline: var(--s-6) var(--s-5); }
+
+.btn--secondary { position: relative; overflow: hidden; background: var(--p-surface); border-color: var(--line-strong); color: var(--ink); }
+.btn--secondary:hover { background: var(--p-inv-surface); border-color: color-mix(in oklab, var(--ink) 34%, transparent); }
+.btn--secondary::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--p-accent);
+                          transform: scaleY(0); transition: transform 180ms var(--ease); }
+.btn--secondary:is(:hover, :focus-visible)::before { transform: scaleY(1); }
+.btn__glyph { width: 14px; height: 14px; flex: none; color: var(--muted); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+              transition: transform 150ms var(--ease), color 150ms var(--ease); }
+.btn--secondary:is(:hover, :focus-visible) .btn__glyph { color: var(--ink); transform: translateY(2px); }
+@media (max-width: 639px) { .btn-row > .btn--secondary::before { display: none; } }
+
+/* text links: ↗ when the link leaves the site, nudging up-right; the kit's → for the rest */
+.link[href^="http"]::after { content: "\2197"; }
+html:not([data-motion="off"]) .link[href^="http"]:is(:hover, :focus-visible)::after { transform: translate(2px, -2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn__key, .btn__glyph, .btn--secondary::before { transition: none; }
+  .btn--primary:is(:hover, :focus-visible) .btn__key, .btn--secondary:is(:hover, :focus-visible) .btn__glyph { transform: none; }
+}
+
+/* hero editor window (inside the visual) */
+.ed { grid-template-columns: 148px 1fr; min-height: 470px; }
+.ed__tree > span { font-family: var(--font-mono); font-size: 13px; }
+.ed__code { margin: 0; padding: 16px 18px 16px 10px; font: 400 13px/22px var(--font-mono); color: #c9d1d9; white-space: pre; overflow: hidden; }
+.ed__code .ln { display: inline-block; min-width: 100%; padding-left: 8px; border-left: 2px solid transparent; }
+.ed__code [data-placeholder] { outline: none; }   /* code text inside the drawn editor, not page copy */
+/* v2: the highlighted line is drawn by .ed__hl (scroll.css), so it can step down the file as the hero leaves */
+.ed__code .k { color: #ff9f7a; } .ed__code .f { color: #e9ecef; } .ed__code .s { color: #a5e3a0; } .ed__code .c { color: #7d8590; }
+.hero__art .d-note__line { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; }
+.hero__art .d-note__line i { font-style: normal; color: #17673f; font-weight: 600; }
+.hero__art .ly-piece--note { position: absolute; left: var(--s-6); bottom: var(--s-6); width: 300px; }
+/* the pause discs on the lit grounds: a dark ring, so focus reads 3:1 against the bright ground */
+:is(.hero__art, .panel) .loop-pause:focus-visible { outline-color: #0a0c0f; }
+@media (max-width: 639px) {
+  .ed { grid-template-columns: 1fr; min-height: 0; }
+  .ed__tree { display: none; }
+  .ed__code .ln:nth-child(n+9) { display: none; }
+}
+
+/* about: the label heading over the statement, the other paragraphs under it on the split */
+.about__label { margin: 0 0 var(--s-6); color: var(--muted); font-weight: 500; }
+.about__more { margin-top: var(--s-8); }
+.about__more p { margin: 0; color: var(--c-text, var(--ink)); }
+
+/* stack: the grouped list left, the tools' marks right (the section's picture).
+   v3 (Flame: "i dont like this icons"): no pale frame, no white tiles, no brand colours. The tools sit in a dark
+   panel (the card fill and one hairline: a step of the page's own dark, like the editor's side bar), two columns of
+   rows, each row a tile one step darker with a hairline: its one-colour mark (Simple Icons, CC0) in the muted ink,
+   then its name in mono. Rows, not a logo wall: it reads as a file list, not a sticker sheet.
+   Hover: the hairline strengthens, the mark takes the amber-yellow accent (the only colour), the name the ink. */
+.stack__rows { margin: 0; padding: 0; list-style: none; }
+.stack__rows .rows__value { white-space: normal; }
+.stack__art { align-self: start; }
+.stack__board { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); }
+.tool { display: flex; align-items: center; gap: var(--s-3); min-height: 48px; padding: var(--s-2) var(--s-4);
+        border: 1px solid var(--line); border-radius: var(--r-btn, 6px); background: var(--p-surface); color: var(--muted);
+        transition: border-color 150ms var(--ease), color 150ms var(--ease); }
+.tool__mark { width: 24px; height: 20px; flex: none; background: currentColor;
+              -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+.tool__name { font: 400 13px/1.3 var(--font-mono); color: var(--muted); }
+.tool:hover { border-color: var(--line-strong); color: var(--p-accent); }
+.tool:hover .tool__name { color: var(--ink); }
+@media (min-width: 640px) {
+  .stack__art { padding: var(--s-6); background: var(--p-surface); border: 1px solid var(--line); border-radius: 8px; }
+  .stack__board { gap: var(--s-3); }
+  .tool { background: var(--bg); min-height: 64px; padding-inline: var(--s-5); }
+}
+@media (min-width: 1280px) {
+  /* the panel ends near the words' last row, so the section reads full and keeps the page's gap rhythm */
+  .stack__art { padding: var(--s-8); }
+  .tool { min-height: 88px; gap: var(--s-4); padding-inline: var(--s-6); }
+  .tool__mark { width: 40px; height: 32px; }
+  .tool__name { font-size: 14px; }
+}
+
+/* projects: open cards, the facts then the work on a lit panel; a project with no picture or links
+   simply ends on its tags (nothing empty is drawn) */
+.proj__top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-4); min-height: 32px; }
+.proj__badge { flex: none; font: 500 13px/1 var(--font-mono); color: var(--muted); border: 1px solid var(--line); background: transparent; }
+.proj__links { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); }
+.proj__links .link { font-size: var(--t-small); font-weight: 500; }
+.proj h3 { margin: 0; font-size: var(--t-card); font-weight: 500; line-height: 1.4; }
+/* in a title the tag sits on its own line, so every title starts on the card's left line */
+:is(.proj, .exp__body) h3 .ph { display: table; margin-bottom: var(--s-1); vertical-align: 0; }
+.proj__summary { margin: var(--s-2) 0 0; font-weight: 500; }
+.proj__desc { margin: var(--s-1) 0 0; max-width: 58ch; color: var(--c-text, var(--ink)); }
+.proj__meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); margin: var(--s-4) 0 0; }
+.proj__meta dt { font-size: var(--t-label); font-weight: 500; color: var(--muted); }
+.proj__meta dd { margin: 2px 0 0; font-size: var(--t-body); }
+/* stack tags: mono words split by a middle dot (shadcn: plain text, no Badge box, so the words keep the line) */
+.proj__tags { margin: var(--s-3) 0 0; font: 400 var(--t-small)/1.6 var(--font-mono); color: var(--muted); }
+.proj > .panel { margin-top: var(--s-6); }
+#projects .panel { --p-h: 228px; }
+
+/* experience: the period on the left line, the role and its points on the split line */
+.exp { list-style: none; margin: 0; padding: 0; }
+.exp__item { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); padding-block: var(--s-5); border-bottom: 1px solid var(--line); }
+.exp__item:first-child { padding-top: 0; }
+.exp__when { grid-column: 1 / span 6; display: flex; align-items: center; gap: var(--s-3); align-self: start; min-height: 28px; }
+.exp__period { font: 400 var(--t-small)/1.4 var(--font-mono); color: var(--muted); }
+.exp__now { font: 500 13px/1 var(--font-mono); color: var(--accent); background: transparent; border: 1px solid color-mix(in oklab, var(--accent) 55%, transparent); }
+.exp__body { grid-column: 7 / span 6; }
+.exp__body h3 { margin: 0; font-size: var(--t-card); font-weight: 500; line-height: 1.4; }
+.exp__points { margin: var(--s-2) 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.exp__body .proj__tags { margin-top: var(--s-3); }
+
+/* contact links under the close's line */
+.contact__links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); }
+.contact__links .link { display: inline-flex; align-items: center; gap: var(--s-2); font-weight: 500; }
+
+/* inner pages (privacy, 404): one screen with the slim footer inside it, the words on the left line.
+   They are a policy and an error page, so they keep to the words: no picture, no second section. */
+.page-inner .hero.doc { height: auto; min-height: calc(100svh - 88px); }
+.doc .doc__body { max-width: 760px; display: grid; gap: var(--s-5); align-content: start; }
+.doc h1 { margin: 0; font-size: var(--t-h1); }
+.doc__text { margin: 0; font-size: var(--t-lead); line-height: 1.6; max-width: 62ch; color: var(--c-text, var(--ink)); }
+.doc__back { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; font-size: var(--t-small); font-weight: 500; color: var(--muted);
+             text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
+.doc__back:hover, .doc__back:focus-visible { color: var(--ink); text-decoration-color: currentColor; }
+.doc__code { margin: 0; font: 400 clamp(64px, 9vw, 128px)/1 var(--font-mono); letter-spacing: -0.04em; color: var(--accent); }
+.doc .btn-row { margin-top: var(--s-3); }
+.footer--slim { padding-block: var(--s-6); }
+.footer--slim .footer__legal { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* the must-keep Daedalus line: quiet, never hidden, AA on the footer ground */
+.daedalus { margin: 0; color: var(--muted); font-size: var(--t-small); }
+.daedalus__link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+.daedalus__link:hover, .daedalus__link:focus-visible { text-decoration-color: currentColor; }
+
+@media (max-width: 1023px) {
+  .exp__when { grid-column: 1 / -1; margin-bottom: var(--s-2); }
+  .exp__body { grid-column: 1 / -1; }
+}
+@media (max-width: 639px) {
+  #projects .panel { --p-h: 200px; }
+  .proj__top { flex-wrap: wrap; }
+}

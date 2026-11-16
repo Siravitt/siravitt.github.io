@@ -1,0 +1,128 @@
+/**
+ * Compile-time guards for the content shape
+ * (docs/tickets/02-content-model.md, acceptance criterion 2). This file
+ * has no `describe`/`it`, so Vitest never runs it (its name doesn't match
+ * `src/**\/*.test.{ts,tsx}`); only `pnpm typecheck` does. Each
+ * `@ts-expect-error` fails the build the moment the compiler stops
+ * rejecting the case it names, which is the point: these are the shape's
+ * guarantees, not a one-off check.
+ */
+import type {
+  ExperienceEntry,
+  Project,
+  ProjectVisual,
+  StackItem,
+} from "./site";
+
+// The compiler rejects an image visual with no alt text.
+// @ts-expect-error an image visual requires alt text
+export const rejectsImageVisualWithoutAlt: ProjectVisual = {
+  kind: "image",
+  src: "/fixtures/example.png",
+  width: 10,
+  height: 10,
+};
+
+// The compiler rejects an experience entry with only 1 highlight.
+export const rejectsOneHighlight: ExperienceEntry = {
+  role: "Role",
+  organisation: "Organisation",
+  start: "2024",
+  // @ts-expect-error highlights must have 2 to 4 items, not 1
+  highlights: ["Only one highlight"],
+};
+
+// The compiler rejects an experience entry with 5 highlights.
+export const rejectsFiveHighlights: ExperienceEntry = {
+  role: "Role",
+  organisation: "Organisation",
+  start: "2024",
+  // @ts-expect-error highlights must have 2 to 4 items, not 5
+  highlights: ["One", "Two", "Three", "Four", "Five"],
+};
+
+// The compiler rejects a stack icon slug outside the approved list.
+export const rejectsUnknownStackIcon: StackItem = {
+  name: "Rust",
+  // @ts-expect-error icon must be one of the approved Simple Icons slugs
+  icon: "rust",
+};
+
+// The compiler rejects a project with no title.
+// @ts-expect-error title is required on a project
+export const rejectsProjectWithoutTitle: Project = {
+  summary: "Summary",
+  description: "Description",
+  role: "Role",
+  outcome: "Outcome",
+  tags: [],
+};
+
+// The compiler accepts a project with no links, visual, badge or tags
+// content: every optional field left out cleanly (DESIGN.md §8).
+export const acceptsMinimalProject: Project = {
+  title: "Title",
+  summary: "Summary",
+  description: "Description",
+  role: "Role",
+  outcome: "Outcome",
+  tags: [],
+};
+
+// The compiler rejects a terminal visual with no command.
+// @ts-expect-error a terminal visual requires a command
+export const rejectsTerminalVisualWithoutCommand: ProjectVisual = {
+  kind: "terminal",
+  label: "Fixture terminal label",
+  title: "fixture/repo",
+  branch: "main",
+  results: [{ path: "fixture/path", time: "0.10s" }],
+  summary: "in 0.10s",
+};
+
+// The compiler rejects a checklist visual with 0 items.
+export const rejectsChecklistVisualWithoutItems: ProjectVisual = {
+  kind: "checklist",
+  label: "Fixture checklist label",
+  title: "Fixture checklist",
+  // @ts-expect-error a checklist needs at least 1 item, not 0
+  items: [],
+};
+
+// The compiler rejects a diff visual with no `before` line.
+// @ts-expect-error a diff visual requires a `before` line
+export const rejectsDiffVisualWithoutBefore: ProjectVisual = {
+  kind: "diff",
+  label: "Fixture diff label",
+  repo: "fixture",
+  dir: "internal/",
+  file: "fixture.go",
+  hunk: "@@ -1,1 +1,1 @@",
+  signature: "func Fixture() {",
+  after: "return nil",
+  marked: { before: "old", after: "new" },
+  author: "fixturebot",
+  authorInitials: "FB",
+  time: "now",
+  comment: "Fixture comment",
+  context: [],
+};
+
+// The compiler rejects a diff visual with no `label`.
+// @ts-expect-error a diff visual requires a label
+export const rejectsDiffVisualWithoutLabel: ProjectVisual = {
+  kind: "diff",
+  repo: "fixture",
+  dir: "internal/",
+  file: "fixture.go",
+  hunk: "@@ -1,1 +1,1 @@",
+  signature: "func Fixture() {",
+  before: "old call()",
+  after: "new call()",
+  marked: { before: "old", after: "new" },
+  author: "fixturebot",
+  authorInitials: "FB",
+  time: "now",
+  comment: "Fixture comment",
+  context: [],
+};
